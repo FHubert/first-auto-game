@@ -36,7 +36,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] G-001 `todo` Balans: make sim pokazuje ~8,6 interstitiali/DAU przy interstitial_every_n_rounds=3 — za dużo vs KPI cel 3,0; zaproponować cap (np. co 5 rund + min 120 s) i potwierdzić symulacją. Skill: game-economy
 - [ ] T-005 `todo` Zweryfikować w edytorze Godot 4.7 klucze export_presets.cfg (Android/iOS) i nazwę pliku editor settings + klucz android_sdk_path użyty w workflowach; poprawić jeśli się różnią. Skill: godot-build
 - [ ] T-006 `todo` Postawić pierwszy tag v0.1.0 (git describe w prompcie biweekly-release wymaga istniejącego taga). Skill: store-release
-- [ ] T-009 `review` CLAUDE.md/skille: gh pr → gh api REST (GraphQL 403 w CCR) → PR #TBD
+- [ ] T-009 `review` CLAUDE.md/skille: gh pr → gh api REST (GraphQL 403 w CCR) → PR #7
 - [ ] T-007 `todo` Sprawdzić czy deny Edit(fastlane/Fastfile) itd. w .claude/settings.json działa jak zamierzono (metadata edytowalne, lanes nie); patrz ZWERYFIKUJ w docs/AUTOMATION.md. Skill: godot-test
 - [ ] T-008 `review` build-android/build-ios: trigger push usunięty do czasu konfiguracji sekretów (Faza 4); przywrócić w zadaniu T-002. → PR #6
 
