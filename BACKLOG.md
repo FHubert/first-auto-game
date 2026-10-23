@@ -36,7 +36,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `tools/balance_sim.py` czyta nowe klucze (`theme_cost_base/growth`, koszty boosterów, `par_bonus_coins`, `daily_reward_multipliers`, `daily_challenge_coins`, `interstitial_min_seconds`, `interstitial_min_level`). `make sim` kończy się exit 0. W PR tabela: mediany monet d1/d7/d30, dzień zakupu 1. i 3. motywu (cel ~2 i ~12–14), impresje/DAU (interstitial ≤ 2,5, łącznie ≥ 3,0). `tools/test_tools.py` zielone. ~200 linii.
   Skill: `game-economy`
 
-- [ ] G-001 `todo` Balans: cap interstitiali (zależy od G-011)
+- [ ] G-001 `in_progress` Balans: cap interstitiali (zależy od G-011)
   KA: `interstitial_every_n_rounds`=5, `interstitial_min_seconds`=120, nowy klucz `interstitial_min_level`=8. `Ads.maybe_show_interstitial` nie pokazuje reklamy przy `ads_removed` ani po rewarded w tej samej przerwie. Testy w `test_ad_service.gd`; `make sim` pokazuje ≤ 2,5 interstitiala/DAU (poprzednio ~8,6 przy co 3 rundy). ~120 linii.
   Skill: `game-economy` + `ads-iap`
 
