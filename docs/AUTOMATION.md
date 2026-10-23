@@ -76,7 +76,7 @@ Uwagi do promptów:
 
 - **1 task na noc** (`nightly-dev`), jedno zadanie backlogu na przebieg. Zadanie większe niż limit się dzieli (wpis do backlogu), nie rozciąga.
 - **<= 300 zmienionych linii kodu na PR** (bez assetów i lock-files). Szablon PR (`.github/PULL_REQUEST_TEMPLATE.md`) ma tę pozycję na checkliście.
-- **Auto-merge tylko dla PR z labelem `bot`** (`gh pr create --fill --label bot`, potem `gh pr merge --auto --squash`). PR bez labela (Twoje własne) scalasz ręcznie. Auto-merge zadziała tylko, gdy w repo jest włączone "Allow auto-merge" i wymagane checki w branch protection (pkt 4).
+- **Auto-merge tylko dla PR z labelem `bot`** (PR przez `gh api` z etykietą `bot`, potem auto-merge squash — patrz CLAUDE.md → "GitHub: tylko REST"; `gh pr create`/`gh pr merge` w sesjach CCR zwracają 403). PR bez labela (Twoje własne) scalasz ręcznie. Auto-merge zadziała tylko, gdy w repo jest włączone "Allow auto-merge" i wymagane checki w branch protection (pkt 4).
 - Routing modelu obniża koszt: orkiestrator (opus/fable) tylko planuje i sprawdza; implementacja idzie do `sonnet`, a trywialne, mechaniczne prace (<50 linii) do `haiku` (ADR-006).
 - Poziom wydatków: brak twardego limitu w repo. Pilnuj zużycia w ustawieniach konta; jeśli rośnie, najpierw zmniejsz częstotliwość `nightly-dev` (np. `0 2 * * 1-5`).
 - `make check` w hooku `pre_push.sh` dubluje CI przed pushem. To celowy koszt czasu (kilka minut), a nie tokenów.
@@ -120,7 +120,7 @@ Test hooków na sucho: `echo '{"tool_input":{"command":"git push origin x"}}' | 
 ## 6. Jak zatrzymać pętlę
 
 1. **Normalnie:** wyłącz (lub usuń) scheduled task na liście zadań w Claude Code Remote. Trwający przebieg dokończy się albo sam wygaśnie. Zacznij od `nightly-dev`; analityka i release są mało kosztowne.
-2. **Awaryjnie, gdy do `main` coś trafia nie tak:** `gh repo edit --enable-auto-merge=false` (nic już nie scali się samo), a w branch protection wymagaj review. Zamknij otwarte PR z labelem `bot`: `gh pr list --label bot --json number --jq '.[].number' | xargs -n1 gh pr close`.
+2. **Awaryjnie, gdy do `main` coś trafia nie tak:** `gh repo edit --enable-auto-merge=false` (nic już nie scali się samo), a w branch protection wymagaj review. Zamknij otwarte PR z labelem `bot`: `gh api "repos/FHubert/first-auto-game/issues?labels=bot&state=open" --jq '.[] | select(.pull_request) | .number' | xargs -I{} gh api -X PATCH repos/FHubert/first-auto-game/pulls/{} -f state=closed`.
 3. **Wydania:** nie zatwierdzaj `production`. Samego taga nie da się cofnąć bezpiecznie po starcie `release.yml`; anuluj workflow: `gh run cancel <id>`.
 4. **Sekrety:** w razie podejrzenia wycieku unieważnij je u źródła (Play service account, klucz ASC, keystore) i wyczyść GitHub Secrets.
 
@@ -132,7 +132,7 @@ Definicja: 3 noce z rzędu czerwone, czyli `nightly-dev` nie doprowadził do zme
 2. Zbierz fakty:
    ```bash
    gh run list --workflow=test.yml --limit 10
-   gh pr list --state open --label bot --json number,headRefName,statusCheckRollup
+   gh api "repos/FHubert/first-auto-game/issues?labels=bot&state=open" --jq '.[] | select(.pull_request) | "\(.number) \(.title)"'
    gh run view <id> --log-failed | tail -120
    tail -40 docs/LOG.md
    ```
