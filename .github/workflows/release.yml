@@ -65,7 +65,7 @@ jobs:
           done < "$out.full"
           rm "$out.full"
           cat "$out"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: changelog
           path: changelog-out/
