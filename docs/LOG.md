@@ -51,4 +51,5 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 - P1: T-019 scena Level + BoardView/TubeView (motyw z themes.json, tap/przelew/shake, sygnał `pour_finished`, klucze `pour_anim_seconds`/`tube_lift_seconds`/`shake_seconds`), 132 testy, QA PASS (3 seedy 200/200) → PR #26 (auto-merge).
 - P1: T-020 HUD + LevelComplete + przepływ poziomów/zapis/streak (137 testów, QA PASS) → PR #27 (auto-merge). #26 zmergowany w trakcie sesji.
 - P1: T-021 StuckPanel + Boosters (czysta klasa) + hint/+probówka w HUD + pomiń po restartach, 145 testów, QA: KA OK (uwaga o GDD — mechaniki już opisane) → PR #28 (auto-merge). #27 zmergowany.
-- Inbox: T-035 pełna animacja przelewu, T-038 testy shop_requested, T-036 szum FNV w logu testów, T-037 test wygranej bez „idealnie" + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).
+- P1: G-005 FTUE TutorialFlow (maszyna stanów) + overlay z dłonią + ukrycie boosterów w tutorialu, 150 testów, QA PASS → PR #29 (auto-merge). #28 zmergowany.
+- Inbox: T-035 pełna animacja przelewu, T-039 sygnał tube_deselected, T-038 testy shop_requested, T-036 szum FNV w logu testów, T-037 test wygranej bez „idealnie" + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).

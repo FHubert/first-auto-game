@@ -84,6 +84,12 @@ func refresh() -> void:
 	undo_button.disabled = charges <= 0
 
 
+func set_boosters_visible(v: bool) -> void:
+	if hint_button != null:
+		hint_button.visible = v
+		extra_tube_button.visible = v
+
+
 func _make_label(parent: Control) -> Label:
 	var l := Label.new()
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
