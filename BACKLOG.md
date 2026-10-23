@@ -36,7 +36,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: do `config.gd` dodane klucze z GDD → Ekonomia → Klucze GameConfig (generator/progresja: `tube_capacity`, `empty_tubes`, `tutorial_colors`, `colors_start`, `colors_max`, `levels_per_extra_color`, `breather_every`, `breather_factor`, `min_moves_factor_easy/hard`, `gen_max_attempts`, `solver_max_states`, `solver_fallback_weight`, `campaign_seed`, `daily_seed_salt`, `daily_colors`, `daily_min_moves_factor`). `ContentGenerator.level_params(level) -> Dictionary`. Test sprawdza wartości z tabeli Progresja dla poziomów 1, 2, 5, 8, 19, 20, 40, 56. `make test` zielone. ~150 linii.
   Skill: `game-economy`
 
-- [ ] G-003 `todo` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002)
+- [ ] G-003 `in_progress` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002)
   KA: `generate(seed, level)` zwraca payload wg ADR-009. Testy: (a) determinizm, czyli 2 wywołania dają identyczne `tubes`; (b) golden hash dla poziomów 1, 2, 10, 50; (c) poziomy 1..200: odtworzenie `solution` przez `SortBoard` kończy się `is_won()` w `min_moves` ruchach, `attempt < gen_max_attempts`; (d) ≥ 95 % poziomów spełnia `min_moves >= floor` (odsetek w logu); (e) czas ≤ 500 ms/poziom headless (zmierzony i wypisany). Placeholder `is_solvable` zastąpiony. `make test` zielone. ~260 linii.
   Skill: `godot-dev`
 
