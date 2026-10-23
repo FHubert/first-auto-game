@@ -71,7 +71,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `daily_rewards.gd` (czysta klasa, dzień UTC wstrzykiwany). Testy: dni 1..7 dają 50/50/100/100/150/150/300 (`daily_reward_multipliers`); drugi odbiór tego samego dnia jest odrzucony; przerwa 1 dnia daje `can_save_streak` (max `streak_save_max_per_week`, okno liczone od `GameState.streak_save_window_day`); przerwa ≥ 2 dni resetuje do 1; `streak_best` jest aktualizowany. Klucze dopisane do `config.gd`. `make test` zielone. ~220 linii.
   Skill: `game-economy`
 
-- [ ] G-007 `todo` DailyChallenge: Poziom dnia z seeda dnia UTC (zależy od G-003, T-017)
+- [ ] G-007 `in_progress` DailyChallenge: Poziom dnia z seeda dnia UTC (zależy od G-003, T-017)
   KA: `daily_challenge.gd`: `level_for_day(utc_day)` (`daily_colors`, `daily_min_moves_factor`), `complete(state, utc_day, result)` przyznaje `daily_challenge_coins` raz na dzień. Testy: ten sam dzień daje identyczny poziom; dni 20750..20779 dają 30 różnych, rozwiązywalnych poziomów; drugie ukończenie tego samego dnia nie daje monet; `daily_unlock_level`=3 jest respektowany. `make test` zielone. ~160 linii.
   Skill: `game-economy`
 
