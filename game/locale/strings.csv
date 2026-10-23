@@ -1,0 +1,38 @@
+keys,en,pl,de
+hud_level,Level %d,Poziom %d,Level %d
+hud_moves,Moves: %d,Ruchy: %d,Züge: %d
+btn_undo,Undo (%d),Cofnij (%d),Zurück (%d)
+btn_restart,Restart,Restart,Neustart
+btn_pause,Pause,Pauza,Pause
+btn_hint,Hint (%d),Podpowiedź (%d),Tipp (%d)
+btn_extra_tube,+Tube (%d),+Probówka (%d),+Röhrchen (%d)
+lc_title,Level %d complete!,Poziom %d ukończony!,Level %d geschafft!
+lc_coins,+%d coins,+%d monet,+%d Münzen
+lc_perfect,Perfect!,Idealnie!,Perfekt!
+btn_next,Next,Dalej,Weiter
+btn_menu,Menu,Menu,Menü
+stuck_title,You're stuck,Utknąłeś,Du steckst fest
+stuck_distance,%d moves to goal,%d ruchów od celu,%d Züge bis zum Ziel
+stuck_no_solution,No solution from this state,Brak rozwiązania z tego stanu,Von hier aus gibt es keine Lösung
+btn_undo_refill,+%d undos (%d),+%d cofnięć (%d),+%d Zurück (%d)
+btn_skip,Skip,Pomiń,Überspringen
+btn_close,Close,Zamknij,Schließen
+tut_pick_source,Tap the highlighted tube,Stuknij podświetloną probówkę,Tippe auf das markierte Röhrchen
+tut_pick_target,Now tap where to pour,"Teraz stuknij, gdzie przelać",Tippe jetzt auf das Ziel
+tut_finish,Finish it - sort the colors!,Dokończ — posortuj kolory!,Mach weiter - sortiere die Farben!
+home_play,Play: level %d,Graj: poziom %d,Spielen: Level %d
+home_streak,Streak: %d,Streak: %d,Serie: %d
+home_theme_progress,to next theme: %d / %d,do następnego motywu: %d / %d,bis zum nächsten Thema: %d / %d
+btn_themes,Themes,Motywy,Themen
+btn_shop,Shop,Sklep,Shop
+btn_settings,Settings,Ustawienia,Einstellungen
+set_music,Music,Muzyka,Musik
+set_sfx,Sound effects,Dźwięki,Geräusche
+set_haptics,Vibration,Wibracje,Vibration
+set_language,Language,Język,Sprache
+set_lang_system,System,Systemowy,System
+set_lang_en,English,English,English
+set_lang_pl,Polski,Polski,Polski
+set_lang_de,Deutsch,Deutsch,Deutsch
+btn_back,Back,Wróć,Zurück
+set_version,v%s (%s),v%s (%s),v%s (%s)

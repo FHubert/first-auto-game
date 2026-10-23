@@ -5,13 +5,10 @@ extends Control
 signal back_pressed
 signal settings_changed(key: String)
 
-const TEXT_MUSIC: String = "Muzyka"
-const TEXT_SFX: String = "Dźwięki"
-const TEXT_HAPTICS: String = "Wibracje"
-const TEXT_BACK: String = "Wróć"
-const TEXT_VERSION: String = "v%s (%s)"
-## [etykieta, kod locale]
-const LOCALES: Array = [["Systemowy", ""], ["English", "en"], ["Polski", "pl"], ["Deutsch", "de"]]
+## [klucz etykiety, kod locale]
+const LOCALES: Array = [
+	["set_lang_system", ""], ["set_lang_en", "en"], ["set_lang_pl", "pl"], ["set_lang_de", "de"]
+]
 const FONT_SIZE: int = 32
 const MARGIN: int = 48
 
@@ -25,6 +22,7 @@ var back_button: Button
 
 
 func _ready() -> void:
+	Locale.ensure_installed()
 	if state == null:
 		state = SaveSystem.load()
 	_build()
@@ -56,26 +54,26 @@ func _build() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 24)
 	margin.add_child(box)
-	music_toggle = _toggle(box, TEXT_MUSIC, "music_on")
-	sfx_toggle = _toggle(box, TEXT_SFX, "sfx_on")
-	haptics_toggle = _toggle(box, TEXT_HAPTICS, "haptics_on")
+	music_toggle = _toggle(box, tr("set_music"), "music_on")
+	sfx_toggle = _toggle(box, tr("set_sfx"), "sfx_on")
+	haptics_toggle = _toggle(box, tr("set_haptics"), "haptics_on")
 	locale_option = OptionButton.new()
 	locale_option.add_theme_font_size_override("font_size", FONT_SIZE)
 	for entry: Array in LOCALES:
-		locale_option.add_item(entry[0])
+		locale_option.add_item(tr(entry[0]))
 	locale_option.item_selected.connect(
 		func(idx: int) -> void: set_setting("locale", LOCALES[idx][1])
 	)
 	box.add_child(locale_option)
 	version_label = Label.new()
-	version_label.text = TEXT_VERSION % [Version.VERSION, Version.BUILD_INFO]
+	version_label.text = tr("set_version") % [Version.VERSION, Version.BUILD_INFO]
 	version_label.add_theme_font_size_override("font_size", FONT_SIZE)
 	box.add_child(version_label)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
 	back_button = Button.new()
-	back_button.text = TEXT_BACK
+	back_button.text = tr("btn_back")
 	back_button.custom_minimum_size = Vector2(0, 100)
 	back_button.add_theme_font_size_override("font_size", FONT_SIZE)
 	back_button.pressed.connect(func() -> void: back_pressed.emit())

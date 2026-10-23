@@ -5,12 +5,6 @@ extends Control
 signal next_pressed
 signal home_pressed
 
-# Teksty literalami do czasu lokalizacji (T-023: podmiana na tr()).
-const TEXT_TITLE: String = "Poziom %d ukonczony!"
-const TEXT_COINS: String = "+%d monet"
-const TEXT_PERFECT: String = "Idealnie!"
-const TEXT_NEXT: String = "Dalej"
-const TEXT_HOME: String = "Menu"
 const SAMPLE_COINS: int = 15
 const SAMPLE_LEVEL: int = 2
 
@@ -22,17 +16,18 @@ const SAMPLE_LEVEL: int = 2
 
 
 func _ready() -> void:
-	next_button.text = TEXT_NEXT
+	Locale.ensure_installed()
+	next_button.text = tr("btn_next")
 	next_button.pressed.connect(func() -> void: next_pressed.emit())
-	home_button.text = TEXT_HOME
+	home_button.text = tr("btn_menu")
 	home_button.pressed.connect(func() -> void: home_pressed.emit())
 	if get_parent() == get_tree().root:
 		show_result(SAMPLE_COINS, true, SAMPLE_LEVEL)
 
 
 func show_result(coins: int, perfect: bool, level_no: int) -> void:
-	title_label.text = TEXT_TITLE % level_no
-	coins_label.text = TEXT_COINS % coins
-	perfect_label.text = TEXT_PERFECT
+	title_label.text = tr("lc_title") % level_no
+	coins_label.text = tr("lc_coins") % coins
+	perfect_label.text = tr("lc_perfect")
 	perfect_label.visible = perfect
 	visible = true

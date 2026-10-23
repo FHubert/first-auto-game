@@ -7,12 +7,6 @@ signal themes_pressed
 signal shop_pressed
 signal settings_pressed
 
-const TEXT_PLAY: String = "Graj: poziom %d"
-const TEXT_STREAK: String = "Streak: %d"
-const TEXT_THEME: String = "do następnego motywu: %d / %d"
-const TEXT_THEMES: String = "Motywy"
-const TEXT_SHOP: String = "Sklep"
-const TEXT_SETTINGS: String = "Ustawienia"
 const ICON_COIN: String = "res://assets/sprites/ui/icon_coin.svg"
 const ICON_STREAK: String = "res://assets/sprites/ui/icon_streak.svg"
 const FONT_SIZE: int = 32
@@ -32,6 +26,7 @@ var settings_button: Button
 
 
 func _ready() -> void:
+	Locale.ensure_installed()
 	if state == null:
 		state = SaveSystem.load()
 	_build()
@@ -39,13 +34,13 @@ func _ready() -> void:
 
 
 func refresh() -> void:
-	play_button.text = TEXT_PLAY % state.level
+	play_button.text = tr("home_play") % state.level
 	coins_label.text = str(state.coins)
-	streak_label.text = TEXT_STREAK % state.streak_days
+	streak_label.text = tr("home_streak") % state.streak_days
 	var cost: int = Economy.theme_cost(state.themes_owned.size())
 	theme_progress.max_value = cost
 	theme_progress.value = mini(state.coins, cost)
-	theme_label.text = TEXT_THEME % [state.coins, cost]
+	theme_label.text = tr("home_theme_progress") % [state.coins, cost]
 
 
 func _build() -> void:
@@ -72,11 +67,11 @@ func _build() -> void:
 	theme_progress.custom_minimum_size = Vector2(0, 32)
 	box.add_child(theme_progress)
 	themes_button = _button(box, themes_pressed)
-	themes_button.text = TEXT_THEMES
+	themes_button.text = tr("btn_themes")
 	shop_button = _button(box, shop_pressed)
-	shop_button.text = TEXT_SHOP
+	shop_button.text = tr("btn_shop")
 	settings_button = _button(box, settings_pressed)
-	settings_button.text = TEXT_SETTINGS
+	settings_button.text = tr("btn_settings")
 
 
 func _icon_label(parent: Control, icon_path: String) -> Label:

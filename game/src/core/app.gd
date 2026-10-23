@@ -18,6 +18,8 @@ var _screen_name: String = ""
 func _ready() -> void:
 	if state == null:
 		state = SaveSystem.load()
+	Locale.ensure_installed()
+	Locale.apply_setting(str(state.settings.get("locale", "")))
 	if bool(state.settings.get("tutorial_done", false)):
 		show_home()
 	else:
@@ -52,7 +54,14 @@ func show_level() -> void:
 func show_settings() -> void:
 	var screen: SettingsScreen = _swap(SCENE_SETTINGS, SCREEN_SETTINGS)
 	screen.back_pressed.connect(show_home)
+	screen.settings_changed.connect(_on_setting_changed)
 	add_child(screen)
+
+
+func _on_setting_changed(key: String) -> void:
+	if key == "locale":
+		Locale.apply_setting(str(state.settings.get("locale", "")))
+		show_settings()
 
 
 ## Zwalnia biezacy ekran, tworzy nowy ze stanem (przed add_child).
