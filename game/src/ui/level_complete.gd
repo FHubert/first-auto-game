@@ -4,6 +4,7 @@ extends Control
 
 signal next_pressed
 signal home_pressed
+signal double_pressed
 
 const SAMPLE_COINS: int = 15
 const SAMPLE_LEVEL: int = 2
@@ -11,6 +12,7 @@ const SAMPLE_LEVEL: int = 2
 @onready var title_label: Label = $Panel/Box/TitleLabel
 @onready var coins_label: Label = $Panel/Box/CoinsLabel
 @onready var perfect_label: Label = $Panel/Box/PerfectLabel
+@onready var double_button: Button = $Panel/Box/DoubleButton
 @onready var next_button: Button = $Panel/Box/NextButton
 @onready var home_button: Button = $Panel/Box/HomeButton
 
@@ -19,10 +21,12 @@ func _ready() -> void:
 	Locale.ensure_installed()
 	next_button.text = tr("btn_next")
 	next_button.pressed.connect(func() -> void: next_pressed.emit())
+	double_button.pressed.connect(func() -> void: double_pressed.emit())
 	home_button.text = tr("btn_menu")
 	home_button.pressed.connect(func() -> void: home_pressed.emit())
 	if get_parent() == get_tree().root:
 		show_result(SAMPLE_COINS, true, SAMPLE_LEVEL)
+		set_double_offer(SAMPLE_COINS, true)
 
 
 func show_result(coins: int, perfect: bool, level_no: int, title: String = "") -> void:
@@ -30,4 +34,10 @@ func show_result(coins: int, perfect: bool, level_no: int, title: String = "") -
 	coins_label.text = tr("lc_coins") % coins
 	perfect_label.text = tr("lc_perfect")
 	perfect_label.visible = perfect
+	double_button.visible = false
 	visible = true
+
+
+func set_double_offer(bonus: int, offered: bool) -> void:
+	double_button.text = tr("btn_double") % bonus
+	double_button.visible = offered and bonus > 0

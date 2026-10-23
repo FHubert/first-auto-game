@@ -73,15 +73,25 @@ func test_no_coins_requests_shop() -> void:
 
 
 func test_skip_unlocks_after_restarts_and_advances() -> void:
-	_level.stuck_panel.show_for(_level.round)
+	_level.stuck_panel.show_for(_level.round, true, _level._ad_offers())
 	assert_bool(_level.stuck_panel.skip_button.visible).is_false()
 	var lvl: int = _level.state.level
 	_level.skip_level()
 	assert_int(_level.state.level).is_equal(lvl)
 	for i in int(GameConfig.get_value("skip_unlock_restarts")):
 		_level.restart()
-	_level.stuck_panel.show_for(_level.round)
+	_level.stuck_panel.show_for(_level.round, true, _level._ad_offers())
 	assert_bool(_level.stuck_panel.skip_button.visible).is_true()
 	_level.skip_level()
 	assert_int(_level.state.level).is_equal(lvl + 1)
 	assert_int(SaveSystem.load().level).is_equal(lvl + 1)
+
+
+func test_show_for_respects_offers() -> void:
+	var panel: StuckPanel = _level.stuck_panel
+	panel.show_for(_level.round, true, {"extra_tube": true, "undo_refill": false, "skip": false})
+	assert_bool(panel.extra_tube_ad_button.visible).is_true()
+	assert_bool(panel.undo_refill_ad_button.visible).is_false()
+	assert_bool(panel.skip_button.visible).is_false()
+	panel.show_for(_level.round)
+	assert_bool(panel.extra_tube_ad_button.visible).is_false()

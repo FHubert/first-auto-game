@@ -6,9 +6,11 @@ const FAKE_UNIX: int = 20750 * 86400 + 100
 var _level: Level
 var _old_path: String
 var _coins_before: int
+var _prev_provider: AdProvider
 
 
 func before_test() -> void:
+	_prev_provider = Ads.provider
 	GameConfig.reset()
 	_old_path = SaveSystem.save_path
 	SaveSystem.save_path = SAVE_PATH
@@ -25,6 +27,7 @@ func after_test() -> void:
 		_level.free()
 	_cleanup()
 	SaveSystem.save_path = _old_path
+	Ads.provider = _prev_provider
 	GameConfig.reset()
 
 
@@ -145,3 +148,33 @@ func test_watch_undo_refill_adds_charges() -> void:
 	assert_bool(_level.watch_undo_refill()).is_true()
 	var amount: int = int(GameConfig.get_value("undo_refill_amount"))
 	assert_int(_level.round.undo_charges()).is_equal(before + amount)
+
+
+func test_double_button_flow() -> void:
+	_win_level_two()
+	var bonus: int = Economy.rewarded_bonus(_level._last_win_coins)
+	var btn: Button = _level.level_complete.double_button
+	assert_bool(btn.visible).is_true()
+	assert_str(btn.text).contains(str(bonus))
+	var before: int = _level.state.coins
+	btn.pressed.emit()
+	assert_int(_level.state.coins).is_equal(before + bonus)
+	assert_bool(btn.visible).is_false()
+	btn.pressed.emit()
+	assert_int(_level.state.coins).is_equal(before + bonus)
+
+
+func test_ad_buttons_hidden_when_no_ad_ready() -> void:
+	var fake := FakeAdProvider.new()
+	fake.always_ready = false
+	Ads.provider = fake
+	_level.load_level(2)
+	assert_bool(_level.hud.extra_tube_ad_button.visible).is_false()
+	assert_bool(_level.hud.undo_refill_ad_button.visible).is_false()
+	_win_level_two()
+	assert_bool(_level.level_complete.double_button.visible).is_false()
+
+
+func test_hud_ad_button_visible_when_ready() -> void:
+	_level.load_level(2)
+	assert_bool(_level.hud.extra_tube_ad_button.visible).is_true()

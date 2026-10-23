@@ -134,3 +134,17 @@ func test_claim_x2_doubles_once() -> void:
 	assert_int(app.state.daily_reward_last_claim_day).is_equal(DAY)
 	assert_bool(popup.claim_x2()).is_false()
 	assert_int(app.state.coins).is_equal(expected)
+
+
+func test_claim_x2_button_visibility() -> void:
+	var prev: AdProvider = Ads.provider
+	var app := _app()
+	var popup := _popup(app)
+	assert_bool(popup.claim_x2_button.visible).is_true()
+	assert_str(popup.claim_x2_button.text).contains(str(popup.preview_x2_amount()))
+	var fake := FakeAdProvider.new()
+	fake.always_ready = false
+	Ads.provider = fake
+	popup.show_for(app.state, DAY)
+	Ads.provider = prev
+	assert_bool(popup.claim_x2_button.visible).is_false()
