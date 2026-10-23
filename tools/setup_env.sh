@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Idempotent environment setup: Godot headless, export templates, gdUnit4, gdtoolkit.
+# Idempotent environment setup: Godot headless, export templates, gdUnit4, gdtoolkit, Pillow.
 set -euo pipefail
 
 # Single source of truth is the Makefile (it exports these); defaults for direct runs.
@@ -93,6 +93,14 @@ if command -v gdlint >/dev/null 2>&1 && command -v gdformat >/dev/null 2>&1; the
 else
   echo "[setup] Installing gdtoolkit"
   pip install --break-system-packages gdtoolkit || pip3 install --break-system-packages gdtoolkit
+fi
+
+# --- Pillow (tools/gen_assets.py: PNG sprites/icons) ---
+if python3 -c "import PIL" 2>/dev/null; then
+  echo "[setup] Pillow already present"
+else
+  echo "[setup] Installing Pillow"
+  pip install --break-system-packages pillow || pip3 install --break-system-packages pillow
 fi
 
 # Import resources once so class_name cache exists for headless runs.
