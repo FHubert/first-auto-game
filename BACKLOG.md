@@ -6,7 +6,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P0 — fundamenty (Faza 1–2)
 
-- [ ] R-001 `in_progress` Research rynku i wybór gatunku
+- [ ] R-001 `review` Research rynku i wybór gatunku → PR #__PR__
   KA: `docs/RESEARCH.md` z analizą 3 kandydatów (gatunek, przykłady top-10, szacunkowy ARPDAU, złożoność contentu, czy content jest generowalny proceduralnie, konkurencja ASO w PL/US/DE). Rekomendacja z uzasadnieniem. Decyzja: **bierz kandydata nr 1** (Hubert zaakceptował delegację wyboru), chyba że `## Pytania do Huberta` ma odpowiedź inną. Zaktualizuj `docs/STATUS.md`.
   Skill: `analytics-review` (sekcja research) + WebSearch/WebFetch.
 
@@ -36,14 +36,15 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] G-001 `todo` Balans: make sim pokazuje ~8,6 interstitiali/DAU przy interstitial_every_n_rounds=3 — za dużo vs KPI cel 3,0; zaproponować cap (np. co 5 rund + min 120 s) i potwierdzić symulacją. Skill: game-economy
 - [ ] T-005 `todo` Zweryfikować w edytorze Godot 4.7 klucze export_presets.cfg (Android/iOS) i nazwę pliku editor settings + klucz android_sdk_path użyty w workflowach; poprawić jeśli się różnią. Skill: godot-build
 - [ ] T-006 `todo` Postawić pierwszy tag v0.1.0 (git describe w prompcie biweekly-release wymaga istniejącego taga). Skill: store-release
-- [ ] T-009 `review` CLAUDE.md/skille: gh pr → gh api REST (GraphQL 403 w CCR) → PR #7
 - [ ] T-007 `todo` Sprawdzić czy deny Edit(fastlane/Fastfile) itd. w .claude/settings.json działa jak zamierzono (metadata edytowalne, lanes nie); patrz ZWERYFIKUJ w docs/AUTOMATION.md. Skill: godot-test
-- [ ] T-010 `review` CI: dependabot nie otwiera PR-ów (open-pull-requests-limit: 0); aktualizacje zależności robi pętla → PR #8
 - [ ] T-011 `todo` CI: podbić wersje akcji w .github/workflows (checkout v7, setup-python v6, cache v6, upload-artifact v7, google-github-actions/auth v3) i Gemfile; `make check` + actionlint. Skill: godot-build
-- [ ] T-008 `review` build-android/build-ios: trigger push usunięty do czasu konfiguracji sekretów (Faza 4); przywrócić w zadaniu T-002. → PR #6
-- [ ] T-012 `review` Docs: tryb ciągły (continuous-dev co 2 h) w CLAUDE.md/AUTOMATION.md/game-designer → PR #9
 
 ## Pytania do Huberta
-- (puste)
+- R-001: mix rynków przy soft launchu do szacowania ARPDAU — przyjęto: 30 % US / 30 % DE / 40 % PL, do zmiany (bardziej US-owy mix podnosi ARPDAU, eCPM US ~5–10× PL).
+- R-001: wyróżnik na tle klonów sort puzzle — przyjęto: daily seed + odblokowywane motywy wizualne (doprecyzuje R-002), do zmiany.
 
 ## Done (ostatnie 30)
+- [x] T-009 `done` CLAUDE.md/skille: gh pr → gh api REST (GraphQL 403 w CCR) → PR #7 (zmergowany)
+- [x] T-010 `done` CI: dependabot nie otwiera PR-ów (open-pull-requests-limit: 0); aktualizacje zależności robi pętla → PR #8 (zmergowany)
+- [x] T-008 `done` build-android/build-ios: trigger push usunięty do czasu konfiguracji sekretów (Faza 4); przywrócić w zadaniu T-002. → PR #6 (zmergowany)
+- [x] T-012 `done` Docs: tryb ciągły (continuous-dev co 2 h) w CLAUDE.md/AUTOMATION.md/game-designer → PR #9 (zmergowany)

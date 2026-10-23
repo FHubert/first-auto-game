@@ -3,6 +3,8 @@
 ## Aktualna faza
 **Faza 1 — Research i koncepcja** (od 2026-10-23)
 
+Wybrany gatunek: sort puzzle (ball/water sort z progresją poziomów, content proceduralny + solver) — decyzja 2026-10-23 (R-001, docs/RESEARCH.md)
+
 Fazy:
 1. Research i koncepcja → wyjście: GDD `APPROVED`, backlog MVP
 2. Szkielet i pętla → wyjście: T-001 zmergowane, CI zielone
