@@ -25,7 +25,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `level.tscn` + `board_view.gd` rysuje `payload` w aktywnym motywie. Pierwszy tap wybiera probówkę (podniesienie), drugi wykonuje `pour` z tweenem `pour_anim_seconds`, a nielegalny ruch daje shake. Widok emituje sygnał `pour_finished`. Test headless: instancja sceny z poziomem 2 i 2 symulowane tapy dają zmianę stanu `GameRound`. Wpis w `tools/screens.txt`, `make screenshots` daje PNG. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-020 `todo` HUD + LevelComplete + przepływ poziomów i zapis (zależy od T-019, G-004)
+- [ ] T-020 `in_progress` HUD + LevelComplete + przepływ poziomów i zapis (zależy od T-019, G-004)
   KA: HUD pokazuje numer poziomu, ruchy, cofnij z licznikiem, restart i pauzę. Po wygranej ekran `LevelComplete` pokazuje monety i „idealnie", a „Dalej" przechodzi do kolejnego poziomu. `SaveSystem.save` po każdej wygranej. Test headless: wygrana ścieżką solvera podnosi `level` o 1 i coins o `win_reward`, a ponowne wczytanie zachowuje stan. Oba ekrany mają wpis w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
