@@ -45,7 +45,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `game/locale/strings.csv` z kluczami wszystkich istniejących ekranów i import w projekcie. Test: każdy klucz ma 3 niepuste tłumaczenia, a teksty z prefiksem `btn_` mają ≤ 18 znaków. Język z ustawień albo systemowy. `make check` zielone. ~200 linii (bez CSV).
   Skill: `godot-dev`
 
-- [ ] T-024 `todo` Audio: generowane SFX + muzyka ambient + AudioService
+- [ ] T-024 `in_progress` Audio: generowane SFX + muzyka ambient + AudioService
   KA: `tools/gen_assets.py` generuje 6 SFX (przelew ×3 warianty, pełna probówka, wygrana, klik, błąd, monety) i 1 pętlę ambient OGG. Autoload `Audio` respektuje `music_on/sfx_on` i wycisza się przy utracie fokusu. Haptyka przez `Input.vibrate_handheld` przy `haptics_on`. Test: przy `sfx_on=false` `Audio.play_sfx` nie odtwarza. `make check` zielone. `docs/LICENSES.md` bez zmian (brak obcych plików). ~250 linii.
   Skill: `asset-gen`
 
