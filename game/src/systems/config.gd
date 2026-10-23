@@ -6,6 +6,10 @@ const DEFAULTS: Dictionary = {
 	"interstitial_every_n_rounds": 3,
 	"interstitial_min_seconds": 90,
 	"rewarded_multiplier": 2.0,
+	"rewarded_double_coins_min_level": 2,
+	"rewarded_undo_refill_max_per_level": 2,
+	"rewarded_double_coins_max_per_level": 1,
+	"rewarded_skip_max_per_level": 1,
 	# Economy
 	"daily_reward_base": 50,
 	"starting_coins": 100,

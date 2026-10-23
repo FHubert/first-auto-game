@@ -20,6 +20,11 @@ var mode: String = MODE_CAMPAIGN
 var level_no: int = 1
 var utc_day: int = 0
 var tutorial: TutorialFlow
+var rewarded: RewardedPlacements = RewardedPlacements.new()
+
+var _last_win_coins: int = 0
+var _last_win_perfect: bool = false
+var _last_win_title: String = ""
 
 @onready var board: BoardView = $Board
 @onready var hud: Hud = $Hud
@@ -51,7 +56,7 @@ func _ready() -> void:
 	stuck_panel.extra_tube_pressed.connect(buy_extra_tube)
 	stuck_panel.undo_refill_pressed.connect(buy_undo_refill)
 	stuck_panel.restart_pressed.connect(restart)
-	stuck_panel.skip_pressed.connect(skip_level)
+	stuck_panel.skip_pressed.connect(watch_skip)
 	hud.undo_pressed.connect(undo)
 	hud.restart_pressed.connect(restart)
 	hud.pause_pressed.connect(pause)
@@ -79,6 +84,7 @@ func start_daily(day: int) -> void:
 
 
 func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
+	rewarded.reset()
 	round = GameRound.new()
 	round.start(level_data)
 	board.setup(round, theme_id)
@@ -189,13 +195,78 @@ func buy_hint() -> bool:
 	return _finish_purchase(ok)
 
 
+## Skip without an ad (kept for tests/debug); the UI uses watch_skip.
 func skip_level() -> void:
-	if mode == MODE_DAILY:
+	if mode == MODE_DAILY or not round.can_skip():
 		return
-	if not round.can_skip():
-		return
+	_apply_skip("level:skip:free")
+
+
+func watch_skip() -> bool:
+	if mode == MODE_DAILY or not round.can_skip():
+		return false
+	return rewarded.offer(
+		RewardedPlacements.SKIP_LEVEL, func() -> void: _apply_skip("level:skip:rewarded")
+	)
+
+
+func can_double_coins() -> bool:
+	if not round.is_done() or _last_win_coins <= 0:
+		return false
+	var min_level: int = int(GameConfig.get_value("rewarded_double_coins_min_level"))
+	if mode != MODE_DAILY and level_no < min_level:
+		return false
+	return rewarded.can_offer(RewardedPlacements.DOUBLE_COINS)
+
+
+func double_coins_bonus() -> int:
+	return Economy.rewarded_bonus(_last_win_coins) if can_double_coins() else 0
+
+
+func watch_double_coins() -> bool:
+	if not can_double_coins():
+		return false
+	var bonus: int = double_coins_bonus()
+	return rewarded.offer(
+		RewardedPlacements.DOUBLE_COINS,
+		func() -> void:
+			Economy.earn(state, bonus, Economy.SOURCE_REWARDED)
+			SaveSystem.save(state)
+			level_complete.show_result(
+				_last_win_coins + bonus, _last_win_perfect, level_no, _last_win_title
+			)
+			hud.refresh()
+			Audio.play_sfx("coins")
+	)
+
+
+func watch_extra_tube() -> bool:
+	if round.is_done() or not round.can_add_extra_tube():
+		return false
+	return rewarded.offer(
+		RewardedPlacements.EXTRA_TUBE,
+		func() -> void:
+			round.add_extra_tube()
+			Analytics.track_design("booster:extra_tube:rewarded")
+			_after_action()
+	)
+
+
+func watch_undo_refill() -> bool:
+	if round.is_done():
+		return false
+	return rewarded.offer(
+		RewardedPlacements.UNDO_REFILL,
+		func() -> void:
+			round.add_undo_charges(int(GameConfig.get_value("undo_refill_amount")))
+			Analytics.track_design("booster:undo_refill:rewarded")
+			_after_action()
+	)
+
+
+func _apply_skip(source: String) -> void:
 	Analytics.track_progression("Fail", mode, _level_id())
-	Analytics.track_design("level:skip")
+	Analytics.track_design(source)
 	state.level += 1
 	SaveSystem.save(state)
 	load_level(state.level, state.theme_active)
@@ -221,9 +292,12 @@ func _on_round_won() -> void:
 		state.levels_completed += 1
 		DailyRewards.register_play(state, DailyRewards.utc_day_from_unix(int(clock.call())))
 	SaveSystem.save(state)
+	_last_win_coins = coins
+	_last_win_perfect = bool(result.get("perfect", false))
+	_last_win_title = title
 	Analytics.track_progression("Complete", mode, _level_id(), int(result.get("moves", 0)))
 	hud.refresh()
-	level_complete.show_result(coins, bool(result.get("perfect", false)), level_no, title)
+	level_complete.show_result(coins, _last_win_perfect, level_no, title)
 	level_won.emit(level_no, coins)
 
 

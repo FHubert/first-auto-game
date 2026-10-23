@@ -122,3 +122,15 @@ func test_daily_level_flow() -> void:
 	assert_bool(level.stuck_panel.skip_button.visible).is_false()
 	level.on_next_pressed()
 	assert_bool(app.current_screen() is Home).is_true()
+
+
+func test_claim_x2_doubles_once() -> void:
+	var app := _app()
+	var popup := _popup(app)
+	var expected: int = popup.preview_x2_amount()
+	assert_int(expected).is_equal(DailyRewards.reward_for_cycle_day(1) * 2)
+	assert_bool(popup.claim_x2()).is_true()
+	assert_int(app.state.coins).is_equal(expected)
+	assert_int(app.state.daily_reward_last_claim_day).is_equal(DAY)
+	assert_bool(popup.claim_x2()).is_false()
+	assert_int(app.state.coins).is_equal(expected)

@@ -16,6 +16,7 @@ const ACTIVE_TINT: Color = Color(1.0, 0.85, 0.3)
 const SAMPLE_DAY: int = 20750
 
 var state: GameState
+var rewarded: RewardedPlacements = RewardedPlacements.new()
 var title_label: Label
 var streak_label: Label
 var claim_button: Button
@@ -61,11 +62,35 @@ func _on_claim() -> void:
 	visible = false
 
 
-func _on_save_streak() -> void:
-	if DailyRewards.save_streak(state, _utc_day):
-		SaveSystem.save(state)
-		streak_saved.emit()
-	show_for(state, _utc_day)
+func claim_x2() -> bool:
+	if not DailyRewards.can_claim(state, _utc_day):
+		return false
+	return rewarded.offer(
+		RewardedPlacements.DAILY_X2,
+		func() -> void:
+			var amount: int = DailyRewards.claim(state, _utc_day, true)
+			SaveSystem.save(state)
+			claimed.emit(amount)
+			visible = false
+	)
+
+
+func save_streak_rewarded() -> bool:
+	if not DailyRewards.can_save_streak(state, _utc_day):
+		return false
+	return rewarded.offer(
+		RewardedPlacements.STREAK_SAVE,
+		func() -> void:
+			if DailyRewards.save_streak(state, _utc_day):
+				SaveSystem.save(state)
+				streak_saved.emit()
+			show_for(state, _utc_day)
+	)
+
+
+func preview_x2_amount() -> int:
+	var amount: int = int(DailyRewards.preview(state, _utc_day)["amount"])
+	return int(round(amount * float(GameConfig.get_value("rewarded_multiplier"))))
 
 
 func _build() -> void:
@@ -97,9 +122,9 @@ func _build() -> void:
 		row.add_child(tile)
 		tiles.append(tile)
 	claim_button = _button(box, "btn_claim", _on_claim)
-	claim_x2_button = _button(box, "btn_claim_x2", Callable())
+	claim_x2_button = _button(box, "btn_claim_x2", claim_x2)
 	claim_x2_button.visible = false
-	save_streak_button = _button(box, "btn_save_streak", _on_save_streak)
+	save_streak_button = _button(box, "btn_save_streak", save_streak_rewarded)
 	save_streak_button.visible = false
 	close_button = _button(box, "btn_close", _on_close)
 

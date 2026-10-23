@@ -37,6 +37,10 @@ func maybe_show_interstitial(round_index: int) -> bool:
 	return true
 
 
+func is_rewarded_ready() -> bool:
+	return provider != null and provider.is_rewarded_ready()
+
+
 ## Shows a rewarded ad; on_reward is called (no args) only if the reward was earned.
 func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 	if provider == null or not provider.is_rewarded_ready():
