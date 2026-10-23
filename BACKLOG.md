@@ -10,7 +10,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `docs/RESEARCH.md` z analizą 3 kandydatów (gatunek, przykłady top-10, szacunkowy ARPDAU, złożoność contentu, czy content jest generowalny proceduralnie, konkurencja ASO w PL/US/DE). Rekomendacja z uzasadnieniem. Decyzja: **bierz kandydata nr 1** (Hubert zaakceptował delegację wyboru), chyba że `## Pytania do Huberta` ma odpowiedź inną. Zaktualizuj `docs/STATUS.md`.
   Skill: `analytics-review` (sekcja research) + WebSearch/WebFetch.
 
-- [ ] R-002 `todo` GDD v1 dla wybranego gatunku
+- [ ] R-002 `review` GDD v1 dla wybranego gatunku → PR #11
   KA: `docs/GDD.md` ze statusem `APPROVED` (zamiast `DRAFT`): core loop (1 akapit + diagram ASCII), sesja 2–5 min, progresja, ekonomia (waluty, sinki, źródła), meta (daily, streak), lista ekranów, lista mechanik z priorytetem MVP/later. Każda mechanika ma zdanie "jak to przetestujemy headless". `docs/MONETIZATION.md` z placementami. `docs/ASO.md` z 3 wariantami tytułu (sprawdzone w sklepach, że wolne) i 20 keywordami.
   Skill: `game-economy`, `ads-iap`, `aso`.
 
@@ -42,6 +42,12 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 ## Pytania do Huberta
 - R-001: mix rynków przy soft launchu do szacowania ARPDAU — przyjęto: 30 % US / 30 % DE / 40 % PL, do zmiany (bardziej US-owy mix podnosi ARPDAU, eCPM US ~5–10× PL).
 - R-001: wyróżnik na tle klonów sort puzzle — przyjęto: daily seed + odblokowywane motywy wizualne (doprecyzuje R-002), do zmiany.
+- R-002: nazwa i tytuł — przyjęto: „Vialo: Water Sort Puzzle” (zapasowe: „Flaskly: Color Sort Puzzle”, „Pourio: Daily Water Sort”), do zmiany; przed Fazą 4 sprawdzić EUIPO/UPRP i dostępność w ASC/Play.
+- R-002: paleta płynów — przyjęto: 12 kolorów na motyw jako wyjątek od limitu 6 kolorów UI (gatunek wymaga 12 rozróżnialnych), do zmiany.
+- R-002: granica dnia (Poziom dnia, streak, daily reward) — przyjęto: UTC (zmiana o 01:00/02:00 w PL/DE), do zmiany.
+- R-002: starter pack — przyjęto: 1,99 USD = 800 monet + motyw, bez remove_ads, do zmiany.
+- R-002: ranking Poziomu dnia — przyjęto: brak rankingu i backendu w MVP, do zmiany.
+- R-002: KPI ARPDAU — szacunek ~0,036–0,040 USD przy mixie 30/30/40 jest poniżej celu 0,05; przyjęto: jedziemy dalej, dźwignia = większy udział US w ruchu, do zmiany.
 
 ## Done (ostatnie 30)
 - [x] T-009 `done` CLAUDE.md/skille: gh pr → gh api REST (GraphQL 403 w CCR) → PR #7 (zmergowany)
