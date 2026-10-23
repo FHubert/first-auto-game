@@ -233,22 +233,22 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
 
 Lista zatwierdzona (v1.0). Mapowanie na GA przez istniejący autoload `Analytics` (`track_progression`, `track_design`, `track_resource`, `track_business`):
 
-- `session_start` — start aplikacji; parametry: wersja (`BUILD_INFO`), platforma. GA: sesja automatyczna SDK + `track_design("session:start")`.
-- `session_end` — utrata fokusu/zamknięcie; parametr: czas trwania [s]. GA: automatyczne + `track_design("session:end", seconds)`.
-- `level_start` — start poziomu; parametry: `mode` (`campaign`/`daily`), numer poziomu lub dzień UTC, `colors`, `min_moves`. GA: `track_progression("Start", mode, "level_%04d")`.
+- `session_start` — start aplikacji; parametry: wersja (`BUILD_INFO`), platforma. GA: sesja automatyczna SDK + `track_design("session:start")` (`App.track_session_start`, `_ready` i powrót fokusu).
+- `session_end` — utrata fokusu/zamknięcie; parametr: czas trwania [s]. GA: automatyczne + `track_design("session:end", seconds)` (`App.track_session_end`, utrata fokusu/zamknięcie).
+- `level_start` — start poziomu; parametry: `mode` (`campaign`/`daily`), numer poziomu lub dzień UTC, `colors`, `min_moves`. GA: `track_progression("Start", mode, "level_%04d")` + `track_design("level:start", min_moves)`.
 - `level_complete` — wygrana; parametry: poziom, `moves`, `min_moves`, czas [s], `undos_used`, `boosters_used`, `perfect`. GA: `track_progression("Complete", mode, "level_%04d", moves)`.
-- `level_fail` — restart / pomiń / wyjście do menu bez wygranej; parametry: poziom, `reason` (`restart`/`skip`/`quit`), czas. GA: `track_progression("Fail", mode, "level_%04d")` + `track_design("level:fail:<reason>")`.
+- `level_fail` — restart / pomiń / wyjście do menu bez wygranej; parametry: poziom, `reason` (`restart`/`skip`/`quit`), czas. GA: `track_progression("Fail", mode, "level_%04d")` + `track_design("level:fail:<restart|skip|quit>")` (dla skip dodatkowo `level:skip:free|rewarded`).
 - `level_stuck` — pokazanie `StuckPanel`; parametry: poziom, `moves_to_goal`. GA: `track_design("level:stuck", moves_to_goal)`.
-- `booster_used` — cofnij poza darmowymi / probówka / podpowiedź / +3 cofnięcia; parametry: `type`, `source` (`free`/`coins`/`rewarded`). GA: `track_design("booster:<type>:<source>")` + przy monetach `track_resource("Sink", "coins", koszt, "booster", type)`.
+- `booster_used` — cofnij poza darmowymi / probówka / podpowiedź / +3 cofnięcia; parametry: `type`, `source` (`free`/`coins`/`rewarded`). GA: `track_design("booster:<type>:<source>")` + przy monetach `track_resource("Sink", "coins", koszt, "economy", "<type>")` (przez `Economy.spend`).
 - `rewarded_offered` / `rewarded_completed` — parametr: placement id z `docs/MONETIZATION.md` (`double_coins`, `extra_tube`, `undo_refill`, `skip_level`, `daily_x2`, `streak_save`). GA: `track_design("ads:rewarded:<placement>:offered|granted|skipped|unavailable")` (istniejący wzorzec w `Ads`).
 - `interstitial_shown` — parametr: placement id `level_end`, numer poziomu. GA: `track_design("ads:interstitial:shown", level)` (istniejące).
-- `daily_reward_claimed` — parametry: dzień streaka, `doubled` (bool). GA: `track_resource("Source", "coins", kwota, "daily", "day_<n>")`.
+- `daily_reward_claimed` — parametry: dzień streaka, `doubled` (bool). GA: `track_design("daily_reward:day_<n>[:x2]")` + `track_resource("Source", "coins", kwota, "economy", "daily_reward")`.
 - `streak_changed` — parametry: `from`, `to`, `reason` (`continue`/`saved`/`reset`). GA: `track_design("streak:<reason>", to)`.
 - `daily_challenge_complete` — parametry: dzień UTC, `moves`, `min_moves`. GA: progression `mode = daily` (wyżej) + `track_resource("Source", "coins", 50, "daily_challenge", "<utc_day>")`.
 - `theme_unlocked` — parametry: `theme_id`, `source` (`coins`/`iap`). GA: `track_resource("Sink", "coins", koszt, "theme", theme_id)`.
-- `coins_earned` — wygrana poziomu (raz na poziom, skill §7). GA: `track_resource("Source", "coins", kwota, "level", "win")`.
-- `iap_purchase` — parametry: sku, cena (centy), waluta. GA: `track_business(sku, amount_cents, currency)`.
-- `consent_result` — wynik UMP / ATT. GA: `track_design("consent:ump:<status>")`, `track_design("consent:att:<status>")`.
+- `coins_earned` — wygrana poziomu (raz na poziom, skill §7). GA: `track_resource("Source", "coins", kwota, "economy", "win")` (+ `perfect`, `rewarded`) przez `Economy.earn`.
+- `iap_purchase` — parametry: sku, cena (centy), waluta. GA: `track_business(sku, amount_cents, currency)` (od T-026, `Purchases`).
+- `consent_result` — wynik UMP / ATT. GA: `track_design("consent:ump:<status>")`, `track_design("consent:att:<status>")` przez `Ads.report_consent` (wywołania od Fazy 5).
 
 ## Otwarte pytania
 *Pytania wymagające decyzji produktowej. Każde trafia też do `BACKLOG.md` → `## Pytania do Huberta`.*

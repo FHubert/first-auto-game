@@ -44,7 +44,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `game-designer` dobiera wartości w `GameConfig` (np. `win_reward_coins`, `par_bonus_coins`, `daily_reward_base`, `daily_challenge_coins`, `theme_cost_base/growth`) tak, by `make sim` dawał: 1. motyw ≤ 2. dnia aktywnego, 3. motyw w 12–14. dniu aktywnym u graczy grających codziennie (dziś: 3. dzień / nikt), interstitial ≤ 2,5/DAU, bez „explodes" (d30/d1 < 100×). Tabela przed/po w PR, aktualizacja tabeli kluczy i „Szacunku przepływu" w GDD (Ekonomia). Zmienia tylko `config.gd` + GDD + ewentualnie testy wartości. ~80 linii.
   Skill: `game-economy`
 
-- [ ] T-025 `todo` Analityka: eventy z GDD → Analityka (zależy od G-010)
+- [ ] T-025 `review` Analityka: eventy z GDD → Analityka (zależy od G-010) → PR #40
   KA: wszystkie 16 eventów z GDD wysyłane przez `Analytics` w opisanych momentach i z parametrami. `FakeAnalyticsProvider` zapisuje wywołania. Test: sekwencja start → complete (perfect) → ×2 → interstitial daje oczekiwaną listę wywołań z parametrami. Wpis do `docs/RELEASE_CHECKLIST.md`: lista do Data Safety/Privacy Labels. `make check` zielone. ~250 linii.
   Skill: `ads-iap`
 

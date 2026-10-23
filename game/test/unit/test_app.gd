@@ -51,3 +51,22 @@ func test_navigation() -> void:
 	(app.current_screen() as Level).pause_requested.emit()
 	assert_bool(app.current_screen() is Home).is_true()
 	await get_tree().process_frame
+
+
+func test_session_start_and_end_events() -> void:
+	var prev: AnalyticsProvider = Analytics.provider
+	var fake := FakeAnalyticsProvider.new()
+	Analytics.provider = fake
+	var t: Array[int] = [1000]
+	var app := _app(true)
+	app.clock = func() -> int: return t[0]
+	app.track_session_end()
+	app.track_session_start()
+	t[0] = 1030
+	app.track_session_end()
+	Analytics.provider = prev
+	var ids: Array[String] = []
+	for e in fake.events:
+		ids.append(str(e["event_id"]))
+	assert_array(ids).contains(["session:start", "session:end"])
+	assert_float(fake.events[fake.events.size() - 1]["value"]).is_equal(30.0)

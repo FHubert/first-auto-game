@@ -74,6 +74,11 @@ func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 	return true
 
 
+## Consent outcome (kind: ump|att); called by the SDK layer from Phase 5.
+func report_consent(kind: String, status: String) -> void:
+	Analytics.track_design("consent:%s:%s" % [kind, status])
+
+
 func _make_default_provider() -> AdProvider:
 	var args: PackedStringArray = OS.get_cmdline_args() + OS.get_cmdline_user_args()
 	if OS.has_feature("editor") or "--no-ads" in args or DisplayServer.get_name() == "headless":
