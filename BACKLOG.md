@@ -14,7 +14,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->
 
-- [ ] T-011 `todo` CI: podbić wersje akcji w `.github/workflows/*` (checkout, setup-python, cache, upload/download-artifact, setup-java, setup-android, ruby/setup-ruby, google-github-actions/auth) i gemów w `Gemfile`
+- [ ] T-011 `review` CI: podbić wersje akcji w `.github/workflows/*` (checkout, setup-python, cache, upload/download-artifact, setup-java, setup-android, ruby/setup-ruby, google-github-actions/auth) i gemów w `Gemfile` → PR #44 (częściowo: 5/12 akcji; reszta → T-055)
   KA: każda akcja przypięta do najnowszego majora sprawdzonego na stronie releases w dniu zadania (tabela akcja → stara → nowa wersja + link w opisie PR, nie z pamięci). `actionlint` = 0 błędów na wszystkich plikach workflow; `make check` zielone; run `test.yml` na PR zielony. Po merge: `gh api "repos/FHubert/first-auto-game/pulls?state=open"` nie zwraca PR-ów dependabota #1–#5 (wg LOG z 2026-10-23 już zamknięte; jeśli któryś jest otwarty → zamknąć z komentarzem „superseded by T-011”). ≤ ~60 linii.
   Skill: `godot-build`
 
@@ -114,6 +114,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
+- [ ] T-055 `todo` CI: dokończyć T-011 — zweryfikować na stronach releases i podbić: actions/download-artifact (v4→v7?, para z upload-artifact v7), setup-java, android-actions/setup-android, ruby/setup-ruby, maxim-lobanov/setup-xcode, google-github-actions/setup-gcloud, EnricoMi/publish-unit-test-result-action; `actionlint` (w sesji bez dostępu do github.com/releases i bez pobierania binarek — zrobić w sesji z dostępem). Skill: godot-build
 - [ ] T-049 `todo` App.show_shop z Poziomu dnia: powrót woła `show_level()` (kampania) zamiast `show_daily_level()`; zapamiętać ekran źródłowy i wracać do właściwego trybu (albo Shop jako overlay nad Level, bez utraty rundy). Skill: godot-dev
 - [ ] T-046 `todo` playtest_bot.gd: fallback `win_reward_coins` = 10 w `GameConfig.get_value(..., 10)` nieaktualny po G-013 — usunąć fallback (klucz zawsze istnieje). Skill: godot-test
 - [ ] T-045 `todo` PlaytestBot (random): po przegranej bez podniesienia poziomu `maybe_show_interstitial(state.level - 1)` wołane wielokrotnie z tym samym numerem — liczyć przerwę raz na rundę (albo tylko po wygranej), żeby raport nie zawyżał interstitiali. Skill: godot-test
