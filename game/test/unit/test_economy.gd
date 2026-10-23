@@ -20,7 +20,7 @@ func after_test() -> void:
 
 func test_config_values_match_gdd() -> void:
 	assert_int(GameConfig.get_value("starting_coins")).is_equal(100)
-	assert_int(GameConfig.get_value("par_bonus_coins")).is_equal(5)
+	assert_int(GameConfig.get_value("par_bonus_coins")).is_equal(10)
 	assert_int(GameConfig.get_value("hint_cost_coins")).is_equal(25)
 	assert_int(GameConfig.get_value("extra_tube_cost_coins")).is_equal(60)
 	assert_int(GameConfig.get_value("undo_refill_cost_coins")).is_equal(20)
@@ -66,14 +66,14 @@ func test_balance_never_negative_random_walk() -> void:
 
 
 func test_win_reward_values() -> void:
-	assert_int(Economy.win_reward({"won": true, "perfect": true})).is_equal(15)
-	assert_int(Economy.win_reward({"won": true, "perfect": false})).is_equal(10)
+	assert_int(Economy.win_reward({"won": true, "perfect": true})).is_equal(25)
+	assert_int(Economy.win_reward({"won": true, "perfect": false})).is_equal(15)
 	assert_int(Economy.win_reward({"won": false, "perfect": true})).is_equal(0)
 	_state.coins = 0
-	assert_int(Economy.apply_win(_state, {"won": true, "perfect": true})).is_equal(15)
-	assert_int(_state.coins).is_equal(15)
+	assert_int(Economy.apply_win(_state, {"won": true, "perfect": true})).is_equal(25)
+	assert_int(_state.coins).is_equal(25)
 	assert_int(Economy.apply_win(_state, {"won": false})).is_equal(0)
-	assert_int(_state.coins).is_equal(15)
+	assert_int(_state.coins).is_equal(25)
 
 
 func test_theme_costs() -> void:
