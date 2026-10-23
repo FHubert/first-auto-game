@@ -36,7 +36,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: do `config.gd` dodane klucze z GDD → Ekonomia → Klucze GameConfig (generator/progresja: `tube_capacity`, `empty_tubes`, `tutorial_colors`, `colors_start`, `colors_max`, `levels_per_extra_color`, `breather_every`, `breather_factor`, `min_moves_factor_easy/hard`, `gen_max_attempts`, `solver_max_states`, `solver_fallback_weight`, `campaign_seed`, `daily_seed_salt`, `daily_colors`, `daily_min_moves_factor`). `ContentGenerator.level_params(level) -> Dictionary`. Test sprawdza wartości z tabeli Progresja dla poziomów 1, 2, 5, 8, 19, 20, 40, 56. `make test` zielone. ~150 linii.
   Skill: `game-economy`
 
-- [ ] G-003 `in_progress` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002)
+- [ ] G-003 `review` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002) → PR #__PR__
   KA: `generate(seed, level)` zwraca payload wg ADR-009. Testy: (a) determinizm, czyli 2 wywołania dają identyczne `tubes`; (b) golden hash dla poziomów 1, 2, 10, 50; (c) poziomy 1..200: odtworzenie `solution` przez `SortBoard` kończy się `is_won()` w `min_moves` ruchach, `attempt < gen_max_attempts`; (d) ≥ 95 % poziomów spełnia `min_moves >= floor` (odsetek w logu); (e) czas ≤ 500 ms/poziom headless (zmierzony i wypisany). Placeholder `is_solvable` zastąpiony. `make test` zielone. ~260 linii.
   Skill: `godot-dev`
 
@@ -142,6 +142,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-007 `todo` Sprawdzić czy deny Edit(fastlane/Fastfile) itd. w .claude/settings.json działa jak zamierzono (metadata edytowalne, lanes nie); patrz ZWERYFIKUJ w docs/AUTOMATION.md. Skill: godot-test
 - [ ] T-011 `todo` CI: podbić wersje akcji w .github/workflows (checkout v7, setup-python v6, cache v6, upload-artifact v7, google-github-actions/auth v3) i Gemfile; `make check` + actionlint. Skill: godot-build
 - [ ] T-028 `todo` SaveSystem.load: test pliku uszkodzonego wypisuje `ERROR: Parse JSON failed` do logu (JSON.parse_string); użyć `JSON.new().parse()` i sprawdzać kod błędu, żeby log CI był czysty. Skill: godot-dev
+- [ ] T-029 `todo` SortSolver: optymalizacja (~0,4 ms/stan: clone planszy, canonical_key jako String, path.duplicate per węzeł → rodzic+indeks, klucz PackedByteArray/int); cel: dokładny A* dla ≥ 8 kolorów w ≤ 500 ms, wtedy min_moves_exact=true dla większości poziomów. Skill: godot-dev
+- [ ] G-012 `todo` GDD/ADR-009: dopisać, że generator używa etapów (quick pass 250 stanów → dokładny A* ≤ 6 kolorów/1000 stanów → ważony A*), więc `min_moves_exact=false` jest normą od ~6 kolorów (premia „idealnie" liczona od wyniku ważonego + par_slack_moves); przenieść stałe EXACT_MAX_COLORS/EXACT_STATE_BUDGET/QUICK_STATE_BUDGET z content_generator.gd do GameConfig. Skill: game-economy
 
 ## Pytania do Huberta
 - R-001: mix rynków przy soft launchu do szacowania ARPDAU — przyjęto: 30 % US / 30 % DE / 40 % PL, do zmiany (bardziej US-owy mix podnosi ARPDAU, eCPM US ~5–10× PL).
