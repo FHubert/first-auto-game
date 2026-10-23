@@ -18,3 +18,4 @@ Nowe wpisy dopisujemy na końcu, po zakończeniu sesji (CLAUDE.md, krok 9).
 Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielone.
 - T-008: build workflows tylko workflow_dispatch/workflow_call do Fazy 4 (szum czerwonych runów).
 - T-009: gh pr (GraphQL) zastąpione gh api REST w CLAUDE.md, skillach i AUTOMATION.md.
+- T-010: dependabot tylko alerty; PR-y #1–#5 zamknięte, bumpy jako T-011 dla pętli.
