@@ -35,3 +35,11 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 - P1 start: T-013 SortBoard (PR #14), T-014 SortSolver A* (PR #15), G-002 parametry poziomu w GameConfig (PR #16), G-003 ContentGenerator z seeda + solver, poziomy 1..200 rozwiązywalne, max 332 ms (PR #17, auto-merge).
 - Odstępstwo: dokładny A* za wolny dla >6 kolorów → generator etapowy, `min_moves_exact=false` od ~6 kolorów; follow-upy T-029, G-012 w Inbox. 8 pytań produktowych w „Pytania do Huberta" (przyjęto X, do zmiany). Blokery: brak.
 - Wszystkie PR-y przez gh api + auto-merge squash; #10–#16 zmergowane w trakcie sesji, CI zielone.
+
+---
+
+## 2026-10-23 — sesja continuous-dev #2 (18:13–19:25 UTC)
+
+- P1: T-015 GameRound na SortBoard (undo/extra tube/restart/hint/is_stuck/perfect, PR #19), T-016 PlaytestBot solver + `--random` z `stuck_count` (PR #20), T-017 GameState v2 + migracja (PR #21), G-004 Economy (PR #22), T-018 assety: `themes.json` 4 motywy ΔE ≥ 20, probówki 9-slice, ikony UI, ikona aplikacji (PR #23), G-006 DailyRewards streak/grace (PR #24), G-007 DailyChallenge (PR #25, auto-merge). `make check` + qa-playtester przed każdym PR; 126 testów gdUnit4.
+- QA złapało 2 blockery tej samej klasy (cofnięty zegar → ponowna nagroda dzienna / Poziomu dnia) — poprawione przed merge. CI T-018 padł na braku Pillow → `make setup` instaluje Pillow.
+- Lekcja: PR-y zależne na gałęzi poprzednika stają się `dirty` po squash-merge rodzica → za każdym razem `rebase --onto origin/main` + ponowne uzbrojenie auto-merge. Inbox: T-030–T-034 (nity QA, test_tools w make check, flask polish). Pytanie do Huberta: odbiór nagrody dziennej podtrzymuje streak (przyjęto: tak). Blokery: brak.
