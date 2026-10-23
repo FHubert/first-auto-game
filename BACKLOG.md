@@ -15,29 +15,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 
 
-- [ ] G-003 `done` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002) → PR #17
-  KA: `generate(seed, level)` zwraca payload wg ADR-009. Testy: (a) determinizm, czyli 2 wywołania dają identyczne `tubes`; (b) golden hash dla poziomów 1, 2, 10, 50; (c) poziomy 1..200: odtworzenie `solution` przez `SortBoard` kończy się `is_won()` w `min_moves` ruchach, `attempt < gen_max_attempts`; (d) ≥ 95 % poziomów spełnia `min_moves >= floor` (odsetek w logu); (e) czas ≤ 500 ms/poziom headless (zmierzony i wypisany). Placeholder `is_solvable` zastąpiony. `make test` zielone. ~260 linii.
-  Skill: `godot-dev`
 
-- [ ] T-015 `review` GameRound na SortBoard: ruchy, cofnij, +probówka, restart, utknięcie, podpowiedź, „idealnie" (zależy od G-003) → PR #19
-  KA: kontrakt `start/step/result` zachowany; `step(action)` z `action = from*16 + to`. Dodane metody: `undo()` (ładunki `undo_free_per_level`, `add_undo_charges(n)`), `add_extra_tube()` (max `extra_tube_max_per_level`), `restart()`, `is_stuck()`, `hint() -> Vector2i` (1. ruch solvera), `moves_to_goal()`, `can_skip()` (po `skip_unlock_restarts`). `result()` zawiera `won, moves, min_moves, perfect, undos_used, boosters_used`. Testy dla każdej metody wg GDD → Mechaniki, w tym „po podpowiedzi moves_to_goal maleje o 1" dla 20 stanów. `make test` zielone. ~280 linii.
-  Skill: `godot-dev`
 
-- [ ] T-016 `review` PlaytestBot = solver + tryb losowy (zależy od T-015) → PR #20
-  KA: `make playtest` gra 200 poziomów ścieżką `solution`. Raport JSON: `rounds=200`, `wins=200`, `softlocks=0`, `errors=[]`, `avg_moves`, `interstitials_shown`. Tryb `--random` (losowe legalne ruchy, restart po `is_stuck`) raportuje `stuck_count` i 0 softlocków. Czas < 120 s na CI. ~200 linii.
-  Skill: `godot-test`
 
-- [ ] T-017 `review` GameState schema v2 + migracja v1→v2 → PR #21
-  KA: nowe pola: `daily_reward_last_claim_day`, `daily_last_completed_day`, `daily_completed_total`, `streak_best`, `streak_saves_used` (z dniem okna), `themes_owned` (Array[String], domyślnie `["classic"]`), `theme_active`, `levels_completed`, `level_restarts` (bieżący poziom), `starter_offer_start_day`, `purchases` (sku → bool); `settings` z `music_on/sfx_on/haptics_on/ads_removed/tutorial_done/locale`. Testy: round-trip, migracja v1 daje wartości domyślne, odrzucanie złych typów i wartości ujemnych. `make test` zielone. ~220 linii.
-  Skill: `godot-dev`
 
-- [ ] G-004 `review` Economy: earn/spend, nagroda za wygraną, premia „idealnie", koszty boosterów (zależy od T-017) → PR #22
-  KA: `economy.gd` (czysta klasa): `earn(state, amount, source)`, `spend(state, amount, sink) -> bool` (przy braku środków false i saldo bez zmian), `win_reward(result) -> int` (`win_reward_coins` + `par_bonus_coins` przy perfect). Do `config.gd` dodane klucze ekonomii z GDD (`par_*`, `*_cost_coins`, `undo_refill_amount`, `theme_cost_*`, `daily_challenge_coins`, `starting_coins`=100). Testy: saldo nigdy < 0, wartości zgodne z GDD. `make test` zielone. ~200 linii.
-  Skill: `game-economy`
 
-- [ ] T-018 `review` Assety wizualne: palety 4 motywów, sprite'y probówek (2 kształty), ikony UI, ikona aplikacji → PR #23
-  KA: `tools/gen_assets.py` generuje `themes.json` (classic/pastel/neon/ocean, każdy z 12 płynami, tłem i kształtem `tube|flask`; classic = hex z GDD), sprite'y probówek 9-slice, 6 ikon UI i ikonę 1024 (bez alfy) oraz 512. `tools/test_tools.py` sprawdza 12 unikalnych hex na motyw i minimalne ΔE ≥ 20 między kolorami. `make check` zielone. Brak obcych assetów. ~250 linii.
-  Skill: `asset-gen`
 
 - [ ] T-019 `todo` Scena Level: BoardView (rysowanie probówek, tap, przelew tween, shake) (zależy od T-015, T-018)
   KA: `level.tscn` + `board_view.gd` rysuje `payload` w aktywnym motywie. Pierwszy tap wybiera probówkę (podniesienie), drugi wykonuje `pour` z tweenem `pour_anim_seconds`, a nielegalny ruch daje shake. Widok emituje sygnał `pour_finished`. Test headless: instancja sceny z poziomem 2 i 2 symulowane tapy dają zmianę stanu `GameRound`. Wpis w `tools/screens.txt`, `make screenshots` daje PNG. `make check` zielone. ~280 linii.
@@ -67,11 +49,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `tools/gen_assets.py` generuje 6 SFX (przelew ×3 warianty, pełna probówka, wygrana, klik, błąd, monety) i 1 pętlę ambient OGG. Autoload `Audio` respektuje `music_on/sfx_on` i wycisza się przy utracie fokusu. Haptyka przez `Input.vibrate_handheld` przy `haptics_on`. Test: przy `sfx_on=false` `Audio.play_sfx` nie odtwarza. `make check` zielone. `docs/LICENSES.md` bez zmian (brak obcych plików). ~250 linii.
   Skill: `asset-gen`
 
-- [ ] G-006 `review` DailyRewards: nagroda dzienna + streak + grace (zależy od T-017) → PR #24
-  KA: `daily_rewards.gd` (czysta klasa, dzień UTC wstrzykiwany). Testy: dni 1..7 dają 50/50/100/100/150/150/300 (`daily_reward_multipliers`); drugi odbiór tego samego dnia jest odrzucony; przerwa 1 dnia daje `can_save_streak` (max `streak_save_max_per_week`, okno liczone od `GameState.streak_save_window_day`); przerwa ≥ 2 dni resetuje do 1; `streak_best` jest aktualizowany. Klucze dopisane do `config.gd`. `make test` zielone. ~220 linii.
-  Skill: `game-economy`
 
-- [ ] G-007 `in_progress` DailyChallenge: Poziom dnia z seeda dnia UTC (zależy od G-003, T-017)
+- [ ] G-007 `review` DailyChallenge: Poziom dnia z seeda dnia UTC (zależy od G-003, T-017) → PR #25
   KA: `daily_challenge.gd`: `level_for_day(utc_day)` (`daily_colors`, `daily_min_moves_factor`), `complete(state, utc_day, result)` przyznaje `daily_challenge_coins` raz na dzień. Testy: ten sam dzień daje identyczny poziom; dni 20750..20779 dają 30 różnych, rozwiązywalnych poziomów; drugie ukończenie tego samego dnia nie daje monet; `daily_unlock_level`=3 jest respektowany. `make test` zielone. ~160 linii.
   Skill: `game-economy`
 
@@ -152,3 +131,10 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-013 `done` SortBoard: model planszy water sort (czysta klasa) → PR #14 (zmergowany 2026-10-23)
 - [x] T-014 `done` SortSolver: A* z heurystyką granic kolorów i limitem stanów (zależy od T-013) → PR #15 (zmergowany 2026-10-23)
 - [x] G-002 `done` Parametry poziomu z GameConfig (kolory, d, breather, min_moves_floor) → PR #16 (zmergowany 2026-10-23)
+- [x] G-003 `done` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002) → PR #17 (zmergowany 2026-10-23)
+- [x] T-015 `done` GameRound na SortBoard: ruchy, cofnij, +probówka, restart, utknięcie, podpowiedź, „idealnie" (zależy od G-003) → PR #19 (zmergowany 2026-10-23)
+- [x] T-016 `done` PlaytestBot = solver + tryb losowy (zależy od T-015) → PR #20 (zmergowany 2026-10-23)
+- [x] T-017 `done` GameState schema v2 + migracja v1→v2 → PR #21 (zmergowany 2026-10-23)
+- [x] G-004 `done` Economy: earn/spend, nagroda za wygraną, premia „idealnie", koszty boosterów (zależy od T-017) → PR #22 (zmergowany 2026-10-23)
+- [x] T-018 `done` Assety wizualne: palety 4 motywów, sprite'y probówek (2 kształty), ikony UI, ikona aplikacji → PR #23 (zmergowany 2026-10-23)
+- [x] G-006 `done` DailyRewards: nagroda dzienna + streak + grace (zależy od T-017) → PR #24 (zmergowany 2026-10-23)
