@@ -49,4 +49,5 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 ## 2026-10-23 — sesja continuous-dev #3 (20:11 UTC – w trakcie)
 
 - P1: T-019 scena Level + BoardView/TubeView (motyw z themes.json, tap/przelew/shake, sygnał `pour_finished`, klucze `pour_anim_seconds`/`tube_lift_seconds`/`shake_seconds`), 132 testy, QA PASS (3 seedy 200/200) → PR #26 (auto-merge).
-- Inbox: T-035 pełna animacja przelewu + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).
+- P1: T-020 HUD + LevelComplete + przepływ poziomów/zapis/streak (137 testów, QA PASS) → PR #27 (auto-merge). #26 zmergowany w trakcie sesji.
+- Inbox: T-035 pełna animacja przelewu, T-036 szum FNV w logu testów, T-037 test wygranej bez „idealnie" + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).
