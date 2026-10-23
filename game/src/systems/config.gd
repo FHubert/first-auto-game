@@ -56,6 +56,10 @@ const DEFAULTS: Dictionary = {
 	"streak_save_max_per_week": 1,
 	"streak_save_window_days": 7,
 	"streak_grace_days": 1,
+	# UI (GDD v1.0)
+	"pour_anim_seconds": 0.4,
+	"tube_lift_seconds": 0.1,
+	"shake_seconds": 0.2,
 }
 
 var _values: Dictionary = DEFAULTS.duplicate(true)
