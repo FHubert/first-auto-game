@@ -13,7 +13,7 @@ Patrz `KPI.md`. Skrót: D1 retention ≥ 35 %, D7 ≥ 12 %, ARPDAU ≥ 0,05 USD,
 
 ## Pętla pracy (obowiązkowa kolejność, bez skrótów)
 1. `cat BACKLOG.md`. Jeśli jakikolwiek otwarty PR z gałęzi `task/*` ma czerwone CI
-   (`gh pr list --state open --json number,headRefName,statusCheckRollup`) — NAJPIERW go napraw.
+   (lista PR i check-runs przez `gh api`, patrz „GitHub: tylko REST”) — NAJPIERW go napraw.
 2. W przeciwnym razie weź PIERWSZE zadanie ze statusem `todo` z sekcji o najwyższym
    priorytecie (P0 > P1 > P2). Pomiń `blocked`.
 3. Przeczytaj `docs/GDD.md`, `docs/DECISIONS.md` i skill z `.claude/skills/` właściwy dla zadania
@@ -27,8 +27,8 @@ Patrz `KPI.md`. Skrót: D1 retention ≥ 35 %, D7 ≥ 12 %, ARPDAU ≥ 0,05 USD,
 7. Każda nowa mechanika → test jednostkowy + aktualizacja `docs/GDD.md`.
    Każdy nowy ekran → wpis w `tools/gen_screenshots.sh`.
    Każda decyzja architektoniczna → ADR w `docs/DECISIONS.md`.
-8. `gh pr create --fill --label bot` z opisem: co / dlaczego / jak przetestowano / ryzyka.
-   `gh pr merge --auto --squash`.
+8. Utwórz PR przez `gh api` (nie `gh pr create`): opis co / dlaczego / jak przetestowano / ryzyka,
+   potem etykieta `bot` i auto-merge — komendy w sekcji „GitHub: tylko REST”.
 9. Zmień status zadania na `review`, dopisz `→ PR #N`. Dopisz 2–3 linie do `docs/LOG.md` z datą.
 10. Nowe pomysły/bugi odkryte po drodze → `## Inbox` w BACKLOG.md. NIE realizuj ich teraz.
 11. Pytanie wymagające decyzji produktowej/biznesowej → `## Pytania do Huberta`, task → `blocked`,
@@ -48,6 +48,7 @@ Patrz `KPI.md`. Skrót: D1 retention ≥ 35 %, D7 ≥ 12 %, ARPDAU ≥ 0,05 USD,
   `[ext_resource]`, nowym zasobom nadawaj unikalne id. Po edycji zawsze `make test`.
 - Nie uruchamiaj `git push --force`, nie usuwaj gałęzi innych niż własna `task/*`.
 - Nie commituj do `main` bezpośrednio.
+- Zmiana `.github/workflows/*` jest dozwolona tylko w zadaniu, którego tytuł zaczyna się od `CI:`.
 
 ## Komendy
 | Komenda | Co robi |
@@ -60,6 +61,19 @@ Patrz `KPI.md`. Skrót: D1 retention ≥ 35 %, D7 ≥ 12 %, ARPDAU ≥ 0,05 USD,
 | `make export-check` | dry-run exportu Android do scratch, bez podpisu |
 | `make check` | lint + test + export-check (bramka przed PR) |
 | `make screenshots` | screenshoty headless do `fastlane/metadata/` |
+
+## GitHub: tylko REST (gh api)
+W sesjach Claude Code Remote `gh pr *` (GraphQL) zwraca 403 — używaj wyłącznie `gh api`. Owner/repo: FHubert/first-auto-game.
+
+| Cel | Komenda |
+|---|---|
+| Utworzenie PR (nr w polu `number` odpowiedzi JSON) | `gh api repos/FHubert/first-auto-game/pulls -f title="..." -f head="task/<ID>" -f base=main -f body="..."` |
+| Etykieta `bot` | `gh api repos/FHubert/first-auto-game/issues/<nr>/labels -f "labels[]=bot"` |
+| Auto-merge (squash) | `gh api -X PUT repos/FHubert/first-auto-game/pulls/<nr>/ccr/auto_merge` (alternatywa, jeśli endpoint nie działa: `-f merge_method=squash`) |
+| Lista otwartych PR z gałęzi `task/*` | `gh api "repos/FHubert/first-auto-game/pulls?state=open&per_page=50" --jq '.[] \| select(.head.ref\|startswith("task/")) \| "\(.number) \(.head.ref) \(.head.sha)"'` |
+| Status checków dla commita | `gh api repos/FHubert/first-auto-game/commits/<sha>/check-runs --jq '.check_runs[] \| "\(.name) \(.conclusion)"'` |
+| Runy workflow dla commita | `gh api "repos/FHubert/first-auto-game/actions/runs?head_sha=<sha>" --jq '.workflow_runs[] \| "\(.id) \(.name) \(.conclusion)"'` |
+| Logi failu | `gh run view <id> --log-failed` (jeśli nie działa: `gh api repos/FHubert/first-auto-game/actions/runs/<id>/jobs`) |
 
 ## Skille (które czytać przy jakim zadaniu)
 | Zadanie dotyczy | Skill |

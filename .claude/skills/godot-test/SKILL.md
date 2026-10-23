@@ -109,7 +109,7 @@ Bot (`game/test/integration/playtest_bot.gd`) wymaga kontraktu `GameRound.start(
 
 ## 7. Diagnoza czerwonego CI
 ```
-gh pr list --state open --json number,headRefName,statusCheckRollup
+# lista PR i check-runs: patrz CLAUDE.md → "GitHub: tylko REST" (gh pr list = GraphQL, 403 w CCR)
 gh run list --branch task/<ID> --limit 5
 gh run view <run-id> --log-failed | tail -120
 gh run download <run-id> -n test-reports -D /tmp/reports     # artefakt "test-reports" (14 dni)
