@@ -104,6 +104,37 @@ class GenAssetsTest(unittest.TestCase):
             self.assertEqual(Image.open(p / "icon_512.png").size, (512, 512))
 
 
+class GenSfxTest(unittest.TestCase):
+    def test_generates_valid_audio(self):
+        import wave
+
+        with tempfile.TemporaryDirectory() as d:
+            r = run(TOOLS / "gen_sfx.py", d)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            wavs = sorted(Path(d).glob("*.wav"))
+            ogg = Path(d) / "ambient_loop.ogg"
+            sfx = [p for p in wavs if p.stem != "ambient_loop"]
+            self.assertEqual(len(sfx), 8)
+            self.assertEqual(len(wavs) + len(list(Path(d).glob("*.ogg"))), 9)
+            for p in sfx:
+                with wave.open(str(p)) as w:
+                    dur = w.getnframes() / w.getframerate()
+                    self.assertEqual((w.getnchannels(), w.getframerate()), (1, 44100), p.name)
+                    self.assertTrue(0.03 <= dur <= 2.0, f"{p.name} {dur}")
+            if ogg.exists():
+                self.assertLess(ogg.stat().st_size, 1_000_000)
+                if shutil.which("ffprobe"):
+                    out = subprocess.run(
+                        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(ogg)],
+                        capture_output=True,
+                        text=True,
+                    ).stdout
+                    self.assertGreaterEqual(float(out), 20.0)
+            else:
+                with wave.open(str(Path(d) / "ambient_loop.wav")) as w:
+                    self.assertGreaterEqual(w.getnframes() / w.getframerate(), 20.0)
+
+
 class ShellToolsTest(unittest.TestCase):
     def test_inject_and_set_version(self):
         with tempfile.TemporaryDirectory() as d:
