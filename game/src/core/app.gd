@@ -5,10 +5,12 @@ extends Control
 const SCREEN_HOME: String = "home"
 const SCREEN_LEVEL: String = "level"
 const SCREEN_SETTINGS: String = "settings"
+const SCREEN_THEMES: String = "themes"
 const POPUP_SCENE: PackedScene = preload("res://src/ui/daily_reward_popup.tscn")
 const SCENE_HOME: String = "res://src/ui/home.tscn"
 const SCENE_LEVEL: String = "res://src/levels/level.tscn"
 const SCENE_SETTINGS: String = "res://src/ui/settings_screen.tscn"
+const SCENE_THEMES: String = "res://src/ui/themes_screen.tscn"
 
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
@@ -43,7 +45,7 @@ func show_home() -> void:
 	var home: Home = _swap(SCENE_HOME, SCREEN_HOME)
 	home.play_pressed.connect(show_level)
 	home.settings_pressed.connect(show_settings)
-	home.themes_pressed.connect(func() -> void: Analytics.track_design("nav:themes"))
+	home.themes_pressed.connect(show_themes)
 	home.shop_pressed.connect(func() -> void: Analytics.track_design("nav:shop"))
 	home.daily_pressed.connect(show_daily_level)
 	add_child(home)
@@ -96,6 +98,13 @@ func show_settings() -> void:
 	var screen: SettingsScreen = _swap(SCENE_SETTINGS, SCREEN_SETTINGS)
 	screen.back_pressed.connect(show_home)
 	screen.settings_changed.connect(_on_setting_changed)
+	add_child(screen)
+
+
+func show_themes() -> void:
+	Analytics.track_design("nav:themes")
+	var screen: ThemesScreen = _swap(SCENE_THEMES, SCREEN_THEMES)
+	screen.back_pressed.connect(show_home)
 	add_child(screen)
 
 
