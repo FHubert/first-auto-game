@@ -70,7 +70,7 @@ W sesjach Claude Code Remote `gh pr *` (GraphQL) zwraca 403 — używaj wyłącz
 |---|---|
 | Utworzenie PR (nr w polu `number` odpowiedzi JSON) | `gh api repos/FHubert/first-auto-game/pulls -f title="..." -f head="task/<ID>" -f base=main -f body="..."` |
 | Etykieta `bot` | `gh api repos/FHubert/first-auto-game/issues/<nr>/labels -f "labels[]=bot"` |
-| Auto-merge (squash) | `gh api -X PUT repos/FHubert/first-auto-game/pulls/<nr>/ccr/auto_merge` (alternatywa, jeśli endpoint nie działa: `-f merge_method=squash`) |
+| Auto-merge (squash) | `gh api -X PUT repos/FHubert/first-auto-game/pulls/<nr>/ccr/auto_merge -f merge_method=squash` — uruchom OD RAZU po utworzeniu PR, zanim CI skończy (na PR w stanie `clean` endpoint zwraca 422). Po każdym `--force-with-lease` uzbrój ponownie (GitHub kasuje auto-merge przy force-push). Repo dopuszcza tylko squash. |
 | Lista otwartych PR z gałęzi `task/*` | `gh api "repos/FHubert/first-auto-game/pulls?state=open&per_page=50" --jq '.[] \| select(.head.ref\|startswith("task/")) \| "\(.number) \(.head.ref) \(.head.sha)"'` |
 | Status checków dla commita | `gh api repos/FHubert/first-auto-game/commits/<sha>/check-runs --jq '.check_runs[] \| "\(.name) \(.conclusion)"'` |
 | Runy workflow dla commita | `gh api "repos/FHubert/first-auto-game/actions/runs?head_sha=<sha>" --jq '.workflow_runs[] \| "\(.id) \(.name) \(.conclusion)"'` |
