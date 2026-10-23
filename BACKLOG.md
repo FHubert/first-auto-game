@@ -56,7 +56,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: popup przy pierwszym wejściu dnia (7 kafelków, „Odbierz", wariant „Uratuj streak"); karta na Home ze stanem i licznikiem do północy UTC; Level w trybie `daily` (bez „pomiń"). Test headless: symulowany dzień X, odbiór, ponowne wejście tego samego dnia nie pokazuje popupu. Wpisy w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] G-009 `in_progress` ThemeCatalog + ekran Themes (zależy od G-004, T-018, T-022)
+- [ ] G-009 `review` ThemeCatalog + ekran Themes (zależy od G-004, T-018, T-022) → PR #34
   KA: `theme_catalog.gd` wczytuje `themes.json`. Koszt n-tego płatnego motywu = round(600 × 1.8^(n-1)), czyli 600/1080/1944. Zakup przez `Economy.spend` (przy braku środków odrzucony), aktywny motyw zapisywany i stosowany w BoardView. Ekran Themes z podglądem i ceną; pasek „do następnego motywu" na Home. Testy kosztów, zakupu i persystencji. Wpis w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `game-economy`
 
@@ -110,6 +110,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-040 `todo` UI/asset-gen: font z diakrytykami (ą ę ś ü ß) dla Label/Button (OFL, wpis LICENSES.md) + sprawdzić rendering na screenshotach; etykieta `set_language` nad wyborem języka w SettingsScreen. Skill: asset-gen
 - [ ] T-041 `todo` Audio: podpiąć `click` (przyciski UI), `tube_full` (probówka pełna jednego koloru po przelewie), `Ads` → `Audio.set_app_muted` na czas reklamy; `HAPTIC_MS` jako const. Skill: godot-dev
 - [ ] T-042 `todo` App/Level: `show_daily_level` bez obejścia `round = GameRound.new()` (flaga `autoload_level` w Level); `test_app.gd` z wstrzykniętym zegarem (teraz realny czas otwiera popup). Skill: godot-dev
+- [ ] T-043 `todo` Themes: usunąć martwą `BoardView.THEMES_PATH`; nazwy motywów przez klucze `theme_name_*` w CSV; App odświeża Level po `theme_selected` (dziś od następnej rundy); GDD Meta: dopisać zasadę kosztu wg pozycji w katalogu. Skill: godot-dev
 - [ ] T-034 `todo` CI: `tools/test_tools.py` nie jest uruchamiane przez `make check` ani test.yml — dodać cel `make test-tools` do `check` (+ Pillow w `make setup`); dopieścić kształt `flask` w gen_assets. Skill: godot-test
 
 ## Pytania do Huberta
