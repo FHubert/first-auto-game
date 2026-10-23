@@ -24,7 +24,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P2 — monetyzacja i meta (z GDD v1.0, R-003)
 
-- [ ] G-010 `in_progress` Rewarded: 6 placementów przez Ads.request_rewarded (zależy od T-021, G-008)
+- [ ] G-010 `review` Rewarded: 6 placementów przez Ads.request_rewarded (zależy od T-021, G-008) → PR #35
   KA: `double_coins` (LevelComplete, od poziomu 2), `extra_tube`, `undo_refill` (max 2 na poziom), `skip_level`, `daily_x2`, `streak_save` z id zgodnymi z `docs/MONETIZATION.md`. Kwota nagrody widoczna na przycisku przed reklamą, przycisk ukryty, gdy reklama nie jest gotowa. Testy z `FakeAdProvider`: granted przyznaje nagrodę dokładnie raz; skipped i unavailable nie przyznają nic; cap per poziom/dzień jest respektowany. `make check` zielone. ~260 linii.
   Skill: `ads-iap`
 

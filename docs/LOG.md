@@ -60,3 +60,8 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 - Inbox: T-035 pełna animacja przelewu, T-043 porządki po motywach, T-042 show_daily_level bez obejścia, T-041 podpięcie click/tube_full/mute reklam, T-040 font z diakrytykami, T-039 sygnał tube_deselected, T-038 testy shop_requested, T-036 szum FNV w logu testów, T-037 test wygranej bez „idealnie" + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).
 - Podsumowanie: 9 zadań (7× P1 + 2× P2), PR #26–#34; #26–#33 zmergowane w trakcie sesji (CI zielone), #34 z uzbrojonym auto-merge. P1 w całości w `review`/`done` → vertical slice grywalny end-to-end (tutorial → Home → Level → LevelComplete, StuckPanel/boostery, daily, motywy, audio, EN/PL/DE). Zależne PR-y: gałąź na gałęzi poprzednika + `rebase --onto origin/main` po merge rodzica. Blokery: brak. Następne: G-010 rewarded (wymaga T-021, G-008 — oba zmergowane), G-011 balance_sim, G-001.
 - Lekcja: po rebase na main z nowymi `class_name` trzeba `godot --headless --import` przed `make test` (stary cache klas daje „Identifier not declared"); `make setup` robi to w CI.
+
+## 2026-10-23 — sesja continuous-dev #4 (22:13– UTC)
+
+- Start: brak otwartych PR task/*; #26–#34 zmergowane → zadania `review` przeniesione do Done.
+- P2: G-010 (logika) RewardedPlacements (czysta klasa, cap per poziom, offer→granted), `Ads.is_rewarded_ready`, 4 klucze config, `watch_*` w Level, `claim_x2`/`save_streak_rewarded` w popupie; 190 testów → PR #35 (auto-merge, bez QA — P2). UI przycisków wydzielone do nowego zadania G-010b.
