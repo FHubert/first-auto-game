@@ -17,6 +17,24 @@ const DEFAULTS: Dictionary = {
 	"difficulty_max": 1.0,
 	"difficulty_midpoint_level": 20,
 	"difficulty_steepness": 0.15,
+	# Generator / progression (GDD v1.0)
+	"tube_capacity": 4,
+	"empty_tubes": 2,
+	"tutorial_colors": 2,
+	"colors_start": 3,
+	"colors_max": 12,
+	"levels_per_extra_color": 6,
+	"breather_every": 5,
+	"breather_factor": 0.65,
+	"min_moves_factor_easy": 1.2,
+	"min_moves_factor_hard": 2.0,
+	"gen_max_attempts": 20,
+	"solver_max_states": 50000,
+	"solver_fallback_weight": 3.0,
+	"campaign_seed": 1,
+	"daily_seed_salt": 104729,
+	"daily_colors": 8,
+	"daily_min_moves_factor": 1.8,
 }
 
 var _values: Dictionary = DEFAULTS.duplicate(true)
