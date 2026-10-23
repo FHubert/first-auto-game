@@ -32,7 +32,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `sort_solver.gd`: `solve(board, max_states, weight=1.0) -> {moves:int, path:Array[Vector2i], exact:bool, expanded:int}`. `moves = -1`, gdy brak rozwiązania. Testy: 3 ręczne plansze ze znanym minimum (1, 2, 4 ruchy) zwracają dokładnie tę liczbę; plansza nierozwiązywalna zwraca -1; `expanded <= max_states`. `make test` zielone. ~220 linii.
   Skill: `godot-dev`
 
-- [ ] G-002 `todo` Parametry poziomu z GameConfig (kolory, d, breather, min_moves_floor)
+- [ ] G-002 `review` Parametry poziomu z GameConfig (kolory, d, breather, min_moves_floor) → PR #16
   KA: do `config.gd` dodane klucze z GDD → Ekonomia → Klucze GameConfig (generator/progresja: `tube_capacity`, `empty_tubes`, `tutorial_colors`, `colors_start`, `colors_max`, `levels_per_extra_color`, `breather_every`, `breather_factor`, `min_moves_factor_easy/hard`, `gen_max_attempts`, `solver_max_states`, `solver_fallback_weight`, `campaign_seed`, `daily_seed_salt`, `daily_colors`, `daily_min_moves_factor`). `ContentGenerator.level_params(level) -> Dictionary`. Test sprawdza wartości z tabeli Progresja dla poziomów 1, 2, 5, 8, 19, 20, 40, 56. `make test` zielone. ~150 linii.
   Skill: `game-economy`
 
