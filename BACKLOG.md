@@ -29,7 +29,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: HUD pokazuje numer poziomu, ruchy, cofnij z licznikiem, restart i pauzę. Po wygranej ekran `LevelComplete` pokazuje monety i „idealnie", a „Dalej" przechodzi do kolejnego poziomu. `SaveSystem.save` po każdej wygranej. Test headless: wygrana ścieżką solvera podnosi `level` o 1 i coins o `win_reward`, a ponowne wczytanie zachowuje stan. Oba ekrany mają wpis w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-021 `todo` StuckPanel + przyciski boosterów (ścieżka monet) (zależy od T-020)
+- [ ] T-021 `review` StuckPanel + przyciski boosterów (ścieżka monet) (zależy od T-020) → PR #28
   KA: `StuckPanel` pojawia się przy `is_stuck()` i pokazuje „X ruchów od celu". Opcje: cofnij, +probówka (60 monet), +3 cofnięcia (20), podpowiedź w HUD (25), restart, pomiń (widoczne, gdy `can_skip`). Brak monet prowadzi do `Shop` (placeholder). Testy: zakup za monety zmniejsza saldo i przyznaje efekt; przy braku środków efekt nie jest przyznany. Wpis w `screens.txt`. `make check` zielone. ~240 linii.
   Skill: `godot-dev`
 
@@ -105,6 +105,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-035 `todo` BoardView: pełna animacja przelewu wg GDD (przechylenie, ubywanie/przybywanie warstw, pulsowanie pełnej probówki) + ochrona tweenów przed `queue_free` w `_rebuild`/`resized`; nazwane stałe proporcji shake/pour; test z `animate=true` przez `scene_runner` i symulowany czas. Skill: godot-dev
 - [ ] T-036 `todo` test_content_generator: `const FNV_OFFSET = 0xCBF29CE484222325` daje `ERROR: Cannot represent ... as a 64-bit signed integer` w logu `make test` (3×) — użyć literału ze znakiem (-3750763034362895579) albo FNV-1a 32-bit; sprawdzić, czy golden hash się nie zmienia. Skill: godot-test
 - [ ] T-037 `todo` Level: test wygranej bez „idealnie" (ukryty `perfect_label`, tylko `win_reward_coins`); usunąć nieużywane `@export var level` po T-022. Skill: godot-dev
+- [ ] T-038 `todo` Level: testy `shop_requested` dla hint/undo_refill bez środków; `buy_undo_refill` z jawnym `can_afford` (spójnie z resztą); `GameConfig.get_value` bez duplikowanych fallbacków w board_view.gd. Skill: godot-dev
 - [ ] T-034 `todo` CI: `tools/test_tools.py` nie jest uruchamiane przez `make check` ani test.yml — dodać cel `make test-tools` do `check` (+ Pillow w `make setup`); dopieścić kształt `flask` w gen_assets. Skill: godot-test
 
 ## Pytania do Huberta

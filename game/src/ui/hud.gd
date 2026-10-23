@@ -5,6 +5,8 @@ extends Control
 signal undo_pressed
 signal restart_pressed
 signal pause_pressed
+signal hint_pressed
+signal extra_tube_pressed
 
 # Teksty literalami do czasu lokalizacji (T-023: podmiana na tr()).
 const TEXT_LEVEL: String = "Poziom %d"
@@ -12,9 +14,11 @@ const TEXT_MOVES: String = "Ruchy: %d"
 const TEXT_UNDO: String = "Cofnij (%d)"
 const TEXT_RESTART: String = "Restart"
 const TEXT_PAUSE: String = "Pauza"
+const TEXT_HINT: String = "Podpowiedź (%d)"
+const TEXT_EXTRA_TUBE: String = "+Probówka (%d)"
 const ICON_UNDO: String = "res://assets/sprites/ui/icon_undo.svg"
 const ICON_RESTART: String = "res://assets/sprites/ui/icon_restart.svg"
-const BAR_HEIGHT: float = 150.0
+const BAR_HEIGHT: float = 230.0
 const FONT_SIZE: int = 28
 
 var level_label: Label
@@ -22,6 +26,8 @@ var moves_label: Label
 var undo_button: Button
 var restart_button: Button
 var pause_button: Button
+var hint_button: Button
+var extra_tube_button: Button
 
 var _round: GameRound
 var _level_no: int = 1
@@ -48,6 +54,13 @@ func _ready() -> void:
 	restart_button = _make_button(buttons, TEXT_RESTART, restart_pressed)
 	restart_button.icon = load(ICON_RESTART)
 	pause_button = _make_button(buttons, TEXT_PAUSE, pause_pressed)
+	var boosters := HBoxContainer.new()
+	boosters.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rows.add_child(boosters)
+	hint_button = _make_button(boosters, TEXT_HINT % Economy.hint_cost(), hint_pressed)
+	extra_tube_button = _make_button(
+		boosters, TEXT_EXTRA_TUBE % Economy.extra_tube_cost(), extra_tube_pressed
+	)
 	refresh()
 
 
