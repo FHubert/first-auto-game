@@ -8,8 +8,17 @@ const DEFAULTS: Dictionary = {
 	"rewarded_multiplier": 2.0,
 	# Economy
 	"daily_reward_base": 50,
-	"starting_coins": 0,
+	"starting_coins": 100,
 	"win_reward_coins": 10,
+	# Economy (GDD v1.0)
+	"par_bonus_coins": 5,
+	"hint_cost_coins": 25,
+	"extra_tube_cost_coins": 60,
+	"undo_refill_cost_coins": 20,
+	"theme_cost_base": 600,
+	"theme_cost_growth": 1.8,
+	"daily_challenge_coins": 50,
+	"daily_unlock_level": 3,
 	# Session
 	"session_target_seconds": 180,
 	# Difficulty curve (logistic)
