@@ -1,7 +1,7 @@
 keys,en,pl,de
 hud_level,Level %d,Poziom %d,Level %d
 hud_moves,Moves: %d,Ruchy: %d,Züge: %d
-btn_undo,Undo (%d),Cofnij (%d),Zurück (%d)
+btn_undo,Undo (%d),Cofnij (%d),Rückgängig (%d)
 btn_restart,Restart,Restart,Neustart
 btn_pause,Pause,Pauza,Pause
 btn_hint,Hint (%d),Podpowiedź (%d),Tipp (%d)
@@ -14,7 +14,7 @@ btn_menu,Menu,Menu,Menü
 stuck_title,You're stuck,Utknąłeś,Du steckst fest
 stuck_distance,%d moves to goal,%d ruchów od celu,%d Züge bis zum Ziel
 stuck_no_solution,No solution from this state,Brak rozwiązania z tego stanu,Von hier aus gibt es keine Lösung
-btn_undo_refill,+%d undos (%d),+%d cofnięć (%d),+%d Zurück (%d)
+btn_undo_refill,+%d undo (%d),+%d cofnięć (%d),+%d Rückg. (%d)
 btn_skip,Skip,Pomiń,Überspringen
 btn_close,Close,Zamknij,Schließen
 tut_pick_source,Tap the highlighted tube,Stuknij podświetloną probówkę,Tippe auf das markierte Röhrchen
