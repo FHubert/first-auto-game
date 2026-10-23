@@ -6,11 +6,13 @@ const SCREEN_HOME: String = "home"
 const SCREEN_LEVEL: String = "level"
 const SCREEN_SETTINGS: String = "settings"
 const SCREEN_THEMES: String = "themes"
+const SCREEN_SHOP: String = "shop"
 const POPUP_SCENE: PackedScene = preload("res://src/ui/daily_reward_popup.tscn")
 const SCENE_HOME: String = "res://src/ui/home.tscn"
 const SCENE_LEVEL: String = "res://src/levels/level.tscn"
 const SCENE_SETTINGS: String = "res://src/ui/settings_screen.tscn"
 const SCENE_THEMES: String = "res://src/ui/themes_screen.tscn"
+const SCENE_SHOP: String = "res://src/ui/shop_screen.tscn"
 
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
@@ -26,6 +28,7 @@ func _ready() -> void:
 	track_session_start()
 	if state == null:
 		state = SaveSystem.load()
+	Purchases.bind_state(state)
 	Locale.ensure_installed()
 	Locale.apply_setting(str(state.settings.get("locale", "")))
 	Audio.apply_settings(state.settings)
@@ -72,7 +75,11 @@ func show_home() -> void:
 	home.play_pressed.connect(show_level)
 	home.settings_pressed.connect(show_settings)
 	home.themes_pressed.connect(show_themes)
-	home.shop_pressed.connect(func() -> void: Analytics.track_design("nav:shop"))
+	home.shop_pressed.connect(
+		func() -> void:
+			Analytics.track_design("nav:shop")
+			show_shop()
+	)
 	home.daily_pressed.connect(show_daily_level)
 	add_child(home)
 	_maybe_show_daily_popup(home)
@@ -107,6 +114,7 @@ func show_level() -> void:
 	level.clock = clock
 	level.pause_requested.connect(show_home)
 	level.home_requested.connect(show_home)
+	level.shop_requested.connect(func(r: String) -> void: show_shop(r, true))
 	add_child(level)
 
 
@@ -115,6 +123,7 @@ func show_daily_level() -> void:
 	level.clock = clock
 	level.pause_requested.connect(show_home)
 	level.home_requested.connect(show_home)
+	level.shop_requested.connect(func(r: String) -> void: show_shop(r, true))
 	level.round = GameRound.new()  # pomija load_level w _ready; start_daily ustawi runde
 	add_child(level)
 	level.start_daily(DailyRewards.utc_day_from_unix(int(clock.call())))
@@ -131,6 +140,13 @@ func show_themes() -> void:
 	Analytics.track_design("nav:themes")
 	var screen: ThemesScreen = _swap(SCENE_THEMES, SCREEN_THEMES)
 	screen.back_pressed.connect(show_home)
+	add_child(screen)
+
+
+func show_shop(reason: String = "", from_level: bool = false) -> void:
+	var screen: ShopScreen = _swap(SCENE_SHOP, SCREEN_SHOP)
+	screen.reason = reason
+	screen.back_pressed.connect(show_level if from_level else show_home)
 	add_child(screen)
 
 

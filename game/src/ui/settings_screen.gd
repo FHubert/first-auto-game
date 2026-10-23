@@ -18,6 +18,7 @@ var sfx_toggle: CheckButton
 var haptics_toggle: CheckButton
 var locale_option: OptionButton
 var version_label: Label
+var restore_button: Button
 var back_button: Button
 
 
@@ -33,6 +34,19 @@ func set_setting(key: String, value: Variant) -> void:
 	state.settings[key] = value
 	SaveSystem.save(state)
 	settings_changed.emit(key)
+
+
+func _on_restore_pressed() -> void:
+	Purchases.bind_state(state)
+	if not Purchases.restore_done.is_connected(_on_restore_done):
+		Purchases.restore_done.connect(_on_restore_done)
+	Purchases.restore()
+
+
+func _on_restore_done(restored: Array) -> void:
+	apply_from_state()
+	if not restored.is_empty():
+		settings_changed.emit("ads_removed")
 
 
 func apply_from_state() -> void:
@@ -72,6 +86,12 @@ func _build() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
+	restore_button = Button.new()
+	restore_button.text = tr("btn_restore")
+	restore_button.custom_minimum_size = Vector2(0, 100)
+	restore_button.add_theme_font_size_override("font_size", FONT_SIZE)
+	restore_button.pressed.connect(_on_restore_pressed)
+	box.add_child(restore_button)
 	back_button = Button.new()
 	back_button.text = tr("btn_back")
 	back_button.custom_minimum_size = Vector2(0, 100)

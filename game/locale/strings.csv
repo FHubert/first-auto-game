@@ -58,3 +58,20 @@ btn_double,×2 (+%d),×2 (+%d),×2 (+%d)
 btn_extra_tube_ad,+Tube (ad),+Probówka (ad),+Röhrchen (ad)
 btn_undo_refill_ad,+%d undo (ad),+%d cofnięć (ad),+%d Rückg. (ad)
 btn_skip_ad,Skip (ad),Pomiń (ad),Überspr. (ad)
+shop_title,Shop,Sklep,Shop
+shop_item_remove_ads,No ads,Bez reklam,Keine Werbung
+shop_desc_remove_ads,"No interstitial ads, forever","Bez reklam pełnoekranowych na zawsze","Keine Zwischenwerbung, für immer"
+shop_item_coins_small,Coin pouch,Sakiewka monet,Münzbeutel
+shop_item_coins_large,Coin chest,Skrzynia monet,Münzkiste
+shop_desc_coins,+%d coins,+%d monet,+%d Münzen
+shop_item_starter_pack,Starter pack,Pakiet startowy,Starterpaket
+shop_desc_starter,+%d coins + Neon theme,+%d monet + motyw Neon,+%d Münzen + Neon-Design
+shop_offer_left,Offer ends in %d h,Oferta kończy się za %d h,Angebot endet in %d h
+shop_price_unknown,…,…,…
+btn_owned,Owned,Posiadane,Gekauft
+btn_restore,Restore purchases,Przywróć zakupy,Käufe wiederherst.
+shop_restored,Restored: %d,Przywrócono: %d,Wiederhergestellt: %d
+shop_restore_none,Nothing to restore,Brak zakupów do przywrócenia,Nichts wiederherzustellen
+shop_reason_extra_tube,Not enough coins for a tube,Za mało monet na probówkę,Zu wenig Münzen für ein Röhrchen
+shop_reason_hint,Not enough coins for a hint,Za mało monet na podpowiedź,Zu wenig Münzen für einen Tipp
+shop_reason_undo_refill,Not enough coins for undos,Za mało monet na cofnięcia,Zu wenig Münzen für Rückgängig
