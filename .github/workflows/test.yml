@@ -1,0 +1,71 @@
+# CI gate for every PR and every push to main: lint, unit tests (gdUnit4), headless playtest.
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# One run per ref; a new push cancels the stale run.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write        # publish-unit-test-result-action creates a check run
+  pull-requests: write # ... and (optionally) a PR comment
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Godot binary lives in .tools, export templates in ~/.local/share/godot.
+      - name: Cache Godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tools
+            ~/.local/share/godot
+          key: godot-${{ runner.os }}-${{ hashFiles('Makefile', 'tools/setup_env.sh') }}
+
+      - name: Setup (Godot, gdUnit4, gdtoolkit)
+        run: make setup
+
+      - name: Tool self-tests (python)
+        run: python3 -m unittest discover -s tools -p "test_*.py" -v
+
+      - name: Lint
+        run: make lint
+
+      - name: Unit tests
+        run: make test
+
+      - name: Playtest bot
+        run: make playtest
+
+      # Always upload, so a red run still has its reports.
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: game/test/reports/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Fork PRs get a read-only token and cannot create check runs.
+      - name: Publish test results
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: game/test/reports/**/*.xml
+          check_name: gdUnit4 results
+          comment_mode: changes

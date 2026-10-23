@@ -1,0 +1,140 @@
+# Release pipeline, triggered by a version tag (v1.2.3):
+#   prepare -> changelog -> android + ios (internal / TestFlight) -> promote (manual approval)
+# The `production` environment must have "Required reviewers" configured
+# (Settings -> Environments -> production); that is the manual approval gate.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Single source of truth for version name/code, so both stores get the same numbers.
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.v.outputs.name }}
+      version_code: ${{ steps.v.outputs.code }}
+    steps:
+      - id: v
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          name="${tag#v}"
+          if ! [[ "$name" =~ ^[0-9]+(\.[0-9]+)*([-+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag '$tag' is not of the form vMAJOR.MINOR.PATCH"
+            exit 1
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "code=$((GITHUB_RUN_NUMBER + 100))" >> "$GITHUB_OUTPUT"
+
+  # Changelog = conventional-commit subjects since the previous tag. Kept as an artifact
+  # (never committed); build jobs drop it into fastlane/metadata/android/.../<version_code>.txt
+  # and hand it to TestFlight via the CHANGELOG env var.
+  changelog:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate changelog
+        env:
+          VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
+        run: |
+          prev="$(git describe --tags --abbrev=0 --match 'v*' "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
+          range="${prev:+$prev..}${GITHUB_REF_NAME}"
+          echo "Range: $range"
+          mkdir -p changelog-out
+          out="changelog-out/${VERSION_CODE}.txt"
+          # Only user-facing commit types; strip "feat(ID): " prefixes.
+          git log "$range" --no-merges --pretty='%s' \
+            | grep -E '^(feat|fix|perf)(\(.+\))?!?: ' \
+            | sed -E 's/^[a-z]+(\([^)]*\))?!?: /- /' > "$out.full" || true
+          [ -s "$out.full" ] || echo "- Stability and performance improvements" > "$out.full"
+          # Google Play limit: 500 characters. Keep whole lines only.
+          : > "$out"
+          while IFS= read -r line; do
+            if [ $(( $(wc -c < "$out") + ${#line} + 1 )) -le 500 ]; then echo "$line" >> "$out"; else break; fi
+          done < "$out.full"
+          rm "$out.full"
+          cat "$out"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog-out/
+          retention-days: 30
+
+  android:
+    needs: [prepare, changelog]
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+    with:
+      track: internal
+      version_code: ${{ needs.prepare.outputs.version_code }}
+      version_name: ${{ needs.prepare.outputs.version_name }}
+
+  ios:
+    needs: [prepare, changelog]
+    uses: ./.github/workflows/build-ios.yml
+    secrets: inherit
+    with:
+      version_code: ${{ needs.prepare.outputs.version_code }}
+      version_name: ${{ needs.prepare.outputs.version_name }}
+
+  # Manual approval via the `production` environment, then:
+  #   Google Play: internal -> production, staged rollout 10 %
+  #   App Store: submit the processed build for review (no automatic release)
+  promote:
+    needs: [prepare, android, ios]
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 60
+    env:
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
+      VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mask secrets
+        run: |
+          for name in GOOGLE_PLAY_SERVICE_ACCOUNT_JSON APP_STORE_CONNECT_KEY_CONTENT; do
+            value="${!name}"
+            [ -n "$value" ] && echo "::add-mask::$value"
+          done
+          true
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Promote Android to production (10 % rollout)
+        run: |
+          printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play.json"
+          chmod 600 "$RUNNER_TEMP/play.json"
+          GOOGLE_PLAY_JSON_KEY_PATH="$RUNNER_TEMP/play.json" bundle exec fastlane android promote_production
+
+      # deliver only talks to the App Store Connect API, so Linux is enough. It waits for the
+      # TestFlight build (IOS_BUILD_NUMBER) to finish processing before submitting.
+      - name: Submit iOS for App Review
+        env:
+          IOS_BUILD_NUMBER: ${{ needs.prepare.outputs.version_code }}
+        run: |
+          printf '%s' "$APP_STORE_CONNECT_KEY_CONTENT" > "$RUNNER_TEMP/AuthKey.p8"
+          chmod 600 "$RUNNER_TEMP/AuthKey.p8"
+          APP_STORE_CONNECT_KEY_PATH="$RUNNER_TEMP/AuthKey.p8" bundle exec fastlane ios submit_review
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/play.json" "$RUNNER_TEMP/AuthKey.p8"

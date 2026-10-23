@@ -1,0 +1,96 @@
+# Mirrors GitHub issues labelled `bot` into BACKLOG.md (## Inbox).
+# This is the ONLY automation allowed to commit to main directly (needs a branch-protection
+# bypass for github-actions[bot], or no required-PR rule for this path). The commit message
+# carries [skip ci] so it does not start the test/build pipelines.
+name: backlog-sync
+
+on:
+  issues:
+    types: [opened, labeled]
+  # Used by nightly-sanity.yml: issues created with GITHUB_TOKEN do not fire `issues` events.
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue number to sync
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: read
+
+# Serialise commits to BACKLOG.md.
+concurrency:
+  group: backlog-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    # For `issues` events only act on `bot`-labelled issues; dispatch runs are always explicit.
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'bot')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Load issue
+        id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+        run: |
+          # Fetch via API so title/labels are always current (and safe from expression injection).
+          gh api "repos/$GITHUB_REPOSITORY/issues/$NUMBER" > issue.json
+          if ! jq -e '.labels | map(.name) | index("bot")' issue.json >/dev/null; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Append to BACKLOG.md
+        if: steps.issue.outputs.skip != 'true'
+        run: |
+          python3 - <<'PY'
+          import json, re, sys
+
+          issue = json.load(open("issue.json"))
+          nr = issue["number"]
+          # Issue titles are untrusted: single line, no backticks.
+          title = re.sub(r"\s+", " ", issue["title"]).replace("`", "'").strip()
+          line = f"- [ ] GH-{nr} `todo` {title} (issue #{nr})"
+
+          path = "BACKLOG.md"
+          lines = open(path, encoding="utf-8").read().split("\n")
+          if any(re.search(rf"\bGH-{nr}\b", l) for l in lines):
+              print(f"GH-{nr} already in backlog")
+              sys.exit(0)
+
+          start = next((i for i, l in enumerate(lines) if l.startswith("## Inbox")), None)
+          if start is None:
+              sys.exit("No '## Inbox' section in BACKLOG.md")
+          end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+          # Insert after the last non-blank line of the section (or right after the heading).
+          pos = start + 1
+          for i in range(start + 1, end):
+              if lines[i].strip():
+                  pos = i + 1
+          lines.insert(pos, line)
+          open(path, "w", encoding="utf-8").write("\n".join(lines))
+          print("Added:", line)
+          PY
+
+      - name: Commit to main
+        if: steps.issue.outputs.skip != 'true'
+        env:
+          NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+        run: |
+          git diff --quiet BACKLOG.md && { echo "Nothing to commit"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add BACKLOG.md
+          git commit -m "chore(backlog): add GH-$NUMBER to Inbox [skip ci]"
+          for attempt in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            git pull --rebase origin main
+          done
+          echo "::error::Could not push BACKLOG.md (branch protection?)"
+          exit 1

@@ -1,0 +1,151 @@
+# Fastlane lanes for first-auto-game. Godot produces the binaries (see .github/workflows);
+# fastlane only signs and uploads them.
+#
+# Paths are absolute (ROOT) because fastlane runs lanes with the working directory set to
+# fastlane/, which makes relative paths error-prone.
+
+ROOT = File.expand_path("..", __dir__)
+APP_ID = "pl.allinit.firstautogame".freeze
+AAB_PATH = File.join(ROOT, "export", "android", "game.aab")
+XCODEPROJ = File.join(ROOT, "export", "ios", "game.xcodeproj")
+ANDROID_METADATA = File.join(__dir__, "metadata", "android")
+IOS_METADATA = File.join(__dir__, "metadata", "ios")
+
+# Store listing placeholders (see metadata/*/title.txt) must never reach a real listing.
+def metadata_ready?(dir)
+  return false unless Dir.exist?(dir)
+  files = Dir.glob(File.join(dir, "**", "*.txt")).reject { |f| f.include?("/changelogs/") }
+  !files.empty? && files.none? { |f| File.read(f).include?("TBD by aso skill") }
+end
+
+def images_ready?(dir)
+  Dir.exist?(dir) && !Dir.glob(File.join(dir, "**", "*.{png,jpg}")).empty?
+end
+
+def play_json_key
+  path = ENV["GOOGLE_PLAY_JSON_KEY_PATH"]
+  UI.user_error!("GOOGLE_PLAY_JSON_KEY_PATH is not set or file is missing") if path.to_s.empty? || !File.exist?(path)
+  path
+end
+
+def asc_api_key
+  path = ENV["APP_STORE_CONNECT_KEY_PATH"]
+  UI.user_error!("APP_STORE_CONNECT_KEY_PATH is not set or file is missing") if path.to_s.empty? || !File.exist?(path)
+  app_store_connect_api_key(
+    key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
+    issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+    key_filepath: path,
+    in_house: false
+  )
+end
+
+platform :android do
+  desc "Upload the AAB to the given Play track (default internal)"
+  lane :upload do |options|
+    track = options[:track] || "internal"
+    UI.user_error!("AAB not found: #{AAB_PATH}") unless File.exist?(AAB_PATH)
+    meta = metadata_ready?(ANDROID_METADATA)
+    imgs = meta && images_ready?(File.join(ANDROID_METADATA, "en-US", "images"))
+    upload_to_play_store(
+      package_name: APP_ID,
+      track: track,
+      aab: AAB_PATH,
+      json_key: play_json_key,
+      # A brand new app may only accept drafts until the first review is done.
+      release_status: ENV.fetch("PLAY_RELEASE_STATUS", "completed"),
+      metadata_path: ANDROID_METADATA,
+      skip_upload_metadata: !meta,
+      skip_upload_images: !imgs,
+      skip_upload_screenshots: !imgs,
+      skip_upload_changelogs: false, # metadata/android/<locale>/changelogs/<version_code>.txt
+      skip_upload_apk: true
+    )
+  end
+
+  desc "Upload the AAB to the internal testing track"
+  lane :internal do
+    upload(track: "internal")
+  end
+
+  desc "Promote the current internal release to production with a 10 % staged rollout"
+  lane :promote_production do
+    upload_to_play_store(
+      package_name: APP_ID,
+      track: "internal",
+      track_promote_to: "production",
+      rollout: "0.1",
+      json_key: play_json_key,
+      version_code: ENV["VERSION_CODE"] ? ENV["VERSION_CODE"].to_i : nil,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+  end
+end
+
+platform :ios do
+  desc "Sign (match, readonly), build the Godot-exported project and upload to TestFlight"
+  lane :beta do
+    UI.user_error!("Xcode project not found: #{XCODEPROJ}") unless Dir.exist?(XCODEPROJ)
+    setup_ci # temporary keychain on CI
+    api_key = asc_api_key
+    match(type: "appstore", readonly: true, api_key: api_key, app_identifier: [APP_ID])
+
+    profile = lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING][APP_ID]
+    update_code_signing_settings(
+      path: XCODEPROJ,
+      use_automatic_signing: false,
+      team_id: ENV.fetch("APPLE_TEAM_ID"),
+      code_sign_identity: "iPhone Distribution",
+      profile_name: profile
+    )
+
+    build_app(
+      project: XCODEPROJ,
+      scheme: "game",
+      configuration: "Release",
+      export_method: "app-store",
+      export_options: { provisioningProfiles: { APP_ID => profile } },
+      output_directory: File.join(ROOT, "export", "ios"),
+      output_name: "game.ipa",
+      clean: true
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true,
+      changelog: ENV["CHANGELOG"],
+      uses_non_exempt_encryption: false
+    )
+  end
+
+  desc "Submit the processed TestFlight build for App Review (manual release)"
+  lane :submit_review do
+    api_key = asc_api_key
+    meta = metadata_ready?(IOS_METADATA)
+    deliver(
+      api_key: api_key,
+      app_identifier: APP_ID,
+      build_number: ENV["IOS_BUILD_NUMBER"], # deliver waits for this build to finish processing
+      submit_for_review: true,
+      automatic_release: false,
+      force: true, # no interactive HTML preview
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: !meta,
+      metadata_path: IOS_METADATA,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        export_compliance_uses_encryption: false,
+        add_id_info_uses_idfa: ENV.fetch("IOS_USES_IDFA", "true") == "true",
+        add_id_info_serves_ads: true,
+        add_id_info_tracks_install: true,
+        add_id_info_tracks_action: true,
+        add_id_info_limits_tracking: true
+      }
+    )
+  end
+end

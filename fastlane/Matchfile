@@ -1,0 +1,7 @@
+# Certificates and profiles live in a private git repo, encrypted with MATCH_PASSWORD.
+# CI authenticates to it with MATCH_GIT_BASIC_AUTHORIZATION (base64 "user:token").
+git_url(ENV["MATCH_GIT_URL"])
+storage_mode("git")
+type("appstore")
+app_identifier(["pl.allinit.firstautogame"])
+readonly(true)

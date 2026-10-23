@@ -1,0 +1,157 @@
+# Nightly: full `make check`, unsigned Android debug export and (optionally) a Firebase Test
+# Lab robo crawl. On failure it opens a GitHub issue labelled `bot` + `P0`, which the Claude
+# loop picks up as a task (via backlog-sync.yml -> BACKLOG.md Inbox, and CLAUDE.md step 1).
+name: nightly-sanity
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-sanity
+  cancel-in-progress: false
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # Secrets cannot be used in `if:` directly; expose presence as a plain env flag.
+      HAS_GCP: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON != '' }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache Godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tools
+            ~/.local/share/godot
+          key: godot-${{ runner.os }}-${{ hashFiles('Makefile', 'tools/setup_env.sh') }}
+
+      - run: make setup
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+
+      - name: Install Android SDK packages
+        run: sdkmanager --install platform-tools "build-tools;36.1.0" "platforms;android-36" "cmake;3.10.2.4988404" "ndk;29.0.14206865" >/dev/null
+
+      - name: Write Godot editor settings
+        run: |
+          dir="$HOME/.config/godot"
+          mkdir -p "$dir"
+          cat > "$dir/editor_settings-4.7.tres" <<TRES
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "${ANDROID_HOME}"
+          export/android/java_sdk_path = "${JAVA_HOME}"
+          TRES
+
+      # Debug exports are signed with a throwaway debug keystore (never a release key).
+      - name: Create debug keystore
+        run: |
+          keytool -genkeypair -v -keystore "$RUNNER_TEMP/debug.keystore" -storepass android \
+            -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" >/dev/null 2>&1
+          {
+            echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$RUNNER_TEMP/debug.keystore"
+            echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey"
+            echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android"
+          } >> "$GITHUB_ENV"
+
+      - name: Full check (lint + test + export-check)
+        run: make check
+
+      - name: Playtest bot
+        run: make playtest
+
+      - name: Economy simulation
+        run: make sim
+
+      - name: Export Android debug APK
+        run: |
+          mkdir -p export/android
+          .tools/godot --headless --path game --export-debug "Android" ../export/android/game-debug.apk
+          test -s export/android/game-debug.apk
+
+      - name: Firebase auth
+        if: env.HAS_GCP == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+
+      - name: Setup gcloud
+        if: env.HAS_GCP == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Firebase Test Lab robo test
+        if: env.HAS_GCP == 'true'
+        run: |
+          gcloud firebase test android run \
+            --type robo \
+            --app export/android/game-debug.apk \
+            --device model=Pixel2,version=30,locale=en,orientation=portrait \
+            --timeout 5m \
+            ${GCP_PROJECT_ID:+--project "$GCP_PROJECT_ID"}
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-reports
+          path: |
+            game/test/reports/
+            export/android/game-debug.apk
+          if-no-files-found: ignore
+          retention-days: 7
+
+  report-failure:
+    needs: sanity
+    if: always() && needs.sanity.result == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      actions: write # to dispatch backlog-sync (issues created with GITHUB_TOKEN fire no `issues` event)
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Open P0 issue (once per open failure)
+        run: |
+          gh label create bot --color 5319e7 --description "Automation-created" 2>/dev/null || true
+          gh label create P0 --color b60205 --description "Blocks everything else" 2>/dev/null || true
+          title="Nightly sanity failed"
+          existing="$(gh issue list --state open --label bot --label P0 --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Still failing on $(date -u +%F): $RUN_URL"
+            exit 0
+          fi
+          url="$(gh issue create --title "$title" --label bot --label P0 \
+            --body "The nightly sanity workflow failed.
+
+          Run: $RUN_URL
+
+          Reproduce locally: \`make setup && make check && make playtest\`. Fix before any feature work.")"
+          echo "Created $url"
+          # GITHUB_TOKEN-created issues do not trigger backlog-sync; dispatch it explicitly.
+          gh workflow run backlog-sync.yml -f issue_number="${url##*/}" || true

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(make *)",
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(python3 *)",
+      "Bash(bash tools/*)",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch(domain:docs.godotengine.org)",
+      "WebFetch(domain:github.com)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(rm -rf *)",
+      "Read(./**/*.jks)",
+      "Read(./**/*.p8)",
+      "Read(./**/*.keystore)",
+      "Read(./**/*.p12)",
+      "Read(./**/*service-account*.json)",
+      "Edit(.github/workflows/**)",
+      "Edit(fastlane/Fastfile)",
+      "Edit(fastlane/Appfile)",
+      "Edit(fastlane/Matchfile)",
+      "Edit(fastlane/Pluginfile)",
+      "Edit(.claude/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push *)",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/pre_push.sh",
+            "timeout": 1200,
+            "statusMessage": "make check przed git push..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/post_edit_gd.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/on_stop.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

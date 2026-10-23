@@ -1,0 +1,8 @@
+# Android
+package_name("pl.allinit.firstautogame")
+json_key_file(ENV["GOOGLE_PLAY_JSON_KEY_PATH"]) if ENV["GOOGLE_PLAY_JSON_KEY_PATH"]
+
+# iOS
+app_identifier("pl.allinit.firstautogame")
+apple_id(ENV["APPLE_ID"]) if ENV["APPLE_ID"]
+team_id(ENV["APPLE_TEAM_ID"]) if ENV["APPLE_TEAM_ID"]

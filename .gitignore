@@ -1,0 +1,26 @@
+# Godot
+.godot/
+export/
+# Tools and addons cloned by `make setup`
+.tools/
+game/addons/gdUnit4/
+# Test reports (keep .gitkeep)
+game/test/reports/*.xml
+game/test/reports/*.json
+game/test/reports/*.html
+game/test/reports/*/
+# Secrets
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+secrets/
+*service-account*.json
+google-services.json
+.env
+# Python
+__pycache__/
+*.pyc
+# OS
+.DS_Store
