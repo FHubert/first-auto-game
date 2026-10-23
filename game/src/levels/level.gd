@@ -16,11 +16,13 @@ var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
 var mode: String = MODE_CAMPAIGN
 var level_no: int = 1
+var tutorial: TutorialFlow
 
 @onready var board: BoardView = $Board
 @onready var hud: Hud = $Hud
 @onready var level_complete: LevelComplete = $LevelComplete
 @onready var stuck_panel: StuckPanel = $StuckPanel
+@onready var tutorial_overlay: TutorialOverlay = $TutorialOverlay
 
 
 func _ready() -> void:
@@ -32,6 +34,8 @@ func _ready() -> void:
 			hud.refresh()
 			_check_stuck()
 	)
+	board.tube_selected.connect(_on_tutorial_selected)
+	board.pour_finished.connect(_on_tutorial_pour)
 	hud.hint_pressed.connect(buy_hint)
 	hud.extra_tube_pressed.connect(buy_extra_tube)
 	stuck_panel.undo_pressed.connect(undo)
@@ -59,12 +63,68 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 	board.setup(round, theme_id)
 	hud.bind(round, level_no)
 	stuck_panel.visible = false
+	tutorial = null
+	if level_no == 1 and not bool(state.settings.get("tutorial_done", false)):
+		tutorial = TutorialFlow.new()
+		tutorial.start(_solver_first_move())
+	_update_tutorial_overlay()
 
 
 func on_next_pressed() -> void:
 	level_complete.visible = false
 	load_level(state.level, state.theme_active)
 	next_requested.emit(state.level)
+
+
+func _process(_delta: float) -> void:
+	if tutorial != null and board.selected_index() == -1:
+		if tutorial.step == TutorialFlow.Step.PICK_TARGET:
+			tutorial.on_deselect()
+			_update_tutorial_overlay()
+
+
+## Pierwszy ruch solvera z biezacego stanu (bez liczenia podpowiedzi).
+func _solver_first_move() -> Vector2i:
+	var max_states: int = int(GameConfig.get_value("hint_solver_max_states"))
+	var path: Array = SortSolver.solve(round.board(), max_states, 1.0).get("path", [])
+	if path.is_empty():
+		return GameRound.NO_HINT
+	return path[0]
+
+
+func _on_tutorial_selected(index: int) -> void:
+	if tutorial != null and tutorial.on_tube_selected(index):
+		_update_tutorial_overlay()
+
+
+func _on_tutorial_pour(from: int, to: int) -> void:
+	if tutorial == null:
+		return
+	var next_move: Vector2i = GameRound.NO_HINT
+	if not round.is_done():
+		next_move = _solver_first_move()
+	if not tutorial.on_pour(from, to, next_move, round.is_done()):
+		if round.is_done():
+			tutorial.step = TutorialFlow.Step.DONE
+		else:
+			tutorial.start(next_move)
+	_update_tutorial_overlay()
+
+
+func _update_tutorial_overlay() -> void:
+	var active: bool = tutorial != null and not tutorial.is_done()
+	hud.set_boosters_visible(not active)
+	if active:
+		var idx: int = tutorial.highlight()
+		if idx >= 0 and idx < round.board().tube_count():
+			tutorial_overlay.point_at(board.tube_rect(idx), tutorial.message())
+		return
+	tutorial_overlay.hide_hand()
+	if tutorial != null:
+		state.settings["tutorial_done"] = true
+		SaveSystem.save(state)
+		Analytics.track_design("tutorial:done")
+		tutorial = null
 
 
 func undo() -> void:

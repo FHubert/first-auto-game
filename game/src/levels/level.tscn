@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://src/levels/level.gd" id="1_level"]
 [ext_resource type="Script" path="res://src/ui/board_view.gd" id="2_board"]
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="3_hud"]
 [ext_resource type="PackedScene" path="res://src/ui/level_complete.tscn" id="4_lc"]
 [ext_resource type="PackedScene" path="res://src/ui/stuck_panel.tscn" id="5_sp"]
+[ext_resource type="Script" path="res://src/ui/tutorial_overlay.gd" id="6_tut"]
 
 [node name="Level" type="Control"]
 layout_mode = 3
@@ -37,3 +38,13 @@ layout_mode = 1
 
 [node name="StuckPanel" parent="." instance=ExtResource("5_sp")]
 layout_mode = 1
+
+[node name="TutorialOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6_tut")
