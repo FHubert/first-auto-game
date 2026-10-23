@@ -45,7 +45,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `game/locale/strings.csv` z kluczami wszystkich istniejących ekranów i import w projekcie. Test: każdy klucz ma 3 niepuste tłumaczenia, a teksty z prefiksem `btn_` mają ≤ 18 znaków. Język z ustawień albo systemowy. `make check` zielone. ~200 linii (bez CSV).
   Skill: `godot-dev`
 
-- [ ] T-024 `in_progress` Audio: generowane SFX + muzyka ambient + AudioService
+- [ ] T-024 `review` Audio: generowane SFX + muzyka ambient + AudioService → PR #32
   KA: `tools/gen_assets.py` generuje 6 SFX (przelew ×3 warianty, pełna probówka, wygrana, klik, błąd, monety) i 1 pętlę ambient OGG. Autoload `Audio` respektuje `music_on/sfx_on` i wycisza się przy utracie fokusu. Haptyka przez `Input.vibrate_handheld` przy `haptics_on`. Test: przy `sfx_on=false` `Audio.play_sfx` nie odtwarza. `make check` zielone. `docs/LICENSES.md` bez zmian (brak obcych plików). ~250 linii.
   Skill: `asset-gen`
 
@@ -108,6 +108,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-038 `todo` Level: testy `shop_requested` dla hint/undo_refill bez środków; `buy_undo_refill` z jawnym `can_afford` (spójnie z resztą); `GameConfig.get_value` bez duplikowanych fallbacków w board_view.gd. Skill: godot-dev
 - [ ] T-039 `todo` BoardView: sygnał `tube_deselected` zamiast pollingu w `Level._process` (tutorial); test „zły ruch w tutorialu restartuje krok”; `TEXT_HEIGHT` const w tutorial_overlay.gd. Skill: godot-dev
 - [ ] T-040 `todo` UI/asset-gen: font z diakrytykami (ą ę ś ü ß) dla Label/Button (OFL, wpis LICENSES.md) + sprawdzić rendering na screenshotach; etykieta `set_language` nad wyborem języka w SettingsScreen. Skill: asset-gen
+- [ ] T-041 `todo` Audio: podpiąć `click` (przyciski UI), `tube_full` (probówka pełna jednego koloru po przelewie), `Ads` → `Audio.set_app_muted` na czas reklamy; `HAPTIC_MS` jako const. Skill: godot-dev
 - [ ] T-034 `todo` CI: `tools/test_tools.py` nie jest uruchamiane przez `make check` ani test.yml — dodać cel `make test-tools` do `check` (+ Pillow w `make setup`); dopieścić kształt `flask` w gen_assets. Skill: godot-test
 
 ## Pytania do Huberta
