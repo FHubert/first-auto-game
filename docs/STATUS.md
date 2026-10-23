@@ -1,7 +1,7 @@
 # Status projektu
 
 ## Aktualna faza
-**Faza 1 — Research i koncepcja** (od 2026-10-23)
+**Faza 3 — Vertical slice** (od 2026-10-23; Faza 1 zamknięta: GDD `APPROVED` + backlog MVP, PR #11/#12; Faza 2 zamknięta: T-001 zmergowane, CI zielone, PR #13)
 
 Wybrany gatunek: sort puzzle (ball/water sort z progresją poziomów, content proceduralny + solver) — decyzja 2026-10-23 (R-001, docs/RESEARCH.md)
 
