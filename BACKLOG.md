@@ -28,7 +28,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `game/src/core/sort_board.gd` (`class_name SortBoard extends RefCounted`): `tubes`, `capacity`, `can_pour(from,to)`, `pour(from,to)->bool` (przelewa całą górną serię w granicach wolnego miejsca; nielegalny ruch zwraca false i nie zmienia stanu), `is_won()`, `legal_moves()` bez no-opów (np. przelewu z jednokolorowej probówki do pustej), `canonical_key()`, `clone()`. Test tabelaryczny ≥ 10 przypadków z GDD → Mechaniki (w tym przypadek „2+2 monochromatyczne = niewygrane"). `make test` zielone. ~180 linii.
   Skill: `godot-dev`
 
-- [ ] T-014 `in_progress` SortSolver: A* z heurystyką granic kolorów i limitem stanów (zależy od T-013)
+- [ ] T-014 `review` SortSolver: A* z heurystyką granic kolorów i limitem stanów (zależy od T-013) → PR #__PR__
   KA: `sort_solver.gd`: `solve(board, max_states, weight=1.0) -> {moves:int, path:Array[Vector2i], exact:bool, expanded:int}`. `moves = -1`, gdy brak rozwiązania. Testy: 3 ręczne plansze ze znanym minimum (1, 2, 4 ruchy) zwracają dokładnie tę liczbę; plansza nierozwiązywalna zwraca -1; `expanded <= max_states`. `make test` zielone. ~220 linii.
   Skill: `godot-dev`
 
