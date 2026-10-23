@@ -14,7 +14,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->
 
-- [ ] T-011 `review` CI: podbić wersje akcji w `.github/workflows/*` (checkout, setup-python, cache, upload/download-artifact, setup-java, setup-android, ruby/setup-ruby, google-github-actions/auth) i gemów w `Gemfile` → PR (częściowo: 5/12 akcji; reszta → T-055)
+- [ ] T-011 `review` CI: podbić wersje akcji w `.github/workflows/*` (checkout, setup-python, cache, upload/download-artifact, setup-java, setup-android, ruby/setup-ruby, google-github-actions/auth) i gemów w `Gemfile` → PR #44 (częściowo: 5/12 akcji; reszta → T-055)
   KA: każda akcja przypięta do najnowszego majora sprawdzonego na stronie releases w dniu zadania (tabela akcja → stara → nowa wersja + link w opisie PR, nie z pamięci). `actionlint` = 0 błędów na wszystkich plikach workflow; `make check` zielone; run `test.yml` na PR zielony. Po merge: `gh api "repos/FHubert/first-auto-game/pulls?state=open"` nie zwraca PR-ów dependabota #1–#5 (wg LOG z 2026-10-23 już zamknięte; jeśli któryś jest otwarty → zamknąć z komentarzem „superseded by T-011”). ≤ ~60 linii.
   Skill: `godot-build`
 
