@@ -46,11 +46,13 @@ func test_complete_grants_once() -> void:
 	assert_int(_state.coins).is_equal(50)
 	assert_int(_state.daily_completed_total).is_equal(1)
 	assert_int(_state.daily_last_completed_day).is_equal(DAY)
+	assert_int(_state.streak_days).is_equal(1)
 	assert_int(DailyChallenge.complete(_state, DAY, {"won": true, "moves": 20})).is_equal(0)
 	assert_int(_state.coins).is_equal(50)
 	assert_int(DailyChallenge.complete(_state, DAY + 1, {"won": true})).is_equal(50)
 	assert_int(_state.daily_completed_total).is_equal(2)
 	assert_int(_state.coins).is_equal(100)
+	assert_int(_state.streak_days).is_equal(2)
 
 
 func test_not_won_no_reward() -> void:

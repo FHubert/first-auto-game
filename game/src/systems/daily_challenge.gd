@@ -2,8 +2,6 @@ class_name DailyChallenge
 extends RefCounted
 ## Poziom dnia: deterministyczny z dnia UTC, nagroda raz na dzien. Czysta logika.
 
-const SECONDS_PER_DAY: int = 86400
-
 
 static func is_unlocked(state: GameState) -> bool:
 	return state.level >= int(GameConfig.get_value("daily_unlock_level", 3))
@@ -34,8 +32,9 @@ static func complete(state: GameState, utc_day: int, result: Dictionary) -> int:
 	var amount: int = reward_amount()
 	Economy.earn(state, amount, Economy.SOURCE_DAILY_CHALLENGE)
 	Analytics.track_design("daily_challenge:completed", float(result.get("moves", 0)))
+	DailyRewards.register_play(state, utc_day)
 	return amount
 
 
 static func seconds_to_next(unix_now: int) -> int:
-	return SECONDS_PER_DAY - (unix_now % SECONDS_PER_DAY)
+	return DailyRewards.SECONDS_PER_DAY - (unix_now % DailyRewards.SECONDS_PER_DAY)
