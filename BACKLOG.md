@@ -33,7 +33,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `StuckPanel` pojawia się przy `is_stuck()` i pokazuje „X ruchów od celu". Opcje: cofnij, +probówka (60 monet), +3 cofnięcia (20), podpowiedź w HUD (25), restart, pomiń (widoczne, gdy `can_skip`). Brak monet prowadzi do `Shop` (placeholder). Testy: zakup za monety zmniejsza saldo i przyznaje efekt; przy braku środków efekt nie jest przyznany. Wpis w `screens.txt`. `make check` zielone. ~240 linii.
   Skill: `godot-dev`
 
-- [ ] G-005 `in_progress` FTUE: tutorial poziomu 1 (3 kroki) (zależy od T-020)
+- [ ] G-005 `review` FTUE: tutorial poziomu 1 (3 kroki) (zależy od T-020) → PR #29
   KA: `tutorial_flow.gd` (czysta maszyna stanów): wskaż źródło, wskaż cel, ukończ. Krok przechodzi tylko po właściwym ruchu, a na koniec ustawia `settings.tutorial_done`. Overlay z dłonią w scenie Level. Pierwsze uruchomienie pomija `Home` i otwiera poziom 1. Testy maszyny stanów i test „poziom 1 ma 2 kolory, min_moves ≤ 4". `make check` zielone. ~200 linii.
   Skill: `game-economy`
 
@@ -106,6 +106,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-036 `todo` test_content_generator: `const FNV_OFFSET = 0xCBF29CE484222325` daje `ERROR: Cannot represent ... as a 64-bit signed integer` w logu `make test` (3×) — użyć literału ze znakiem (-3750763034362895579) albo FNV-1a 32-bit; sprawdzić, czy golden hash się nie zmienia. Skill: godot-test
 - [ ] T-037 `todo` Level: test wygranej bez „idealnie" (ukryty `perfect_label`, tylko `win_reward_coins`); usunąć nieużywane `@export var level` po T-022. Skill: godot-dev
 - [ ] T-038 `todo` Level: testy `shop_requested` dla hint/undo_refill bez środków; `buy_undo_refill` z jawnym `can_afford` (spójnie z resztą); `GameConfig.get_value` bez duplikowanych fallbacków w board_view.gd. Skill: godot-dev
+- [ ] T-039 `todo` BoardView: sygnał `tube_deselected` zamiast pollingu w `Level._process` (tutorial); test „zły ruch w tutorialu restartuje krok”; `TEXT_HEIGHT` const w tutorial_overlay.gd. Skill: godot-dev
 - [ ] T-034 `todo` CI: `tools/test_tools.py` nie jest uruchamiane przez `make check` ani test.yml — dodać cel `make test-tools` do `check` (+ Pillow w `make setup`); dopieścić kształt `flask` w gen_assets. Skill: godot-test
 
 ## Pytania do Huberta
