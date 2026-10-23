@@ -21,7 +21,11 @@ func _run_playtest(args: PackedStringArray) -> int:
 	var run_seed: int = int(_arg_value(args, "--seed", "42"))
 	var report_path: String = _arg_value(args, "--report", DEFAULT_REPORT)
 	var bot := PlaytestBot.new()
-	var report: Dictionary = bot.run(rounds, run_seed)
+	bot.max_restarts_per_round = int(
+		_arg_value(args, "--max-restarts", str(bot.max_restarts_per_round))
+	)
+	var mode: String = PlaytestBot.MODE_RANDOM if "--random" in args else PlaytestBot.MODE_SOLVER
+	var report: Dictionary = bot.run(rounds, run_seed, mode)
 	bot.write_report(report, report_path)
 	print("Playtest report: ", JSON.stringify(report))
 	var errors: Array = report.get("errors", [])
