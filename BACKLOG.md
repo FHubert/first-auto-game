@@ -28,7 +28,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `double_coins` (LevelComplete, od poziomu 2), `extra_tube`, `undo_refill` (max 2 na poziom), `skip_level`, `daily_x2`, `streak_save` z id zgodnymi z `docs/MONETIZATION.md`. Kwota nagrody widoczna na przycisku przed reklamą, przycisk ukryty, gdy reklama nie jest gotowa. Testy z `FakeAdProvider`: granted przyznaje nagrodę dokładnie raz; skipped i unavailable nie przyznają nic; cap per poziom/dzień jest respektowany. `make check` zielone. ~260 linii.
   Skill: `ads-iap`
 
-- [ ] G-010b `todo` Rewarded: przyciski UI dla 6 placementów (zależy od G-010)
+- [ ] G-010b `in_progress` Rewarded: przyciski UI dla 6 placementów (zależy od G-010)
   KA: `LevelComplete` ma przycisk „×2" z kwotą premii (`Economy.rewarded_bonus`) obok „Dalej", widoczny od poziomu `rewarded_double_coins_min_level` i tylko gdy `Ads.is_rewarded_ready()`; znika po przyznaniu. `StuckPanel` i HUD mają warianty „obejrzyj reklamę" dla +probówka / +3 cofnięcia (obok wersji za monety) i „Pomiń (reklama)"; `DailyRewardPopup` pokazuje „Odbierz ×2" z kwotą i „Uratuj streak" tylko gdy reklama gotowa. Testy headless: przy `FakeAdProvider.always_ready=false` przyciski ukryte; tap „×2" dokłada premię dokładnie raz. Nowe klucze w `strings.csv` (EN/PL/DE). `make check` zielone. ~250 linii.
   Skill: `ads-iap`
 
