@@ -41,7 +41,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `Home` pokazuje „Graj: poziom N", monety, streak, pasek do następnego motywu (placeholder) oraz przyciski Motywy, Sklep i Ustawienia. `Settings` ma przełączniki muzyki, SFX, haptyki i języka, zapisywane w `GameState.settings`, oraz wersję z `BUILD_INFO`. Test headless: zmiana przełącznika przetrwa save/load. Oba ekrany w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-023 `todo` Lokalizacja EN/PL/DE (CSV + TranslationServer) (zależy od T-022)
+- [ ] T-023 `in_progress` Lokalizacja EN/PL/DE (CSV + TranslationServer) (zależy od T-022)
   KA: `game/locale/strings.csv` z kluczami wszystkich istniejących ekranów i import w projekcie. Test: każdy klucz ma 3 niepuste tłumaczenia, a teksty z prefiksem `btn_` mają ≤ 18 znaków. Język z ustawień albo systemowy. `make check` zielone. ~200 linii (bez CSV).
   Skill: `godot-dev`
 
