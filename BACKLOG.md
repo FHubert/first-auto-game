@@ -52,7 +52,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P2 — monetyzacja i meta (z GDD v1.0, R-003)
 
-- [ ] G-008 `in_progress` UI dzienne: DailyRewardPopup + karta Poziomu dnia na Home + tryb daily w Level (zależy od G-006, G-007, T-022)
+- [ ] G-008 `review` UI dzienne: DailyRewardPopup + karta Poziomu dnia na Home + tryb daily w Level (zależy od G-006, G-007, T-022) → PR #33
   KA: popup przy pierwszym wejściu dnia (7 kafelków, „Odbierz", wariant „Uratuj streak"); karta na Home ze stanem i licznikiem do północy UTC; Level w trybie `daily` (bez „pomiń"). Test headless: symulowany dzień X, odbiór, ponowne wejście tego samego dnia nie pokazuje popupu. Wpisy w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
@@ -109,6 +109,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-039 `todo` BoardView: sygnał `tube_deselected` zamiast pollingu w `Level._process` (tutorial); test „zły ruch w tutorialu restartuje krok”; `TEXT_HEIGHT` const w tutorial_overlay.gd. Skill: godot-dev
 - [ ] T-040 `todo` UI/asset-gen: font z diakrytykami (ą ę ś ü ß) dla Label/Button (OFL, wpis LICENSES.md) + sprawdzić rendering na screenshotach; etykieta `set_language` nad wyborem języka w SettingsScreen. Skill: asset-gen
 - [ ] T-041 `todo` Audio: podpiąć `click` (przyciski UI), `tube_full` (probówka pełna jednego koloru po przelewie), `Ads` → `Audio.set_app_muted` na czas reklamy; `HAPTIC_MS` jako const. Skill: godot-dev
+- [ ] T-042 `todo` App/Level: `show_daily_level` bez obejścia `round = GameRound.new()` (flaga `autoload_level` w Level); `test_app.gd` z wstrzykniętym zegarem (teraz realny czas otwiera popup). Skill: godot-dev
 - [ ] T-034 `todo` CI: `tools/test_tools.py` nie jest uruchamiane przez `make check` ani test.yml — dodać cel `make test-tools` do `check` (+ Pillow w `make setup`); dopieścić kształt `flask` w gen_assets. Skill: godot-test
 
 ## Pytania do Huberta
