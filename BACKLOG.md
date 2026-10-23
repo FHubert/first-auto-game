@@ -6,35 +6,14 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P0 — fundamenty (Faza 1–2)
 
-- [ ] R-001 `review` Research rynku i wybór gatunku → PR #10
-  KA: `docs/RESEARCH.md` z analizą 3 kandydatów (gatunek, przykłady top-10, szacunkowy ARPDAU, złożoność contentu, czy content jest generowalny proceduralnie, konkurencja ASO w PL/US/DE). Rekomendacja z uzasadnieniem. Decyzja: **bierz kandydata nr 1** (Hubert zaakceptował delegację wyboru), chyba że `## Pytania do Huberta` ma odpowiedź inną. Zaktualizuj `docs/STATUS.md`.
-  Skill: `analytics-review` (sekcja research) + WebSearch/WebFetch.
 
-- [ ] R-002 `review` GDD v1 dla wybranego gatunku → PR #11
-  KA: `docs/GDD.md` ze statusem `APPROVED` (zamiast `DRAFT`): core loop (1 akapit + diagram ASCII), sesja 2–5 min, progresja, ekonomia (waluty, sinki, źródła), meta (daily, streak), lista ekranów, lista mechanik z priorytetem MVP/later. Każda mechanika ma zdanie "jak to przetestujemy headless". `docs/MONETIZATION.md` z placementami. `docs/ASO.md` z 3 wariantami tytułu (sprawdzone w sklepach, że wolne) i 20 keywordami.
-  Skill: `game-economy`, `ads-iap`, `aso`.
 
-- [ ] R-003 `review` Backlog MVP z GDD → PR #12
-  KA: sekcje P1/P2 poniżej wypełnione 15–25 zadaniami wynikającymi z GDD, każde z KA i skillem, w kolejności zależności (core loop → save → UI → meta → monetyzacja). Zadanie podzielone tak, by każde mieściło się w ~300 liniach.
-  Skill: `godot-dev`.
 
-- [ ] T-001 `review` Smoke: środowisko i pętla działają end-to-end → PR #13
-  KA: `make setup && make check` przechodzi lokalnie i w CI (`test.yml` zielone na PR). Dodaj do `game/src/core/version.gd` stałą `BUILD_INFO` i test, który ją czyta. To jest dry-run pętli — ma się zakończyć zmergowanym PR.
-  Skill: `godot-test`.
 
 ## P1 — core loop i retencja (z GDD v1.0, R-003)
 
-- [ ] T-013 `review` SortBoard: model planszy water sort (czysta klasa) → PR #14
-  KA: `game/src/core/sort_board.gd` (`class_name SortBoard extends RefCounted`): `tubes`, `capacity`, `can_pour(from,to)`, `pour(from,to)->bool` (przelewa całą górną serię w granicach wolnego miejsca; nielegalny ruch zwraca false i nie zmienia stanu), `is_won()`, `legal_moves()` bez no-opów (np. przelewu z jednokolorowej probówki do pustej), `canonical_key()`, `clone()`. Test tabelaryczny ≥ 10 przypadków z GDD → Mechaniki (w tym przypadek „2+2 monochromatyczne = niewygrane"). `make test` zielone. ~180 linii.
-  Skill: `godot-dev`
 
-- [ ] T-014 `review` SortSolver: A* z heurystyką granic kolorów i limitem stanów (zależy od T-013) → PR #15
-  KA: `sort_solver.gd`: `solve(board, max_states, weight=1.0) -> {moves:int, path:Array[Vector2i], exact:bool, expanded:int}`. `moves = -1`, gdy brak rozwiązania. Testy: 3 ręczne plansze ze znanym minimum (1, 2, 4 ruchy) zwracają dokładnie tę liczbę; plansza nierozwiązywalna zwraca -1; `expanded <= max_states`. `make test` zielone. ~220 linii.
-  Skill: `godot-dev`
 
-- [ ] G-002 `review` Parametry poziomu z GameConfig (kolory, d, breather, min_moves_floor) → PR #16
-  KA: do `config.gd` dodane klucze z GDD → Ekonomia → Klucze GameConfig (generator/progresja: `tube_capacity`, `empty_tubes`, `tutorial_colors`, `colors_start`, `colors_max`, `levels_per_extra_color`, `breather_every`, `breather_factor`, `min_moves_factor_easy/hard`, `gen_max_attempts`, `solver_max_states`, `solver_fallback_weight`, `campaign_seed`, `daily_seed_salt`, `daily_colors`, `daily_min_moves_factor`). `ContentGenerator.level_params(level) -> Dictionary`. Test sprawdza wartości z tabeli Progresja dla poziomów 1, 2, 5, 8, 19, 20, 40, 56. `make test` zielone. ~150 linii.
-  Skill: `game-economy`
 
 - [ ] G-003 `review` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002) → PR #17
   KA: `generate(seed, level)` zwraca payload wg ADR-009. Testy: (a) determinizm, czyli 2 wywołania dają identyczne `tubes`; (b) golden hash dla poziomów 1, 2, 10, 50; (c) poziomy 1..200: odtworzenie `solution` przez `SortBoard` kończy się `is_won()` w `min_moves` ruchach, `attempt < gen_max_attempts`; (d) ≥ 95 % poziomów spełnia `min_moves >= floor` (odsetek w logu); (e) czas ≤ 500 ms/poziom headless (zmierzony i wypisany). Placeholder `is_solvable` zastąpiony. `make test` zielone. ~260 linii.
@@ -160,3 +139,10 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-010 `done` CI: dependabot nie otwiera PR-ów (open-pull-requests-limit: 0); aktualizacje zależności robi pętla → PR #8 (zmergowany)
 - [x] T-008 `done` build-android/build-ios: trigger push usunięty do czasu konfiguracji sekretów (Faza 4); przywrócić w zadaniu T-002. → PR #6 (zmergowany)
 - [x] T-012 `done` Docs: tryb ciągły (continuous-dev co 2 h) w CLAUDE.md/AUTOMATION.md/game-designer → PR #9 (zmergowany)
+- [x] R-001 `done` Research rynku i wybór gatunku → PR #10 (zmergowany 2026-10-23)
+- [x] R-002 `done` GDD v1 dla wybranego gatunku → PR #11 (zmergowany 2026-10-23)
+- [x] R-003 `done` Backlog MVP z GDD → PR #12 (zmergowany 2026-10-23)
+- [x] T-001 `done` Smoke: środowisko i pętla działają end-to-end → PR #13 (zmergowany 2026-10-23)
+- [x] T-013 `done` SortBoard: model planszy water sort (czysta klasa) → PR #14 (zmergowany 2026-10-23)
+- [x] T-014 `done` SortSolver: A* z heurystyką granic kolorów i limitem stanów (zależy od T-013) → PR #15 (zmergowany 2026-10-23)
+- [x] G-002 `done` Parametry poziomu z GameConfig (kolory, d, breather, min_moves_floor) → PR #16 (zmergowany 2026-10-23)
