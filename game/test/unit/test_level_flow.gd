@@ -7,10 +7,15 @@ var _level: Level
 var _old_path: String
 var _coins_before: int
 var _prev_provider: AdProvider
+var _prev_clock: Callable
+var _prev_shown: int
 
 
 func before_test() -> void:
 	_prev_provider = Ads.provider
+	_prev_clock = Ads.clock
+	_prev_shown = Ads.interstitials_shown
+	Ads.reset_break()
 	GameConfig.reset()
 	_old_path = SaveSystem.save_path
 	SaveSystem.save_path = SAVE_PATH
@@ -28,6 +33,9 @@ func after_test() -> void:
 	_cleanup()
 	SaveSystem.save_path = _old_path
 	Ads.provider = _prev_provider
+	Ads.clock = _prev_clock
+	Ads.interstitials_shown = _prev_shown
+	Ads.reset_break()
 	GameConfig.reset()
 
 
@@ -89,6 +97,39 @@ func test_next_loads_following_level() -> void:
 		if c is TubeView and not c.is_queued_for_deletion():
 			views += 1
 	assert_int(views).is_equal(_level.round.board().tube_count())
+
+
+func _open_interstitial_cap() -> void:
+	Ads.provider = FakeAdProvider.new()
+	var t: Array[float] = [1000000.0]
+	Ads.clock = func() -> float: return t[0]
+	(
+		GameConfig
+		. apply_remote(
+			{
+				"interstitial_min_level": 1,
+				"interstitial_every_n_rounds": 1,
+				"interstitial_min_seconds": 0,
+			}
+		)
+	)
+
+
+func test_next_shows_interstitial_when_cap_allows() -> void:
+	_open_interstitial_cap()
+	_win()
+	var before: int = Ads.interstitials_shown
+	_level.on_next_pressed()
+	assert_int(Ads.interstitials_shown).is_equal(before + 1)
+
+
+func test_next_no_interstitial_when_ads_removed() -> void:
+	_open_interstitial_cap()
+	_level.state.settings["ads_removed"] = true
+	_win()
+	var before: int = Ads.interstitials_shown
+	_level.on_next_pressed()
+	assert_int(Ads.interstitials_shown).is_equal(before)
 
 
 func test_undo_and_restart() -> void:

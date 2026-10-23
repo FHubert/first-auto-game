@@ -10,6 +10,7 @@ var clock: Callable = func() -> float: return Time.get_ticks_msec() / 1000.0
 var interstitials_shown: int = 0
 
 var _last_interstitial_s: float = -INF
+var _rewarded_in_break: bool = false
 
 
 func _ready() -> void:
@@ -18,23 +19,37 @@ func _ready() -> void:
 	provider.initialize()
 
 
-## True when round_index hits the every-N cap and min-seconds gap, and an ad is ready.
-func maybe_show_interstitial(round_index: int) -> bool:
-	var every_n: int = int(GameConfig.get_value("interstitial_every_n_rounds", 3))
-	var min_seconds: float = float(GameConfig.get_value("interstitial_min_seconds", 90))
-	if provider == null or every_n <= 0 or round_index <= 0 or round_index % every_n != 0:
+## True when an interstitial was shown. Needs: ads not removed, level >= min level,
+## level hits the every-N cap, min-seconds gap, no rewarded ad in this break, ad ready.
+func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
+	var every_n: int = int(GameConfig.get_value("interstitial_every_n_rounds", 5))
+	var min_seconds: float = float(GameConfig.get_value("interstitial_min_seconds", 120))
+	var min_level: int = int(GameConfig.get_value("interstitial_min_level", 8))
+	# Every call marks the end of a break, so the flag is always consumed.
+	var rewarded_in_break: bool = _rewarded_in_break
+	_rewarded_in_break = false
+	if provider == null or ads_removed or level_no < min_level:
+		return false
+	if every_n <= 0 or level_no <= 0 or level_no % every_n != 0:
 		return false
 	var now: float = clock.call()
 	if now - _last_interstitial_s < min_seconds:
+		return false
+	if rewarded_in_break:
 		return false
 	if not provider.is_interstitial_ready():
 		return false
 	provider.show_interstitial()
 	_last_interstitial_s = now
 	interstitials_shown += 1
-	Analytics.track_design("ads:interstitial:shown", float(round_index))
-	interstitial_shown.emit(round_index)
+	Analytics.track_design("ads:interstitial:shown", float(level_no))
+	interstitial_shown.emit(level_no)
 	return true
+
+
+## Clears the "rewarded already shown in this break" flag (tests / bot).
+func reset_break() -> void:
+	_rewarded_in_break = false
 
 
 func is_rewarded_ready() -> bool:
@@ -46,6 +61,7 @@ func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 	if provider == null or not provider.is_rewarded_ready():
 		Analytics.track_design("ads:rewarded:%s:unavailable" % placement_id)
 		return false
+	_rewarded_in_break = true
 	provider.show_rewarded(
 		func(granted: bool) -> void:
 			if granted:

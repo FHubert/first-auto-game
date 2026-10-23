@@ -107,8 +107,8 @@ Szacunek przepływu dla gracza zaangażowanego (założenia: 10 poziomów/dzień
 
 | Klucz | Wartość | Uwagi |
 |---|---|---|
-| `interstitial_every_n_rounds`* | **5** (było 3) | G-001: 3 dawało ~8,6 impr./DAU w sim |
-| `interstitial_min_seconds`* | **120** (było 90) | |
+| `interstitial_every_n_rounds`* | **5** | G-001 (było 3): 3 dawało ~8,6 impr./DAU w sim |
+| `interstitial_min_seconds`* | **120** | G-001 (było 90) |
 | `interstitial_min_level` | 8 | brak interstitiali w FTUE / pierwszej sesji |
 | `rewarded_multiplier`* | 2.0 | H1 testuje 3.0 |
 | `daily_reward_base`* | 50 | |
