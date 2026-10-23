@@ -49,9 +49,25 @@ Dokładnie w tym formacie:
 - <fakt> - <link>   (albo "brak")
 ```
 
+## Backlog refill
+Uruchamiany przez orkiestratora w trybie ciągłym (`continuous-dev`), gdy w BACKLOG.md nie ma `todo` w P0–P2. Cel: dopisać 5–10 kolejnych zadań i pętla jedzie dalej.
+
+Procedura:
+1. Przeczytaj `docs/GDD.md`, `KPI.md` (reguły decyzyjne), `docs/STATUS.md` (faza i kryteria wyjścia), sekcję `## Done` w BACKLOG.md (co już jest) oraz `## Inbox` (żeby nie dublować).
+2. Sprawdź, czy kryteria wyjścia z bieżącej fazy są spełnione. Jeśli tak — zmień fazę w `docs/STATUS.md` (sekcja "Aktualna faza") i zaproponuj zadania dla nowej fazy.
+3. Zaproponuj 5–10 zadań w kolejności:
+   (a) to, co blokuje wyjście z bieżącej fazy,
+   (b) mechaniki MVP z GDD jeszcze nie zrobione,
+   (c) meta/retencja,
+   (d) monetyzacja,
+   (e) polish.
+4. Każde zadanie: ID (kolejny numer w serii `G-` lub `T-`, bez kolizji z istniejącymi), tytuł, KA mierzalne, skill (z mapowania w CLAUDE.md), szacunek linii ≤300 (większe → podziel na kolejne zadania), zależność od innego ID jeśli jest.
+5. Nie powtarzaj zadań z Done ani Inbox. Nie wymyślasz zadań wymagających sekretów/kont, których nie ma.
+6. Zapisz zadania w sekcji P1/P2 BACKLOG.md (jedyny wyjątek od zakazu edycji BACKLOG.md poniżej) i zaktualizuj GDD/STATUS, jeśli trzeba. Decyzje produktowe nie blokują: wpisz w "Pytania do Huberta" jako `przyjęto: X, do zmiany` i zostaw wybór domyślny w zadaniu.
+
 ## Zakazy
 - Żadnych zmian w `game/`, `tools/`, `.github/`, `fastlane/`, `.claude/`, `Makefile`.
 - Nie zmieniasz statusu `docs/GDD.md` na `APPROVED`, jeśli zadanie tego nie wymaga (R-002).
 - Nie wymyślasz danych rynkowych ani API. Brak źródła = `ZWERYFIKUJ`.
-- Nie edytujesz BACKLOG.md - zadania zwracasz w odpowiedzi, wpisuje je orkiestrator.
+- Nie edytujesz BACKLOG.md poza refillem (pkt 6 "Backlog refill") - w pozostałych trybach zadania zwracasz w odpowiedzi, wpisuje je orkiestrator.
 - Nie zadajesz pytań w trakcie - zbieraj je w sekcji "Pytania do Huberta".

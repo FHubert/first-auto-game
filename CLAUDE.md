@@ -32,8 +32,19 @@ Patrz `KPI.md`. Skrót: D1 retention ≥ 35 %, D7 ≥ 12 %, ARPDAU ≥ 0,05 USD,
    potem etykieta `bot` i auto-merge — komendy w sekcji „GitHub: tylko REST”.
 10. Zmień status zadania na `review`, dopisz `→ PR #N`. Dopisz 2–3 linie do `docs/LOG.md` z datą.
 11. Nowe pomysły/bugi odkryte po drodze → `## Inbox` w BACKLOG.md. NIE realizuj ich teraz.
-12. Pytanie wymagające decyzji produktowej/biznesowej → `## Pytania do Huberta`, task → `blocked`,
-    weź następny. Nigdy nie czekaj na odpowiedź w sesji.
+12. Pytanie wymagające decyzji produktowej/biznesowej → `## Pytania do Huberta` z zapisem
+    `przyjęto: X, do zmiany`, i kontynuuj; `blocked` tylko gdy brak sekretów/kont. Nigdy nie czekaj na odpowiedź w sesji.
+
+## Tryb ciągły (scheduled task continuous-dev)
+- Sesja co 2 h, budżet ~100 min. Realizuje zadania JEDNO PO DRUGIM, nie czeka na CI: uzbraja auto-merge i idzie dalej.
+- Zadania zależne (ten sam plik/mechanika): gałąź oparta na gałęzi poprzedniego PR + „depends on #N” w opisie.
+- Co 3 zadania: przegląd otwartych PR `task/*` (czerwone → napraw; `dirty` → rebase + ponowne uzbrojenie auto-merge).
+- Pusty backlog (brak `todo` w P0–P2) → subagent `game-designer` dopisuje 5–10 zadań (`chore: backlog refill`),
+  aktualizuje GDD/STATUS, pętla jedzie dalej. Designer czyta GDD, KPI.md i reguły decyzyjne, proponuje
+  mechaniki/meta/polish w kolejności zależności.
+- Decyzje produktowe NIE blokują: zapisz w „Pytania do Huberta” jako `przyjęto: X, do zmiany` i kontynuuj.
+  Blokuj tylko przy braku sekretów/kont.
+- Koniec sesji (~90 min): WIP do BACKLOG (`in_progress` + „WIP: ...”), gałąź wypchnięta, podsumowanie w `docs/LOG.md`.
 
 ## Twarde zasady (naruszenie = sesja nieudana)
 - Zero sekretów w repo: keystore, .p8, service account JSON, klucze AdMob/GA. Placeholdery

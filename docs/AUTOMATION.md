@@ -7,8 +7,8 @@ Jak działa autonomiczna pętla, co ją uruchamia, czym jest ograniczona i jak j
 ```
    Scheduled tasks (Claude Code Remote)
    ┌──────────────┐  ┌──────────────────┐  ┌──────────────────┐
-   │ nightly-dev  │  │ weekly-analytics │  │ biweekly-release │
-   │ codziennie 2 │  │ niedziela 20:00  │  │ wtorek 9:00      │
+   │continuous-dev│  │ weekly-analytics │  │ biweekly-release │
+   │ co 2 h       │  │ niedziela 20:00  │  │ wtorek 9:00      │
    └──────┬───────┘  └────────┬─────────┘  └────────┬─────────┘
           │ orkiestrator (opus/fable) planuje, deleguje, sprawdza
           │ subagenci: gameplay-dev · qa-playtester · game-designer
@@ -33,7 +33,7 @@ Jak działa autonomiczna pętla, co ją uruchamia, czym jest ograniczona i jak j
                    │                               │
                    │                    tools/metrics_pull.py (weekly-analytics)
                    │                               ▼
-                   └──────────── KPI.md → reguły decyzyjne → BACKLOG.md (P1/P2) ──► nightly-dev
+                   └──────────── KPI.md → reguły decyzyjne → BACKLOG.md (P1/P2) ──► continuous-dev
    Straż: nightly-sanity.yml (03:30 UTC) → issue `bot`+`P0` → backlog-sync.yml → BACKLOG.md ## Inbox
 ```
 
@@ -43,15 +43,27 @@ Zakładasz je w Claude Code Remote (środowisko = to repo). Prompty wklej dosło
 
 | # | Nazwa | Cron | Co robi |
 |---|---|---|---|
-| 1 | `nightly-dev` | `CRON_TZ=Europe/Warsaw 0 2 * * *` | jedno zadanie z BACKLOG.md → PR z auto-merge |
+| 1 | `continuous-dev` | `CRON_TZ=Europe/Warsaw 11 */2 * * *` | tryb ciągły: co 2 h, wiele zadań z BACKLOG.md → PR-y z auto-merge, sam uzupełnia backlog |
 | 2 | `weekly-analytics` | `CRON_TZ=Europe/Warsaw 0 20 * * 0` | metryki → reguły → odświeżony backlog → PR |
 | 3 | `biweekly-release` | `CRON_TZ=Europe/Warsaw 0 9 * * 2` | co wtorek sprawdza; wydaje tylko gdy od ostatniego taga minęło >= 13 dni |
 
-### Task 1: `nightly-dev`
-Cron: `CRON_TZ=Europe/Warsaw 0 2 * * *`
+### Task 1: `continuous-dev`
+Cron: `CRON_TZ=Europe/Warsaw 11 */2 * * *`
 
 ```
-Jesteś orkiestratorem w repo first-auto-game. Przeczytaj CLAUDE.md w całości i postępuj dokładnie według sekcji 'Pętla pracy' i 'Routing modelu'. Sam nie piszesz kodu — delegujesz do subagentów z .claude/agents/ (gameplay-dev na sonnet lub haiku, qa-playtester na sonnet), a sam planujesz, specyfikujesz i sprawdzasz. Zrealizuj JEDNO zadanie z BACKLOG.md. Jeśli istnieje otwarty PR z gałęzi task/* z czerwonym CI, NAJPIERW go napraw. Na koniec: status w BACKLOG.md, wpis w docs/LOG.md, PR z auto-merge. Nie zadawaj pytań — decyzje produktowe zapisuj w sekcji 'Pytania do Huberta' i bierz następne zadanie.
+Repo: FHubert/first-auto-game (GitHub). Jeśli repo nie jest sklonowane w /home/claude/first-auto-game, podłącz je przez add_repo (owner FHubert, repo first-auto-game, access push) i sklonuj zgodnie z instrukcją narzędzia; potem `git fetch origin main && git checkout main && git pull`. Uruchom `make setup` (idempotentne).
+
+Jesteś orkiestratorem w repo first-auto-game. Przeczytaj CLAUDE.md w całości — obowiązują sekcje 'Pętla pracy', 'Routing modelu' i 'GitHub: tylko REST'. Sam nie piszesz kodu — delegujesz do subagentów z .claude/agents/ (gameplay-dev na sonnet lub haiku, qa-playtester na sonnet, game-designer gdy trzeba zdecydować CO budować), a sam planujesz, specyfikujesz i sprawdzasz.
+
+TRYB CIĄGŁY. Ta sesja ma budżet ~100 minut. Pracuj w pętli aż do wyczerpania budżetu lub backlogu:
+1. Na start: jeśli jakikolwiek otwarty PR task/* ma czerwone CI — napraw go najpierw. Jeśli jakiś otwarty PR task/* ma mergeable_state=dirty — rebase i uzbrój auto-merge ponownie.
+2. Weź pierwsze zadanie `todo` z najwyższej sekcji BACKLOG.md. Zrealizuj je w pełni wg 'Pętla pracy' (gałąź task/<ID>, make check zielone, PR przez gh api, etykieta bot, auto-merge squash uzbrojony OD RAZU po utworzeniu PR).
+3. NIE czekaj na CI tego PR-a. Wróć na main (`git checkout main && git pull`), weź kolejne zadanie `todo` i powtórz. Jeśli kolejne zadanie zależy od poprzedniego (ten sam plik/mechanika), oprzyj gałąź na gałęzi poprzedniego PR-a zamiast na main i zaznacz w opisie PR 'depends on #N'.
+4. Co 3 ukończone zadania sprawdź przez gh api, czy wcześniejsze PR-y się zmergowały; jeśli jakiś jest czerwony — napraw zanim weźmiesz następne.
+5. Gdy w BACKLOG.md nie ma już żadnego `todo` w P0–P2 (albo wszystkie są `blocked`): uruchom subagenta game-designer, który na podstawie docs/GDD.md, KPI.md i docs/STATUS.md ma dopisać 5–10 kolejnych zadań do P1/P2 (każde z mierzalnym KA, skillem, ≤300 linii, w kolejności zależności) i jeśli trzeba — zaktualizować GDD i STATUS (zmiana fazy, gdy kryteria wyjścia z fazy są spełnione). Otwórz z tego PR 'chore: backlog refill' i kontynuuj od pkt 2.
+6. Przy ~90 minutach: zakończ bieżące zadanie (albo zapisz je jako `in_progress` z notatką 'WIP: <co zostało>' w BACKLOG.md i wypchnij gałąź), dopisz do docs/LOG.md podsumowanie sesji (lista zadań, PR-y, blokery) i zakończ.
+
+Zasady bezwzględne: jeden PR = jedno zadanie ≤300 linii; make check zielone przed każdym PR; nigdy nie mergujesz ręcznie (tylko auto-merge); nie zadajesz pytań — decyzje produktowe do 'Pytania do Huberta' z własnym tymczasowym wyborem (zaznacz 'przyjęto: X, do zmiany'), zadanie NIE blokuj, jedź dalej z tym wyborem. Blokuj tylko, gdy zadanie wymaga sekretów/kont, których nie ma.
 ```
 
 ### Task 2: `weekly-analytics`
@@ -74,11 +86,12 @@ Uwagi do promptów:
 
 ## 3. Koszty i limity
 
-- **1 task na noc** (`nightly-dev`), jedno zadanie backlogu na przebieg. Zadanie większe niż limit się dzieli (wpis do backlogu), nie rozciąga.
+- **Tryb ciągły** (`continuous-dev`): sesja co 2 h, wiele zadań na sesję (zwykle 3–6 PR-ów), jedno zadanie backlogu = jeden PR. Zadanie większe niż limit się dzieli (wpis do backlogu), nie rozciąga.
+- **Koszt:** 12 sesji/dobę × ~100 min. Przy limitach planu sesje mogą być krótsze — pętla jest na to odporna (WIP w BACKLOG).
 - **<= 300 zmienionych linii kodu na PR** (bez assetów i lock-files). Szablon PR (`.github/PULL_REQUEST_TEMPLATE.md`) ma tę pozycję na checkliście.
 - **Auto-merge tylko dla PR z labelem `bot`** (PR przez `gh api` z etykietą `bot`, potem auto-merge squash — patrz CLAUDE.md → "GitHub: tylko REST"; `gh pr create`/`gh pr merge` w sesjach CCR zwracają 403). PR bez labela (Twoje własne) scalasz ręcznie. Auto-merge zadziała tylko, gdy w repo jest włączone "Allow auto-merge" i wymagane checki w branch protection (pkt 4).
 - Routing modelu obniża koszt: orkiestrator (opus/fable) tylko planuje i sprawdza; implementacja idzie do `sonnet`, a trywialne, mechaniczne prace (<50 linii) do `haiku` (ADR-006).
-- Poziom wydatków: brak twardego limitu w repo. Pilnuj zużycia w ustawieniach konta; jeśli rośnie, najpierw zmniejsz częstotliwość `nightly-dev` (np. `0 2 * * 1-5`).
+- Poziom wydatków: brak twardego limitu w repo. Pilnuj zużycia w ustawieniach konta; jeśli rośnie, najpierw zmniejsz częstotliwość `continuous-dev` (np. `11 */4 * * *`).
 - `make check` w hooku `pre_push.sh` dubluje CI przed pushem. To celowy koszt czasu (kilka minut), a nie tokenów.
 
 ## 4. Bezpieczniki
@@ -112,23 +125,23 @@ cd ~/path/first-auto-game
 make setup                 # raz: Godot headless, export templates, gdUnit4, gdtoolkit
 claude                     # sesja interaktywna; wklej prompt Task 1 (lub 2, lub 3)
 # albo jednorazowo, bez interakcji:
-claude -p "$(cat prompt-nightly.txt)"   # prompt zapisz do pliku z sekcji 2
+claude -p "$(cat prompt-continuous.txt)"   # prompt zapisz do pliku z sekcji 2
 ```
 Wymagane: `gh auth status` zalogowany, `jq` lub `python3` (hooki), `make`, `bundle` tylko dla fastlane. Lokalnie `.claude/settings.json` obowiązuje tak samo (hooki i deny). Nie używaj `--dangerously-skip-permissions`: wyłącza barierę deny-listy.
 Test hooków na sucho: `echo '{"tool_input":{"command":"git push origin x"}}' | .claude/hooks/pre_push.sh; echo $?` (0 = przepuszczone, 2 = zablokowane).
 
 ## 6. Jak zatrzymać pętlę
 
-1. **Normalnie:** wyłącz (lub usuń) scheduled task na liście zadań w Claude Code Remote. Trwający przebieg dokończy się albo sam wygaśnie. Zacznij od `nightly-dev`; analityka i release są mało kosztowne.
+1. **Normalnie:** wyłącz (lub usuń) scheduled task na liście zadań w Claude Code Remote. Trwający przebieg dokończy się albo sam wygaśnie. Zacznij od `continuous-dev`; analityka i release są mało kosztowne.
 2. **Awaryjnie, gdy do `main` coś trafia nie tak:** `gh repo edit --enable-auto-merge=false` (nic już nie scali się samo), a w branch protection wymagaj review. Zamknij otwarte PR z labelem `bot`: `gh api "repos/FHubert/first-auto-game/issues?labels=bot&state=open" --jq '.[] | select(.pull_request) | .number' | xargs -I{} gh api -X PATCH repos/FHubert/first-auto-game/pulls/{} -f state=closed`.
 3. **Wydania:** nie zatwierdzaj `production`. Samego taga nie da się cofnąć bezpiecznie po starcie `release.yml`; anuluj workflow: `gh run cancel <id>`.
 4. **Sekrety:** w razie podejrzenia wycieku unieważnij je u źródła (Play service account, klucz ASC, keystore) i wyczyść GitHub Secrets.
 
 ## 7. Procedura: "pętla się zapętliła"
 
-Definicja: 3 noce z rzędu czerwone, czyli `nightly-dev` nie doprowadził do zmergowanego PR (CI czerwone, PR wisi, sesja padła albo zrobiła zero) lub trzy ostatnie wpisy w `docs/LOG.md` mają wynik FAIL. Sygnał: e-mail z notyfikacji scheduled task (pkt 2) i/lub issue `P0` z `nightly-sanity`.
+Definicja: 3 kolejne sesje `continuous-dev` (ok. 6 h) z rzędu czerwone, czyli żadna nie doprowadziła do zmergowanego PR (CI czerwone, PR wisi, sesja padła albo zrobiła zero) lub trzy ostatnie wpisy w `docs/LOG.md` mają wynik FAIL. Sygnał: e-mail z notyfikacji scheduled task (pkt 2) i/lub issue `P0` z `nightly-sanity`.
 
-1. Wyłącz `nightly-dev` (pkt 6.1), żeby nie dokładać szumu.
+1. Wyłącz `continuous-dev` (pkt 6.1), żeby nie dokładać szumu.
 2. Zbierz fakty:
    ```bash
    gh run list --workflow=test.yml --limit 10
@@ -161,7 +174,7 @@ Scheduled tasks założone w Claude Code Remote (tryb auto, powiadomienia push+e
 
 | Task | Cron (Europe/Warsaw) | Uwaga |
 |---|---|---|
-| `first-auto-game: nightly-dev` | `49 1 * * *` | minuta przesunięta z 02:00, żeby uniknąć kolejki o pełnej godzinie |
+| `first-auto-game: continuous-dev` | `11 */2 * * *` | co 2 h, całą dobę; tryb ciągły, 3–6 PR-ów na sesję, sam uzupełnia backlog |
 | `first-auto-game: weekly-analytics` | `44 19 * * 0` | j.w. (20:00 → 19:44) |
 | `first-auto-game: biweekly-release` | `44 8 * * 2` | nic nie robi do fazy 4 i bez istniejącego taga |
 
