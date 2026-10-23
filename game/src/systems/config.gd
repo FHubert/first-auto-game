@@ -65,6 +65,13 @@ const DEFAULTS: Dictionary = {
 	"pour_anim_seconds": 0.4,
 	"tube_lift_seconds": 0.1,
 	"shake_seconds": 0.2,
+	# IAP
+	"iap_coins_small": 500,
+	"iap_coins_large": 1500,
+	"iap_starter_coins": 800,
+	"iap_starter_theme": "neon",
+	"starter_offer_min_level": 12,
+	"starter_offer_hours": 72,
 }
 
 var _values: Dictionary = DEFAULTS.duplicate(true)

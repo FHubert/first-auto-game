@@ -48,13 +48,21 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: wszystkie 16 eventów z GDD wysyłane przez `Analytics` w opisanych momentach i z parametrami. `FakeAnalyticsProvider` zapisuje wywołania. Test: sekwencja start → complete (perfect) → ×2 → interstitial daje oczekiwaną listę wywołań z parametrami. Wpis do `docs/RELEASE_CHECKLIST.md`: lista do Data Safety/Privacy Labels. `make check` zielone. ~250 linii.
   Skill: `ads-iap`
 
-- [ ] T-026 `todo` ADR-010 IAP + IapProvider/FakeIapProvider + logika przyznawania
+- [ ] T-026 `review` ADR-010 IAP + IapProvider/FakeIapProvider + logika przyznawania → PR #41
   KA: ADR-010 w `docs/DECISIONS.md`: wybór GodotGooglePlayBilling (wersja z Billing Library 8+, zweryfikowana) oraz pluginu StoreKit dla iOS, wraz ze statusem zgodności z Godot 4.7.2. Interfejs `IapProvider` (connect/products/purchase/restore, sygnały) i `FakeIapProvider`. Logika `Purchases.grant(sku)`: `remove_ads` ustawia `settings.ads_removed`, `coins_*` daje +500/+1500, `starter_pack` daje +800 i motyw „neon" jednorazowo. Testy: PURCHASED przyznaje, PENDING nie przyznaje, restore przywraca `remove_ads`, starter pack przyznawany tylko raz. `make check` zielone. Bez dodawania pluginów. ~250 linii.
   Skill: `ads-iap`
 
 - [ ] T-027 `todo` Ekran Shop + „Przywróć zakupy" + okno starter packa (zależy od T-026, G-009)
   KA: Shop pokazuje 4 sku z cenami z `IapProvider` (nigdy z kodu). „Przywróć zakupy" jest w Shop i Settings. `starter_pack` jest widoczny od `starter_offer_min_level`=12 przez `starter_offer_hours`=72 h. Wejście ze StuckPanel przy braku monet. Testy z `FakeIapProvider`: okno oferty (dzień startu, przed i po 72 h) oraz restore. Wpis w `screens.txt`. `make check` zielone. ~250 linii.
   Skill: `ads-iap`
+
+- [ ] T-047 `todo` Build Android: instalacja GodotGooglePlayBilling 3.3.0 w `make setup` (tag + SHA-256) i `gradle/use_gradle_build=true` w `export_presets.cfg` (zależy od T-026, Faza 4)
+  KA: `make setup` pobiera release zip pluginu do `game/addons/GodotGooglePlayBilling/` i weryfikuje SHA-256; preset Android ma Gradle build; `make check` (w tym dry-run exportu) zielone; wpis w `docs/LICENSES.md`. ~80 linii. Zadanie wprost dotyczy `export_presets.cfg`.
+  Skill: `godot-build`
+
+- [ ] T-048 `todo` Build iOS: instalacja godot_ios_plugin_iap v0.4.0 (tag + SHA-256) i włączenie w presecie iOS w `export_presets.cfg` (zależy od T-026, Faza 4)
+  KA: pliki pluginu w `game/ios/plugins/`, preset iOS go włącza, `make check` zielone, wpis w `docs/LICENSES.md` (MIT); build iOS weryfikowany na runnerze macOS w Fazie 4. ~60 linii. Zadanie wprost dotyczy `export_presets.cfg`.
+  Skill: `godot-build`
 
 ## P3 — polish / later
 

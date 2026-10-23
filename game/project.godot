@@ -19,6 +19,7 @@ config/features=PackedStringArray("4.7", "Mobile")
 GameConfig="*res://src/systems/config.gd"
 Analytics="*res://src/systems/analytics_service.gd"
 Ads="*res://src/systems/ad_service.gd"
+Purchases="*res://src/systems/purchases.gd"
 SaveSystem="*res://src/core/save_system.gd"
 Audio="*res://src/systems/audio_service.gd"
 
