@@ -62,3 +62,15 @@ func test_save_overwrites_existing() -> void:
 	s.coins = 2
 	_sys.save(s)
 	assert_int(_sys.load().coins).is_equal(2)
+
+
+func test_round_trip_themes_and_purchases() -> void:
+	var s := GameState.new()
+	s.themes_owned = ["classic", "neon"]
+	s.theme_active = "neon"
+	s.purchases = {"remove_ads": true}
+	assert_bool(_sys.save(s)).is_true()
+	var loaded: GameState = _sys.load()
+	assert_array(loaded.themes_owned).is_equal(["classic", "neon"])
+	assert_str(loaded.theme_active).is_equal("neon")
+	assert_bool(loaded.has_purchase("remove_ads")).is_true()
