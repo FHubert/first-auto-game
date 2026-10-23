@@ -56,7 +56,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: popup przy pierwszym wejściu dnia (7 kafelków, „Odbierz", wariant „Uratuj streak"); karta na Home ze stanem i licznikiem do północy UTC; Level w trybie `daily` (bez „pomiń"). Test headless: symulowany dzień X, odbiór, ponowne wejście tego samego dnia nie pokazuje popupu. Wpisy w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] G-009 `todo` ThemeCatalog + ekran Themes (zależy od G-004, T-018, T-022)
+- [ ] G-009 `in_progress` ThemeCatalog + ekran Themes (zależy od G-004, T-018, T-022)
   KA: `theme_catalog.gd` wczytuje `themes.json`. Koszt n-tego płatnego motywu = round(600 × 1.8^(n-1)), czyli 600/1080/1944. Zakup przez `Economy.spend` (przy braku środków odrzucony), aktywny motyw zapisywany i stosowany w BoardView. Ekran Themes z podglądem i ceną; pasek „do następnego motywu" na Home. Testy kosztów, zakupu i persystencji. Wpis w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `game-economy`
 
