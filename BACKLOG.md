@@ -29,7 +29,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: HUD pokazuje numer poziomu, ruchy, cofnij z licznikiem, restart i pauzę. Po wygranej ekran `LevelComplete` pokazuje monety i „idealnie", a „Dalej" przechodzi do kolejnego poziomu. `SaveSystem.save` po każdej wygranej. Test headless: wygrana ścieżką solvera podnosi `level` o 1 i coins o `win_reward`, a ponowne wczytanie zachowuje stan. Oba ekrany mają wpis w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-021 `todo` StuckPanel + przyciski boosterów (ścieżka monet) (zależy od T-020)
+- [ ] T-021 `in_progress` StuckPanel + przyciski boosterów (ścieżka monet) (zależy od T-020)
   KA: `StuckPanel` pojawia się przy `is_stuck()` i pokazuje „X ruchów od celu". Opcje: cofnij, +probówka (60 monet), +3 cofnięcia (20), podpowiedź w HUD (25), restart, pomiń (widoczne, gdy `can_skip`). Brak monet prowadzi do `Shop` (placeholder). Testy: zakup za monety zmniejsza saldo i przyznaje efekt; przy braku środków efekt nie jest przyznany. Wpis w `screens.txt`. `make check` zielone. ~240 linii.
   Skill: `godot-dev`
 
