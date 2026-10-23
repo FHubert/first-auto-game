@@ -24,3 +24,6 @@ __pycache__/
 *.pyc
 # OS
 .DS_Store
+# Godot CSV import artifacts (Locale loads the CSV itself)
+game/locale/*.translation
+game/locale/*.csv.import

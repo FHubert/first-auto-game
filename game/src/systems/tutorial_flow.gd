@@ -4,12 +4,6 @@ extends RefCounted
 
 enum Step { PICK_SOURCE, PICK_TARGET, FINISH, DONE }
 
-# Teksty literalami do czasu lokalizacji (T-023: podmiana na tr()).
-const TEXT_PICK_SOURCE: String = "Stuknij podświetloną probówkę"
-const TEXT_PICK_TARGET: String = "Teraz stuknij, gdzie przelać"
-const TEXT_FINISH: String = "Dokończ — posortuj kolory!"
-const TEXT_DONE: String = ""
-
 var step: int = Step.PICK_SOURCE
 var expected: Vector2i = Vector2i(-1, -1)
 
@@ -55,11 +49,12 @@ func highlight() -> int:
 
 
 func message() -> String:
+	Locale.ensure_installed()
 	match step:
 		Step.PICK_SOURCE:
-			return TEXT_PICK_SOURCE
+			return tr("tut_pick_source")
 		Step.PICK_TARGET:
-			return TEXT_PICK_TARGET
+			return tr("tut_pick_target")
 		Step.FINISH:
-			return TEXT_FINISH
-	return TEXT_DONE
+			return tr("tut_finish")
+	return ""

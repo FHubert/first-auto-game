@@ -8,14 +8,6 @@ signal pause_pressed
 signal hint_pressed
 signal extra_tube_pressed
 
-# Teksty literalami do czasu lokalizacji (T-023: podmiana na tr()).
-const TEXT_LEVEL: String = "Poziom %d"
-const TEXT_MOVES: String = "Ruchy: %d"
-const TEXT_UNDO: String = "Cofnij (%d)"
-const TEXT_RESTART: String = "Restart"
-const TEXT_PAUSE: String = "Pauza"
-const TEXT_HINT: String = "Podpowiedź (%d)"
-const TEXT_EXTRA_TUBE: String = "+Probówka (%d)"
 const ICON_UNDO: String = "res://assets/sprites/ui/icon_undo.svg"
 const ICON_RESTART: String = "res://assets/sprites/ui/icon_restart.svg"
 const BAR_HEIGHT: float = 230.0
@@ -34,6 +26,7 @@ var _level_no: int = 1
 
 
 func _ready() -> void:
+	Locale.ensure_installed()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_TOP_WIDE)
 	offset_bottom = BAR_HEIGHT
@@ -51,15 +44,15 @@ func _ready() -> void:
 	rows.add_child(buttons)
 	undo_button = _make_button(buttons, "", undo_pressed)
 	undo_button.icon = load(ICON_UNDO)
-	restart_button = _make_button(buttons, TEXT_RESTART, restart_pressed)
+	restart_button = _make_button(buttons, tr("btn_restart"), restart_pressed)
 	restart_button.icon = load(ICON_RESTART)
-	pause_button = _make_button(buttons, TEXT_PAUSE, pause_pressed)
+	pause_button = _make_button(buttons, tr("btn_pause"), pause_pressed)
 	var boosters := HBoxContainer.new()
 	boosters.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(boosters)
-	hint_button = _make_button(boosters, TEXT_HINT % Economy.hint_cost(), hint_pressed)
+	hint_button = _make_button(boosters, tr("btn_hint") % Economy.hint_cost(), hint_pressed)
 	extra_tube_button = _make_button(
-		boosters, TEXT_EXTRA_TUBE % Economy.extra_tube_cost(), extra_tube_pressed
+		boosters, tr("btn_extra_tube") % Economy.extra_tube_cost(), extra_tube_pressed
 	)
 	refresh()
 
@@ -73,14 +66,14 @@ func bind(round_in: GameRound, level_no: int) -> void:
 func refresh() -> void:
 	if level_label == null:
 		return
-	level_label.text = TEXT_LEVEL % _level_no
+	level_label.text = tr("hud_level") % _level_no
 	var moves: int = 0
 	var charges: int = 0
 	if _round != null:
 		moves = _round.moves()
 		charges = _round.undo_charges()
-	moves_label.text = TEXT_MOVES % moves
-	undo_button.text = TEXT_UNDO % charges
+	moves_label.text = tr("hud_moves") % moves
+	undo_button.text = tr("btn_undo") % charges
 	undo_button.disabled = charges <= 0
 
 

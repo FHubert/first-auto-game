@@ -9,16 +9,6 @@ signal restart_pressed
 signal skip_pressed
 signal closed
 
-# Teksty literalami do czasu lokalizacji (T-023: podmiana na tr()).
-const TEXT_TITLE: String = "Utknąłeś"
-const TEXT_DISTANCE: String = "%d ruchów od celu"
-const TEXT_NO_SOLUTION: String = "Brak rozwiązania z tego stanu"
-const TEXT_UNDO: String = "Cofnij (%d)"
-const TEXT_EXTRA_TUBE: String = "+Probówka (%d)"
-const TEXT_UNDO_REFILL: String = "+%d cofnięcia (%d)"
-const TEXT_RESTART: String = "Restart"
-const TEXT_SKIP: String = "Pomiń"
-const TEXT_CLOSE: String = "Zamknij"
 const SAMPLE_DISTANCE: int = 3
 
 @onready var title_label: Label = $Panel/Box/TitleLabel
@@ -32,13 +22,14 @@ const SAMPLE_DISTANCE: int = 3
 
 
 func _ready() -> void:
-	title_label.text = TEXT_TITLE
-	restart_button.text = TEXT_RESTART
-	skip_button.text = TEXT_SKIP
-	close_button.text = TEXT_CLOSE
-	extra_tube_button.text = TEXT_EXTRA_TUBE % Economy.extra_tube_cost()
+	Locale.ensure_installed()
+	title_label.text = tr("stuck_title")
+	restart_button.text = tr("btn_restart")
+	skip_button.text = tr("btn_skip")
+	close_button.text = tr("btn_close")
+	extra_tube_button.text = tr("btn_extra_tube") % Economy.extra_tube_cost()
 	var amount: int = int(GameConfig.get_value("undo_refill_amount", 3))
-	undo_refill_button.text = TEXT_UNDO_REFILL % [amount, Economy.undo_refill_cost()]
+	undo_refill_button.text = tr("btn_undo_refill") % [amount, Economy.undo_refill_cost()]
 	undo_button.pressed.connect(func() -> void: undo_pressed.emit())
 	extra_tube_button.pressed.connect(func() -> void: extra_tube_pressed.emit())
 	undo_refill_button.pressed.connect(func() -> void: undo_refill_pressed.emit())
@@ -55,17 +46,17 @@ func _ready() -> void:
 
 func show_for(round_in: GameRound) -> void:
 	var dist: int = round_in.moves_to_goal()
-	distance_label.text = TEXT_DISTANCE % dist if dist >= 0 else TEXT_NO_SOLUTION
+	distance_label.text = tr("stuck_distance") % dist if dist >= 0 else tr("stuck_no_solution")
 	var charges: int = round_in.undo_charges()
-	undo_button.text = TEXT_UNDO % charges
+	undo_button.text = tr("btn_undo") % charges
 	undo_button.disabled = charges <= 0
 	skip_button.visible = round_in.can_skip()
 	visible = true
 
 
 func show_sample() -> void:
-	distance_label.text = TEXT_DISTANCE % SAMPLE_DISTANCE
-	undo_button.text = TEXT_UNDO % 0
+	distance_label.text = tr("stuck_distance") % SAMPLE_DISTANCE
+	undo_button.text = tr("btn_undo") % 0
 	undo_button.disabled = true
 	skip_button.visible = true
 	visible = true
