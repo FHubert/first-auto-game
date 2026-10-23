@@ -46,7 +46,7 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 
 ---
 
-## 2026-10-23 — sesja continuous-dev #3 (20:11 UTC – w trakcie)
+## 2026-10-23 — sesja continuous-dev #3 (20:11–21:35 UTC)
 
 - P1: T-019 scena Level + BoardView/TubeView (motyw z themes.json, tap/przelew/shake, sygnał `pour_finished`, klucze `pour_anim_seconds`/`tube_lift_seconds`/`shake_seconds`), 132 testy, QA PASS (3 seedy 200/200) → PR #26 (auto-merge).
 - P1: T-020 HUD + LevelComplete + przepływ poziomów/zapis/streak (137 testów, QA PASS) → PR #27 (auto-merge). #26 zmergowany w trakcie sesji.
@@ -58,3 +58,5 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 - P2: G-008 DailyRewardPopup + karta Poziomu dnia + tryb daily w Level, 171 testów → PR #33 (auto-merge, bez QA — P2). #32 zmergowany.
 - P2: G-009 ThemeCatalog + ThemesScreen + pasek na Home, 178 testów → PR #34 (auto-merge, bez QA — P2). #33 zmergowany.
 - Inbox: T-035 pełna animacja przelewu, T-043 porządki po motywach, T-042 show_daily_level bez obejścia, T-041 podpięcie click/tube_full/mute reklam, T-040 font z diakrytykami, T-039 sygnał tube_deselected, T-038 testy shop_requested, T-036 szum FNV w logu testów, T-037 test wygranej bez „idealnie" + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).
+- Podsumowanie: 9 zadań (7× P1 + 2× P2), PR #26–#34; #26–#33 zmergowane w trakcie sesji (CI zielone), #34 z uzbrojonym auto-merge. P1 w całości w `review`/`done` → vertical slice grywalny end-to-end (tutorial → Home → Level → LevelComplete, StuckPanel/boostery, daily, motywy, audio, EN/PL/DE). Zależne PR-y: gałąź na gałęzi poprzednika + `rebase --onto origin/main` po merge rodzica. Blokery: brak. Następne: G-010 rewarded (wymaga T-021, G-008 — oba zmergowane), G-011 balance_sim, G-001.
+- Lekcja: po rebase na main z nowymi `class_name` trzeba `godot --headless --import` przed `make test` (stary cache klas daje „Identifier not declared"); `make setup` robi to w CI.
