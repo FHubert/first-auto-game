@@ -31,7 +31,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: nowe pola: `daily_reward_last_claim_day`, `daily_last_completed_day`, `daily_completed_total`, `streak_best`, `streak_saves_used` (z dniem okna), `themes_owned` (Array[String], domyślnie `["classic"]`), `theme_active`, `levels_completed`, `level_restarts` (bieżący poziom), `starter_offer_start_day`, `purchases` (sku → bool); `settings` z `music_on/sfx_on/haptics_on/ads_removed/tutorial_done/locale`. Testy: round-trip, migracja v1 daje wartości domyślne, odrzucanie złych typów i wartości ujemnych. `make test` zielone. ~220 linii.
   Skill: `godot-dev`
 
-- [ ] G-004 `todo` Economy: earn/spend, nagroda za wygraną, premia „idealnie", koszty boosterów (zależy od T-017)
+- [ ] G-004 `in_progress` Economy: earn/spend, nagroda za wygraną, premia „idealnie", koszty boosterów (zależy od T-017)
   KA: `economy.gd` (czysta klasa): `earn(state, amount, source)`, `spend(state, amount, sink) -> bool` (przy braku środków false i saldo bez zmian), `win_reward(result) -> int` (`win_reward_coins` + `par_bonus_coins` przy perfect). Do `config.gd` dodane klucze ekonomii z GDD (`par_*`, `*_cost_coins`, `undo_refill_amount`, `theme_cost_*`, `daily_challenge_coins`, `starting_coins`=100). Testy: saldo nigdy < 0, wartości zgodne z GDD. `make test` zielone. ~200 linii.
   Skill: `game-economy`
 
