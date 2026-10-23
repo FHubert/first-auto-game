@@ -1,7 +1,9 @@
 # Status projektu
 
 ## Aktualna faza
-**Faza 3 — Vertical slice** (od 2026-10-23; Faza 1 zamknięta: GDD `APPROVED` + backlog MVP, PR #11/#12; Faza 2 zamknięta: T-001 zmergowane, CI zielone, PR #13)
+**Faza 4 — Pipeline wydań** (od 2026-10-23; Faza 1 zamknięta: GDD `APPROVED` + backlog MVP, PR #11/#12; Faza 2 zamknięta: T-001 zmergowane, CI zielone, PR #13; Faza 3 zamknięta: grywalny core loop end-to-end, PR #26–#42, `make playtest` 200/200 rund bez softlocka (solver i random), 231 testów gdUnit4)
+
+Faza 4 bez sekretów: podbicie akcji CI, `Gemfile.lock`, monotoniczny `version_code`, pluginy IAP (T-047/T-048), niepodpisane buildy Android/iOS w CI (dry-run exportów), font z diakrytykami, screenshoty i metadata sklepowe EN/PL/DE, polityka prywatności i odpowiedzi Data Safety / Privacy Labels; `blocked` do czasu kont z tabeli niżej: podpisany AAB na Play Internal, build na TestFlight, QA na urządzeniu i Firebase Test Lab (T-054) — czyli samo kryterium wyjścia z fazy.
 
 Wybrany gatunek: sort puzzle (ball/water sort z progresją poziomów, content proceduralny + solver) — decyzja 2026-10-23 (R-001, docs/RESEARCH.md)
 
