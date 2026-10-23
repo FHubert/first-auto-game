@@ -10,7 +10,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `docs/RESEARCH.md` z analizą 3 kandydatów (gatunek, przykłady top-10, szacunkowy ARPDAU, złożoność contentu, czy content jest generowalny proceduralnie, konkurencja ASO w PL/US/DE). Rekomendacja z uzasadnieniem. Decyzja: **bierz kandydata nr 1** (Hubert zaakceptował delegację wyboru), chyba że `## Pytania do Huberta` ma odpowiedź inną. Zaktualizuj `docs/STATUS.md`.
   Skill: `analytics-review` (sekcja research) + WebSearch/WebFetch.
 
-- [ ] R-002 `todo` GDD v1 dla wybranego gatunku
+- [ ] R-002 `in_progress` GDD v1 dla wybranego gatunku
   KA: `docs/GDD.md` ze statusem `APPROVED` (zamiast `DRAFT`): core loop (1 akapit + diagram ASCII), sesja 2–5 min, progresja, ekonomia (waluty, sinki, źródła), meta (daily, streak), lista ekranów, lista mechanik z priorytetem MVP/later. Każda mechanika ma zdanie "jak to przetestujemy headless". `docs/MONETIZATION.md` z placementami. `docs/ASO.md` z 3 wariantami tytułu (sprawdzone w sklepach, że wolne) i 20 keywordami.
   Skill: `game-economy`, `ads-iap`, `aso`.
 
