@@ -1,55 +1,194 @@
 class_name GameRound
 extends RefCounted
-## Genre-agnostic round stub: deterministic simulation used by the playtest bot.
-## Replace with real gameplay; keep start/step/result as the bot contract.
+## Runda water sort: ruchy, cofnij, dodatkowa probówka, restart, podpowiedź.
+## Kontrakt dla bota/UI: start(level_data) / step(action) / result().
+## action = from * ACTION_BASE + to.
 
-const ACTION_COUNT: int = 3
-const BASE_TARGET: int = 5
-const TARGET_PER_DIFFICULTY: int = 20
-const POINTS_PER_HIT: int = 10
+const ACTION_BASE: int = 16
+const NO_HINT: Vector2i = Vector2i(-1, -1)
 
-var _rng := RandomNumberGenerator.new()
-var _target: int = 0
-var _max_misses: int = 0
-var _hits: int = 0
-var _misses: int = 0
-var _steps: int = 0
-var _score: int = 0
+var _level_data: Dictionary = {}
+var _start_tubes: Array = []
+var _board: SortBoard = SortBoard.new()
+var _history: Array = []
+var _moves: int = 0
+var _undo_charges: int = 0
+var _undos_used: int = 0
+var _extra_tubes_added: int = 0
+var _boosters_used: int = 0
+var _restarts: int = 0
 var _done: bool = false
 var _won: bool = false
+var _min_moves: int = 0
+var _min_moves_exact: bool = false
+var _solver_cache: Dictionary = {}
+
+
+static func encode_action(from: int, to: int) -> int:
+	return from * ACTION_BASE + to
+
+
+static func decode_action(action: int) -> Vector2i:
+	return Vector2i(action / ACTION_BASE, action % ACTION_BASE)
 
 
 func start(level_data: Dictionary) -> void:
-	var difficulty: float = float(level_data.get("difficulty", 0.0))
-	_rng.seed = int(level_data.get("seed", 0)) + int(level_data.get("level", 0))
-	_target = BASE_TARGET + int(difficulty * TARGET_PER_DIFFICULTY)
-	_max_misses = 3 + int((1.0 - difficulty) * 5.0)
-	_hits = 0
-	_misses = 0
-	_steps = 0
-	_score = 0
-	_done = false
-	_won = false
+	_level_data = level_data
+	var payload: Dictionary = level_data.get("payload", {})
+	_board = SortBoard.from_payload(payload)
+	_start_tubes = _board.to_tubes()
+	_min_moves = int(payload.get("min_moves", 0))
+	_min_moves_exact = bool(payload.get("min_moves_exact", false))
+	_history = []
+	_moves = 0
+	_undos_used = 0
+	_boosters_used = 0
+	_restarts = 0
+	_extra_tubes_added = 0
+	_undo_charges = _cfg_int("undo_free_per_level")
+	_solver_cache = {}
+	_done = _board.is_won()
+	_won = _done
 
 
-## Applies one action (0..ACTION_COUNT-1). Returns true when the round is over.
+## Zwraca true gdy runda skończona.
 func step(action: int) -> bool:
-	if _done:
-		return true
-	_steps += 1
-	var required: int = _rng.randi_range(0, ACTION_COUNT - 1)
-	if action == required:
-		_hits += 1
-		_score += POINTS_PER_HIT
-	else:
-		_misses += 1
-	if _hits >= _target:
+	var m: Vector2i = decode_action(action)
+	try_move(m.x, m.y)
+	return _done
+
+
+## True gdy ruch był legalny i został wykonany.
+func try_move(from: int, to: int) -> bool:
+	if _done or not _board.can_pour(from, to):
+		return false
+	_history.append(_board.to_tubes())
+	_board.pour(from, to)
+	_moves += 1
+	if _board.is_won():
 		_done = true
 		_won = true
-	elif _misses > _max_misses:
-		_done = true
+	return true
+
+
+func undo() -> bool:
+	if _done or _history.is_empty() or _undo_charges <= 0:
+		return false
+	_board = SortBoard.new(_history.pop_back(), _board.capacity)
+	_moves -= 1
+	_undo_charges -= 1
+	_undos_used += 1
+	return true
+
+
+func add_undo_charges(n: int) -> void:
+	if n <= 0:
+		return
+	_undo_charges += n
+	_boosters_used += 1
+
+
+func undo_charges() -> int:
+	return _undo_charges
+
+
+func add_extra_tube() -> bool:
+	if _done or _extra_tubes_added >= _cfg_int("extra_tube_max_per_level"):
+		return false
+	_board.tubes.append([])
+	for snap: Array in _history:
+		snap.append([])
+	_extra_tubes_added += 1
+	_boosters_used += 1
+	return true
+
+
+func restart() -> void:
+	_board = SortBoard.new(_start_tubes, _board.capacity)
+	_history = []
+	_moves = 0
+	_undo_charges = _cfg_int("undo_free_per_level")
+	_extra_tubes_added = 0
+	_done = _board.is_won()
+	_won = _done
+	_restarts += 1
+
+
+func restarts() -> int:
+	return _restarts
+
+
+func can_skip() -> bool:
+	return _restarts >= _cfg_int("skip_unlock_restarts")
+
+
+func is_stuck() -> bool:
+	return not _done and _board.legal_moves().is_empty()
+
+
+## Pierwszy ruch solvera lub (-1, -1) gdy brak.
+func hint() -> Vector2i:
+	if _done:
+		return NO_HINT
+	var path: Array = _solve_cached().get("path", [])
+	if path.is_empty():
+		return NO_HINT
+	_boosters_used += 1
+	return path[0]
+
+
+## Ruchy do celu wg solvera; 0 = wygrane, -1 = brak rozwiązania/limit.
+func moves_to_goal() -> int:
+	if _done:
+		return 0
+	return int(_solve_cached().get("moves", -1))
+
+
+func min_moves() -> int:
+	return _min_moves
+
+
+func moves() -> int:
+	return _moves
+
+
+func board() -> SortBoard:
+	return _board
+
+
+func is_done() -> bool:
 	return _done
 
 
 func result() -> Dictionary:
-	return {"won": _won, "score": _score, "steps": _steps}
+	var slack: int = _cfg_int("par_slack_moves")
+	return {
+		"won": _won,
+		"moves": _moves,
+		"min_moves": _min_moves,
+		"min_moves_exact": _min_moves_exact,
+		"perfect": _won and _moves <= _min_moves + slack,
+		"undos_used": _undos_used,
+		"boosters_used": _boosters_used,
+		"restarts": _restarts,
+		"steps": _moves,
+	}
+
+
+# Klucz = dokładny układ probówek (nie canonical_key): ścieżka zawiera indeksy probówek.
+func _solve_cached() -> Dictionary:
+	var key: String = str(_board.tubes)
+	if _solver_cache.has(key):
+		return _solver_cache[key]
+	var limit: int = _cfg_int("hint_solver_max_states")
+	var r: Dictionary = SortSolver.solve(_board, limit, 1.0)
+	if int(r["moves"]) <= 0 and not _board.is_won():
+		var w: float = float(GameConfig.get_value("solver_fallback_weight", 3.0))
+		r = SortSolver.solve(_board, limit, w)
+	var out: Dictionary = {"moves": int(r["moves"]), "path": r["path"]}
+	_solver_cache[key] = out
+	return out
+
+
+func _cfg_int(key: String) -> int:
+	return int(GameConfig.get_value(key, 0))

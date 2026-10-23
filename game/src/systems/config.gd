@@ -35,6 +35,13 @@ const DEFAULTS: Dictionary = {
 	"daily_seed_salt": 104729,
 	"daily_colors": 8,
 	"daily_min_moves_factor": 1.8,
+	# Round / boosters (GDD v1.0)
+	"undo_free_per_level": 3,
+	"undo_refill_amount": 3,
+	"extra_tube_max_per_level": 1,
+	"skip_unlock_restarts": 2,
+	"par_slack_moves": 2,
+	"hint_solver_max_states": 20000,
 }
 
 var _values: Dictionary = DEFAULTS.duplicate(true)

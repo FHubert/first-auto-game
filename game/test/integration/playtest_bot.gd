@@ -4,7 +4,6 @@ extends RefCounted
 ## GDScript cannot catch runtime errors, so "crash" detection is contract validation.
 
 const MAX_STEPS: int = 500
-const ACTION_COUNT: int = 3
 const SIM_SECONDS_PER_ROUND: float = 30.0
 
 
@@ -44,11 +43,15 @@ func run(rounds: int, run_seed: int) -> Dictionary:
 		game_round.start(level_data)
 		var steps: int = 0
 		var finished: bool = false
-		while steps < MAX_STEPS:
-			steps += 1
-			if game_round.step(rng.randi_range(0, ACTION_COUNT - 1)):
-				finished = true
+		var solution: Array = level_data["payload"].get("solution", [])
+		finished = game_round.is_done()
+		for m: Vector2i in solution:
+			if finished or steps >= MAX_STEPS:
 				break
+			steps += 1
+			finished = game_round.step(GameRound.encode_action(m.x, m.y))
+		if not finished and steps < MAX_STEPS:
+			errors.append("round %d: solution did not win" % round_index)
 		report["rounds"] += 1
 		total_steps += steps
 		if not finished:
@@ -56,7 +59,7 @@ func run(rounds: int, run_seed: int) -> Dictionary:
 			errors.append("round %d: softlock (> %d steps)" % [round_index, MAX_STEPS])
 			continue
 		var res: Dictionary = game_round.result()
-		if not (res.has("won") and res.has("score") and res.has("steps")):
+		if not (res.has("won") and res.has("moves") and res.has("perfect")):
 			errors.append("round %d: malformed result" % round_index)
 			continue
 		if res["won"]:
