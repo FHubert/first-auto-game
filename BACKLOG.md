@@ -67,7 +67,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `tools/gen_assets.py` generuje 6 SFX (przelew ×3 warianty, pełna probówka, wygrana, klik, błąd, monety) i 1 pętlę ambient OGG. Autoload `Audio` respektuje `music_on/sfx_on` i wycisza się przy utracie fokusu. Haptyka przez `Input.vibrate_handheld` przy `haptics_on`. Test: przy `sfx_on=false` `Audio.play_sfx` nie odtwarza. `make check` zielone. `docs/LICENSES.md` bez zmian (brak obcych plików). ~250 linii.
   Skill: `asset-gen`
 
-- [ ] G-006 `in_progress` DailyRewards: nagroda dzienna + streak + grace (zależy od T-017)
+- [ ] G-006 `review` DailyRewards: nagroda dzienna + streak + grace (zależy od T-017) → PR #24
   KA: `daily_rewards.gd` (czysta klasa, dzień UTC wstrzykiwany). Testy: dni 1..7 dają 50/50/100/100/150/150/300 (`daily_reward_multipliers`); drugi odbiór tego samego dnia jest odrzucony; przerwa 1 dnia daje `can_save_streak` (max `streak_save_max_per_week`, okno liczone od `GameState.streak_save_window_day`); przerwa ≥ 2 dni resetuje do 1; `streak_best` jest aktualizowany. Klucze dopisane do `config.gd`. `make test` zielone. ~220 linii.
   Skill: `game-economy`
 
@@ -137,6 +137,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - R-002: starter pack — przyjęto: 1,99 USD = 800 monet + motyw, bez remove_ads, do zmiany.
 - R-002: ranking Poziomu dnia — przyjęto: brak rankingu i backendu w MVP, do zmiany.
 - R-002: KPI ARPDAU — szacunek ~0,036–0,040 USD przy mixie 30/30/40 jest poniżej celu 0,05; przyjęto: jedziemy dalej, dźwignia = większy udział US w ruchu, do zmiany.
+- G-006: czy odbiór nagrody dziennej podtrzymuje streak (jak ukończenie poziomu)? — przyjęto: tak, `DailyRewards.claim` woła `register_play`; w stanie grace UI najpierw oferuje `save_streak` (rewarded), do zmiany.
 
 ## Done (ostatnie 30)
 - [x] T-009 `done` CLAUDE.md/skille: gh pr → gh api REST (GraphQL 403 w CCR) → PR #7 (zmergowany)
