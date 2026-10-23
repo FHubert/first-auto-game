@@ -51,6 +51,11 @@ const DEFAULTS: Dictionary = {
 	"skip_unlock_restarts": 2,
 	"par_slack_moves": 2,
 	"hint_solver_max_states": 20000,
+	# Daily / streak (GDD v1.0)
+	"daily_reward_multipliers": [1, 1, 2, 2, 3, 3, 6],
+	"streak_save_max_per_week": 1,
+	"streak_save_window_days": 7,
+	"streak_grace_days": 1,
 }
 
 var _values: Dictionary = DEFAULTS.duplicate(true)
