@@ -14,6 +14,15 @@ func _ready() -> void:
 		_label.text = "Playtest..."
 		var exit_code: int = _run_playtest(args)
 		get_tree().quit(exit_code)
+	else:
+		_start_app()
+
+
+func _start_app() -> void:
+	var app := App.new()
+	app.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(app)
+	_label.visible = false
 
 
 func _run_playtest(args: PackedStringArray) -> int:

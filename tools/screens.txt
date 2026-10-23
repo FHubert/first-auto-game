@@ -2,3 +2,5 @@ res://src/core/main.tscn
 res://src/levels/level.tscn
 res://src/ui/level_complete.tscn
 res://src/ui/stuck_panel.tscn
+res://src/ui/home.tscn
+res://src/ui/settings_screen.tscn

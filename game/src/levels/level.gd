@@ -5,6 +5,7 @@ extends Control
 signal level_won(level_no: int, coins: int)
 signal next_requested(level_no: int)
 signal pause_requested
+signal home_requested
 signal shop_requested(reason: String)
 
 const MODE_CAMPAIGN: String = "campaign"
@@ -47,6 +48,7 @@ func _ready() -> void:
 	hud.restart_pressed.connect(restart)
 	hud.pause_pressed.connect(pause)
 	level_complete.next_pressed.connect(on_next_pressed)
+	level_complete.home_pressed.connect(func() -> void: home_requested.emit())
 	if round == null:
 		load_level(state.level, state.theme_active)
 

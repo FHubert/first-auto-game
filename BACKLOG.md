@@ -37,7 +37,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `tutorial_flow.gd` (czysta maszyna stanów): wskaż źródło, wskaż cel, ukończ. Krok przechodzi tylko po właściwym ruchu, a na koniec ustawia `settings.tutorial_done`. Overlay z dłonią w scenie Level. Pierwsze uruchomienie pomija `Home` i otwiera poziom 1. Testy maszyny stanów i test „poziom 1 ma 2 kolory, min_moves ≤ 4". `make check` zielone. ~200 linii.
   Skill: `game-economy`
 
-- [ ] T-022 `todo` Ekrany Home + Settings + nawigacja (zależy od T-020)
+- [ ] T-022 `review` Ekrany Home + Settings + nawigacja (zależy od T-020) → PR #30
   KA: `Home` pokazuje „Graj: poziom N", monety, streak, pasek do następnego motywu (placeholder) oraz przyciski Motywy, Sklep i Ustawienia. `Settings` ma przełączniki muzyki, SFX, haptyki i języka, zapisywane w `GameState.settings`, oraz wersję z `BUILD_INFO`. Test headless: zmiana przełącznika przetrwa save/load. Oba ekrany w `screens.txt`. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
