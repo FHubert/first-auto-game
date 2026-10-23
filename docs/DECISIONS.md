@@ -128,6 +128,8 @@ Alternatywy odrzucone:
 - godot-admob-plugin
 - gameanalytics-godot
 - GodotFirebase (opcjonalnie, Faza 6)
+- GodotGooglePlayBilling (Android IAP) (ADR-010)
+- godot_ios_plugin_iap (iOS IAP, StoreKit) (ADR-010)
 
 Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 
@@ -175,4 +177,37 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 - Podbicie wersji Godota (ADR-008) może zmienić `hash()`/RNG → golden test to wykryje; wtedy własny hash (np. FNV-1a w GDScript) zamiast wbudowanego `hash()`.
 - Zmiana kluczy generatora w remote config zmienia poziomy dla wszystkich — dopuszczalne tylko przed soft launchem albo w A/B od Fazy 6.
 - Czas generacji w runtime ograniczony limitem stanów; jeśli test wydajności (≤ 500 ms/poziom) nie przejdzie, alternatywa to paczka poziomów generowana tym samym kodem w buildzie (nowy ADR).
+
+---
+
+## ADR-010: IAP: GodotGooglePlayBilling (Android) + godot_ios_plugin_iap (iOS), za `IapProvider`
+
+**Data:** 2026-10-23
+**Status:** Accepted (rozszerza ADR-007 o dwa pluginy; nie zmienia ADR-003)
+
+**Kontekst:**
+- Produkty MVP (`docs/MONETIZATION.md`): `remove_ads`, `starter_pack` (non-consumable), `coins_small`, `coins_large` (consumable). ADR-007 nie obejmował pluginów IAP.
+- Google Play: od 31.08.2026 nowe aplikacje i aktualizacje muszą używać Billing Library 8+; przedłużenie można wnioskować do 1.11.2026 (BL 7 wycofana tego dnia, BL 8 — 31.08.2027). Źródło: https://developer.android.com/google/play/billing/deprecation-faq (dostęp 2026-10-23). Wydajemy po 1.11.2026 → BL 8+ obowiązkowo, bez przedłużeń.
+- `godot-sdk-integrations/godot-google-play-billing`: 3.0.0 = BL 8.0.0 (kompilowany z Godot 4.5, wspiera 4.2+), 3.2.0 = BL 8.3.0 (minSdk 23, compileSdk 36), 3.3.0 („Latest", 27.07.2026) = BL 9.1.0. Źródła: https://github.com/godotengine/godot-google-play-billing/releases, https://store.godotengine.org/asset/godot-foundation/godot-google-play-billing/ (min. Godot 4.2), https://godot-sdk-integrations.github.io/godot-google-play-billing/installation.html (dostęp 2026-10-23). Issue #110 (BL 8) dotyczy tylko gałęzi 1.x (Godot 3).
+- iOS: oficjalny `godotengine/godot-ios-plugins` (`InAppStore`, StoreKit 1) „nie jest deprecated, ale nie ma maintainera" (Calinou, 06.01.2026, https://forum.godotengine.org/t/its-official-godot-ios-plugin-obsolete/130507); brak wydań binarnych pod 4.7, migracja na StoreKit 2 (issue #57) niezrobiona. `hrk4649/godot_ios_plugin_iap` v0.4.0 (27.06.2026, MIT, Swift/StoreKit) deklaruje „This release is for Godot 4.7", min. Godot 4.7 (https://store.godotengine.org/asset/hrk4649/godot-ios-plugin-for-in-app-purchase/, dostęp 2026-10-23).
+
+**Decyzja:**
+- Android: GodotGooglePlayBilling **3.3.0** (BL 9.1.0), release zip z GitHub/Asset Store do `game/addons/GodotGooglePlayBilling/`. Przypięcie: tag `3.3.0` + SHA-256 zipa w `tools/setup_env.sh` (SHA wpisuje zadanie instalacyjne — ZWERYFIKUJ commit taga). Fallback w razie regresji: 3.2.0 (BL 8.3.0, nadal ≥ 8).
+- Wymagania Android: `gradle/use_gradle_build=true` w presecie (zadanie dotykające `export_presets.cfg` wprost), szablon Android build instalowany przez `make setup`, minSdk 24 (ADR-008) ≥ 23 wymaganego przez plugin, compileSdk/targetSdk 36. API: klasa `BillingClient` (`start_connection`, `query_product_details`, `purchase`, `acknowledge_purchase`, `consume_purchase`, `query_purchases`; sygnały `connected`, `query_product_details_response`, `on_purchase_updated`, `query_purchases_response`, …) — patrz `.claude/skills/ads-iap/SKILL.md` §6. Non-consumable → `acknowledge_purchase` (inaczej zwrot po 3 dniach); consumable → `consume_purchase`.
+- iOS: `hrk4649/godot_ios_plugin_iap` **v0.4.0** (wydanie dla Godot 4.7), pliki pluginu w `game/ios/plugins/`, włączony w presecie iOS. Przypięcie: tag `v0.4.0` + SHA-256 (ZWERYFIKUJ). Build na runnerze macOS (ADR-005) z Xcode wymaganym przez Godot 4.7.2 (ZWERYFIKUJ wersję Xcode i min. iOS z README pluginu).
+- Interfejs w repo: `IapProvider` (RefCounted; `connect_store()`, `query_products(skus)`, `purchase(sku)`, `restore()`, `acknowledge(token)`; sygnały `connected(ok)`, `products_received(products)`, `purchase_updated(sku, state, token)` ze stanami `purchased|pending|failed|canceled`, `restore_finished(skus)`), implementacje `FakeIapProvider` (testy, `make playtest`), `GooglePlayBillingProvider`, `StoreKitProvider`; autoload `Purchases` wybiera providera po `OS.get_name()`/`Engine.has_singleton`, w edytorze i headless zawsze Fake. Logika gry zna tylko `Purchases`.
+- Przyznanie nagrody tylko przy stanie PURCHASED (nie PENDING), potem acknowledge/consume/finish; ceny lokalne wyłącznie ze sklepu.
+- **Restore purchases** (wymóg Apple App Review Guideline 3.1.1): przycisk „Przywróć zakupy" w Ustawieniach → `Purchases.restore()`; iOS: sync/current entitlements, Android: `query_purchases(INAPP)` przy starcie i powrocie do aplikacji.
+- Weryfikacja zakupu w MVP: bez serwera — ufamy sygnałowi Store (+ `signature` z Play). Ryzyko cheatingu (root/jailbreak, podrobione zakupy) zaakceptowane: dotyczy monet i kosmetyki, brak PvP. RTDN, Play Integrity i własny backend poza zakresem (nowy ADR, jeśli przychód z IAP > 20 % lub wykryjemy nadużycia).
+- Plan B: `hyodotdev/openiap` → `godot-iap` 4.0.3 (16.10.2026; iOS StoreKit 2, Android BL 8+, jeden API dla obu platform; https://godotengine.org/asset-library/asset/4627) — wymaga nowego ADR; podmiana dotyka tylko providerów.
+
+**Status zgodności z Godot 4.7.2:**
+- GodotGooglePlayBilling 3.3.0: **niepotwierdzone** na 4.7.2 (deklarowane 4.2+, plugin v2 AAR; nikt nie publikuje testu na 4.7).
+- godot_ios_plugin_iap v0.4.0: **niepotwierdzone** na 4.7.2 (deklarowane „for Godot 4.7"; zgodność 4.7.x zakładana, iOS plugin linkuje nagłówki silnika — ZWERYFIKUJ, czy nie wymaga przebudowy dla 4.7.2).
+
+**Konsekwencje:**
+- Faza 5, na urządzeniu: (1) export AAB z Gradle build i plugin ładuje się bez crasha, (2) zakup `remove_ads` licencjonowanym testerem z Play Internal + acknowledge widoczny w Play Console, (3) consume `coins_small` i ponowny zakup, (4) reinstall → restore na obu platformach, (5) Sandbox/TestFlight: purchase, finish transaction, restore, (6) PENDING (wolna metoda płatności) nie przyznaje nagrody.
+- Do czasu integracji wszystko działa na `FakeIapProvider`; `make check` nie zależy od pluginów (nie ładują się w headless Linux).
+- Zmiana wersji BL przy kolejnych terminach Google (BL 8 wycofana 31.08.2027) = podbicie pluginu, bez zmian w logice gry.
+- Plugin iOS ma jednego autora (bus factor 1) → przy braku wydania pod przyszłą wersję Godota przejście na Plan B.
 
