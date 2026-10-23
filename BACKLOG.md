@@ -35,7 +35,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `economy.gd` (czysta klasa): `earn(state, amount, source)`, `spend(state, amount, sink) -> bool` (przy braku środków false i saldo bez zmian), `win_reward(result) -> int` (`win_reward_coins` + `par_bonus_coins` przy perfect). Do `config.gd` dodane klucze ekonomii z GDD (`par_*`, `*_cost_coins`, `undo_refill_amount`, `theme_cost_*`, `daily_challenge_coins`, `starting_coins`=100). Testy: saldo nigdy < 0, wartości zgodne z GDD. `make test` zielone. ~200 linii.
   Skill: `game-economy`
 
-- [ ] T-018 `todo` Assety wizualne: palety 4 motywów, sprite'y probówek (2 kształty), ikony UI, ikona aplikacji
+- [ ] T-018 `in_progress` Assety wizualne: palety 4 motywów, sprite'y probówek (2 kształty), ikony UI, ikona aplikacji
   KA: `tools/gen_assets.py` generuje `themes.json` (classic/pastel/neon/ocean, każdy z 12 płynami, tłem i kształtem `tube|flask`; classic = hex z GDD), sprite'y probówek 9-slice, 6 ikon UI i ikonę 1024 (bez alfy) oraz 512. `tools/test_tools.py` sprawdza 12 unikalnych hex na motyw i minimalne ΔE ≥ 20 między kolorami. `make check` zielone. Brak obcych assetów. ~250 linii.
   Skill: `asset-gen`
 
