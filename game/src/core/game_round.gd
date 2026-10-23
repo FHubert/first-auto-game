@@ -93,7 +93,7 @@ func undo_charges() -> int:
 
 
 func add_extra_tube() -> bool:
-	if _done or _extra_tubes_added >= _cfg_int("extra_tube_max_per_level"):
+	if not can_add_extra_tube():
 		return false
 	_board.tubes.append([])
 	for snap: Array in _history:
@@ -112,6 +112,10 @@ func restart() -> void:
 	_done = _board.is_won()
 	_won = _done
 	_restarts += 1
+
+
+func can_add_extra_tube() -> bool:
+	return not _done and _extra_tubes_added < _cfg_int("extra_tube_max_per_level")
 
 
 func restarts() -> int:

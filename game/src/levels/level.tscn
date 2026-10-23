@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/levels/level.gd" id="1_level"]
 [ext_resource type="Script" path="res://src/ui/board_view.gd" id="2_board"]
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="3_hud"]
 [ext_resource type="PackedScene" path="res://src/ui/level_complete.tscn" id="4_lc"]
+[ext_resource type="PackedScene" path="res://src/ui/stuck_panel.tscn" id="5_sp"]
 
 [node name="Level" type="Control"]
 layout_mode = 3
@@ -32,4 +33,7 @@ grow_horizontal = 2
 script = ExtResource("3_hud")
 
 [node name="LevelComplete" parent="." instance=ExtResource("4_lc")]
+layout_mode = 1
+
+[node name="StuckPanel" parent="." instance=ExtResource("5_sp")]
 layout_mode = 1
