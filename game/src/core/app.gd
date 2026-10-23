@@ -20,6 +20,8 @@ func _ready() -> void:
 		state = SaveSystem.load()
 	Locale.ensure_installed()
 	Locale.apply_setting(str(state.settings.get("locale", "")))
+	Audio.apply_settings(state.settings)
+	Audio.play_music()
 	if bool(state.settings.get("tutorial_done", false)):
 		show_home()
 	else:
@@ -59,6 +61,7 @@ func show_settings() -> void:
 
 
 func _on_setting_changed(key: String) -> void:
+	Audio.apply_settings(state.settings)
 	if key == "locale":
 		Locale.apply_setting(str(state.settings.get("locale", "")))
 		show_settings()

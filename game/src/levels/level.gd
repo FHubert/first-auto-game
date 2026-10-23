@@ -35,6 +35,12 @@ func _ready() -> void:
 			hud.refresh()
 			_check_stuck()
 	)
+	board.pour_finished.connect(
+		func(_from: int, _to: int) -> void:
+			Audio.play_sfx("pour")
+			Audio.haptic()
+	)
+	board.illegal_move.connect(func(_from: int, _to: int) -> void: Audio.play_sfx("error"))
 	board.tube_selected.connect(_on_tutorial_selected)
 	board.pour_finished.connect(_on_tutorial_pour)
 	hud.hint_pressed.connect(buy_hint)
@@ -182,6 +188,8 @@ func pause() -> void:
 
 
 func _on_round_won() -> void:
+	Audio.play_sfx("win")
+	Audio.play_sfx("coins")
 	var result: Dictionary = round.result()
 	var coins: int = Economy.apply_win(state, result)
 	state.level += 1
