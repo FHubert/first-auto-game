@@ -155,3 +155,24 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 - Pluginy reklam i analityki są odblokowane (Faza 5/6).
 - Przy wydaniu taga gdUnit4 v7.x zamienić `master` na tag (powtarzalność builda).
 
+---
+
+## ADR-009: Format poziomu i deterministyczny generator per seed (sort puzzle)
+
+**Data:** 2026-10-23
+**Status:** Accepted
+
+**Kontekst:** Gatunek to water sort (R-001, `docs/GDD.md` v1.0). Poziom kampanii N i Poziom dnia muszą być identyczne dla wszystkich graczy, na Androidzie i iOS, w każdej wersji gry (wsparcie, wspólny Poziom dnia, testy „golden"). Content nie jest zapisywany w repo — powstaje z seeda w runtime i jest weryfikowany solverem w `make test`.
+
+**Decyzja:**
+- Poziom = `Dictionary` z kontraktem `ContentGenerator.generate(seed_value, level)`: `seed`, `level`, `difficulty`, `payload`; `payload` = `capacity`, `colors`, `tubes` (`Array` tablic `int` 0..n-1, dół→góra), `min_moves`, `min_moves_exact`, `attempt`, `solution` (lista ruchów `Vector2i(from, to)`). JSON-owalny (do zapisu w trakcie poziomu, later).
+- Seed kampanii: `hash([campaign_seed, level])`; seed Poziomu dnia: funkcja dnia UTC (`floor(unix / 86400)`) i `daily_seed_salt` z `GameConfig`. Kolejne próby: `seed + attempt`.
+- Losowość wyłącznie przez `RandomNumberGenerator` z jawnym `seed` i tylko metody całkowitoliczbowe (`randi()`, modulo); zakaz `randf()`, globalnego `randi()` i iteracji po `Dictionary` w kolejności zależnej od hasha przy generacji.
+- Logika w czystych klasach `RefCounted` (`SortBoard`, `SortSolver`, `ContentGenerator`); solver A* z limitem `solver_max_states`, fallback ważony A*.
+- Test „golden" w `make test`: hash `tubes` dla stałych poziomów zapisany w teście. Zmiana generatora zmieniająca poziomy graczy = świadoma decyzja (nowy ADR lub wpis w PR + aktualizacja golden).
+
+**Konsekwencje:**
+- Podbicie wersji Godota (ADR-008) może zmienić `hash()`/RNG → golden test to wykryje; wtedy własny hash (np. FNV-1a w GDScript) zamiast wbudowanego `hash()`.
+- Zmiana kluczy generatora w remote config zmienia poziomy dla wszystkich — dopuszczalne tylko przed soft launchem albo w A/B od Fazy 6.
+- Czas generacji w runtime ograniczony limitem stanów; jeśli test wydajności (≤ 500 ms/poziom) nie przejdzie, alternatywa to paczka poziomów generowana tym samym kodem w buildzie (nowy ADR).
+
