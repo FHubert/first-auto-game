@@ -39,7 +39,7 @@ set_version,v%s (%s),v%s (%s),v%s (%s)
 daily_title,Daily reward,Nagroda dzienna,Tägliche Belohnung
 daily_streak,Streak: %d,Streak: %d,Serie: %d
 btn_claim,Claim,Odbierz,Abholen
-btn_claim_x2,Claim ×2,Odbierz ×2,Abholen ×2
+btn_claim_x2,Claim ×2 (+%d),Odbierz ×2 (+%d),Abholen ×2 (+%d)
 btn_save_streak,Save streak,Uratuj streak,Streak retten
 daily_challenge_title,Daily level,Poziom dnia,Tagesrätsel
 daily_locked,From level %d,Od poziomu %d,Ab Level %d
@@ -54,3 +54,7 @@ btn_active,Active,Aktywny,Aktiv
 btn_use,Use,Użyj,Nutzen
 btn_buy,Buy %d,Kup %d,Kaufen %d
 home_all_themes,All themes unlocked,Wszystkie motywy odblokowane,Alle Themen freigeschaltet
+btn_double,×2 (+%d),×2 (+%d),×2 (+%d)
+btn_extra_tube_ad,+Tube (ad),+Probówka (ad),+Röhrchen (ad)
+btn_undo_refill_ad,+%d undo (ad),+%d cofnięć (ad),+%d Rückg. (ad)
+btn_skip_ad,Skip (ad),Pomiń (ad),Überspr. (ad)

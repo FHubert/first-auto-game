@@ -7,6 +7,8 @@ signal restart_pressed
 signal pause_pressed
 signal hint_pressed
 signal extra_tube_pressed
+signal extra_tube_ad_pressed
+signal undo_refill_ad_pressed
 
 const ICON_UNDO: String = "res://assets/sprites/ui/icon_undo.svg"
 const ICON_RESTART: String = "res://assets/sprites/ui/icon_restart.svg"
@@ -20,10 +22,13 @@ var restart_button: Button
 var pause_button: Button
 var hint_button: Button
 var extra_tube_button: Button
+var extra_tube_ad_button: Button
+var undo_refill_ad_button: Button
 
 var _round: GameRound
 var _level_no: int = 1
 var _title: String = ""
+var _boosters_visible: bool = true
 
 
 func _ready() -> void:
@@ -55,6 +60,13 @@ func _ready() -> void:
 	extra_tube_button = _make_button(
 		boosters, tr("btn_extra_tube") % Economy.extra_tube_cost(), extra_tube_pressed
 	)
+	extra_tube_ad_button = _make_button(boosters, tr("btn_extra_tube_ad"), extra_tube_ad_pressed)
+	var amount: int = int(GameConfig.get_value("undo_refill_amount", 3))
+	undo_refill_ad_button = _make_button(
+		boosters, tr("btn_undo_refill_ad") % amount, undo_refill_ad_pressed
+	)
+	extra_tube_ad_button.visible = false
+	undo_refill_ad_button.visible = false
 	refresh()
 
 
@@ -85,9 +97,20 @@ func refresh() -> void:
 
 
 func set_boosters_visible(v: bool) -> void:
+	_boosters_visible = v
 	if hint_button != null:
 		hint_button.visible = v
 		extra_tube_button.visible = v
+		if not v:
+			extra_tube_ad_button.visible = false
+			undo_refill_ad_button.visible = false
+
+
+func set_ad_offers(extra_tube: bool, undo_refill: bool) -> void:
+	if extra_tube_ad_button == null:
+		return
+	extra_tube_ad_button.visible = _boosters_visible and extra_tube
+	undo_refill_ad_button.visible = _boosters_visible and undo_refill
 
 
 func _make_label(parent: Control) -> Label:

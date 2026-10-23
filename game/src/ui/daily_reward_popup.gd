@@ -45,8 +45,14 @@ func show_for(state_in: GameState, utc_day: int) -> void:
 	title_label.text = tr("daily_title")
 	streak_label.text = tr("daily_streak") % state.streak_days
 	claim_button.disabled = not bool(pv["can_claim"])
+	claim_x2_button.text = tr("btn_claim_x2") % preview_x2_amount()
+	claim_x2_button.visible = (
+		bool(pv["can_claim"]) and rewarded.can_offer(RewardedPlacements.DAILY_X2)
+	)
 	save_streak_button.visible = (
-		pv["status"] == DailyRewards.REASON_GRACE and DailyRewards.can_save_streak(state, utc_day)
+		pv["status"] == DailyRewards.REASON_GRACE
+		and DailyRewards.can_save_streak(state, utc_day)
+		and rewarded.can_offer(RewardedPlacements.STREAK_SAVE)
 	)
 	visible = true
 

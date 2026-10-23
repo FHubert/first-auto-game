@@ -40,6 +40,7 @@ func _ready() -> void:
 	board.pour_finished.connect(
 		func(_from: int, _to: int) -> void:
 			hud.refresh()
+			_refresh_offers()
 			_check_stuck()
 	)
 	board.pour_finished.connect(
@@ -55,6 +56,11 @@ func _ready() -> void:
 	stuck_panel.undo_pressed.connect(undo)
 	stuck_panel.extra_tube_pressed.connect(buy_extra_tube)
 	stuck_panel.undo_refill_pressed.connect(buy_undo_refill)
+	hud.extra_tube_ad_pressed.connect(func() -> void: watch_extra_tube())
+	hud.undo_refill_ad_pressed.connect(func() -> void: watch_undo_refill())
+	stuck_panel.extra_tube_ad_pressed.connect(func() -> void: watch_extra_tube())
+	stuck_panel.undo_refill_ad_pressed.connect(func() -> void: watch_undo_refill())
+	level_complete.double_pressed.connect(func() -> void: watch_double_coins())
 	stuck_panel.restart_pressed.connect(restart)
 	stuck_panel.skip_pressed.connect(watch_skip)
 	hud.undo_pressed.connect(undo)
@@ -95,6 +101,7 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 		tutorial = TutorialFlow.new()
 		tutorial.start(_solver_first_move())
 	_update_tutorial_overlay()
+	_refresh_offers()
 
 
 func on_next_pressed() -> void:
@@ -235,6 +242,7 @@ func watch_double_coins() -> bool:
 			level_complete.show_result(
 				_last_win_coins + bonus, _last_win_perfect, level_no, _last_win_title
 			)
+			level_complete.set_double_offer(0, false)
 			hud.refresh()
 			Audio.play_sfx("coins")
 	)
@@ -298,6 +306,7 @@ func _on_round_won() -> void:
 	Analytics.track_progression("Complete", mode, _level_id(), int(result.get("moves", 0)))
 	hud.refresh()
 	level_complete.show_result(coins, _last_win_perfect, level_no, title)
+	level_complete.set_double_offer(double_coins_bonus(), can_double_coins())
 	level_won.emit(level_no, coins)
 
 
@@ -311,13 +320,14 @@ func _finish_purchase(ok: bool) -> bool:
 func _after_action() -> void:
 	board.refresh()
 	hud.refresh()
+	_refresh_offers()
 	stuck_panel.visible = false
 	_check_stuck()
 
 
 func _check_stuck() -> void:
 	if round.is_stuck() and not round.is_done():
-		stuck_panel.show_for(round, mode != MODE_DAILY)
+		stuck_panel.show_for(round, mode != MODE_DAILY, _ad_offers())
 		Analytics.track_design("level:stuck", round.moves_to_goal())
 
 
@@ -325,3 +335,24 @@ func _level_id() -> String:
 	if mode == MODE_DAILY:
 		return "daily_%d" % utc_day
 	return "level_%04d" % level_no
+
+
+func _ad_offers() -> Dictionary:
+	var live: bool = not round.is_done()
+	return {
+		"extra_tube":
+		live and round.can_add_extra_tube() and rewarded.can_offer(RewardedPlacements.EXTRA_TUBE),
+		"undo_refill":
+		live and round.undo_charges() == 0 and rewarded.can_offer(RewardedPlacements.UNDO_REFILL),
+		"skip":
+		(
+			mode != MODE_DAILY
+			and round.can_skip()
+			and rewarded.can_offer(RewardedPlacements.SKIP_LEVEL)
+		),
+	}
+
+
+func _refresh_offers() -> void:
+	var o: Dictionary = _ad_offers()
+	hud.set_ad_offers(bool(o["extra_tube"]), bool(o["undo_refill"]))
