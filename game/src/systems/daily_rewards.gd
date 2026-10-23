@@ -13,7 +13,7 @@ const REASON_SAVED: String = "saved"
 
 
 static func utc_day_from_unix(unix: int) -> int:
-	return unix / SECONDS_PER_DAY
+	return floori(float(unix) / SECONDS_PER_DAY)
 
 
 static func streak_status(state: GameState, utc_day: int) -> String:
@@ -73,7 +73,7 @@ static func reward_for_cycle_day(day: int) -> int:
 
 
 static func can_claim(state: GameState, utc_day: int) -> bool:
-	return utc_day > 0 and state.daily_reward_last_claim_day != utc_day
+	return utc_day > 0 and utc_day > state.daily_reward_last_claim_day
 
 
 ## Read-only view: {cycle_day, amount, can_claim, status}. Amount is for the streak after play.
@@ -89,6 +89,7 @@ static func preview(state: GameState, utc_day: int) -> Dictionary:
 
 
 ## Claims today's reward (also registers the play). Returns coins granted, 0 if rejected.
+## In grace state claim resets the streak - UI must offer save_streak first.
 static func claim(state: GameState, utc_day: int, doubled: bool = false) -> int:
 	if not can_claim(state, utc_day):
 		return 0

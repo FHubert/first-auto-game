@@ -42,6 +42,7 @@ func test_config_keys() -> void:
 func test_utc_day_from_unix() -> void:
 	assert_int(DailyRewards.utc_day_from_unix(86399)).is_equal(0)
 	assert_int(DailyRewards.utc_day_from_unix(86400 * 5 + 10)).is_equal(5)
+	assert_int(DailyRewards.utc_day_from_unix(-1)).is_equal(-1)
 
 
 func test_seven_days_rewards() -> void:
@@ -89,6 +90,22 @@ func test_gap_one_day_grace_and_save() -> void:
 	# window (7 days from day 14) expired
 	_play_days([21, 22])
 	assert_bool(DailyRewards.can_save_streak(_state, 24)).is_true()
+
+
+func test_save_window_boundary() -> void:
+	_play_days([10, 11, 12])
+	assert_bool(DailyRewards.save_streak(_state, 14)).is_true()
+	_play_days([14, 15, 16, 17, 18])
+	assert_str(DailyRewards.streak_status(_state, 20)).is_equal("grace")
+	assert_bool(DailyRewards.can_save_streak(_state, 20)).is_false()
+
+
+func test_clock_back_cannot_reclaim() -> void:
+	assert_int(DailyRewards.claim(_state, 100)).is_equal(50)
+	var coins: int = _state.coins
+	assert_int(DailyRewards.claim(_state, 99)).is_equal(0)
+	assert_int(_state.coins).is_equal(coins)
+	assert_int(DailyRewards.claim(_state, 100)).is_equal(0)
 
 
 func test_grace_without_save_resets() -> void:
@@ -148,9 +165,9 @@ func test_preview_matches_claim() -> void:
 
 func test_preview_does_not_mutate() -> void:
 	_play_days([1, 2])
+	var before: Dictionary = _state.to_dict()
 	DailyRewards.preview(_state, 3)
-	assert_int(_state.streak_days).is_equal(2)
-	assert_int(_state.last_play_utc_day).is_equal(2)
+	assert_dict(_state.to_dict()).is_equal(before)
 
 
 func test_analytics_events() -> void:
