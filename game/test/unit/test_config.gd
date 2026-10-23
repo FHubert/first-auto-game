@@ -8,8 +8,9 @@ func before_test() -> void:
 
 
 func test_defaults_present() -> void:
-	assert_int(_cfg.get_value("interstitial_every_n_rounds")).is_equal(3)
-	assert_int(_cfg.get_value("interstitial_min_seconds")).is_equal(90)
+	assert_int(_cfg.get_value("interstitial_every_n_rounds")).is_equal(5)
+	assert_int(_cfg.get_value("interstitial_min_seconds")).is_equal(120)
+	assert_int(_cfg.get_value("interstitial_min_level")).is_equal(8)
 	assert_float(_cfg.get_value("rewarded_multiplier")).is_equal(2.0)
 	assert_int(_cfg.get_value("daily_reward_base")).is_equal(50)
 	assert_int(_cfg.get_value("starting_coins")).is_equal(100)

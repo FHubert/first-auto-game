@@ -3,8 +3,9 @@ extends Node
 
 const DEFAULTS: Dictionary = {
 	# Ads
-	"interstitial_every_n_rounds": 3,
-	"interstitial_min_seconds": 90,
+	"interstitial_every_n_rounds": 5,
+	"interstitial_min_seconds": 120,
+	"interstitial_min_level": 8,
 	"rewarded_multiplier": 2.0,
 	"rewarded_double_coins_min_level": 2,
 	"rewarded_undo_refill_max_per_level": 2,

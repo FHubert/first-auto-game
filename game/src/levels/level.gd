@@ -110,6 +110,7 @@ func on_next_pressed() -> void:
 		home_requested.emit()
 		return
 	level_complete.visible = false
+	Ads.maybe_show_interstitial(level_no, bool(state.settings.get("ads_removed", false)))
 	load_level(state.level, state.theme_active)
 	next_requested.emit(state.level)
 
