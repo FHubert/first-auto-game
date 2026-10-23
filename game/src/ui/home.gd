@@ -45,10 +45,15 @@ func refresh() -> void:
 	play_button.text = tr("home_play") % state.level
 	coins_label.text = str(state.coins)
 	streak_label.text = tr("home_streak") % state.streak_days
-	var cost: int = Economy.theme_cost(state.themes_owned.size())
-	theme_progress.max_value = cost
-	theme_progress.value = mini(state.coins, cost)
-	theme_label.text = tr("home_theme_progress") % [state.coins, cost]
+	var cost: int = ThemeCatalog.next_theme_cost(state)
+	if cost <= 0:
+		theme_progress.max_value = 1
+		theme_progress.value = 1
+		theme_label.text = tr("home_all_themes")
+	else:
+		theme_progress.max_value = cost
+		theme_progress.value = mini(state.coins, cost)
+		theme_label.text = tr("home_theme_progress") % [state.coins, cost]
 	_refresh_daily()
 
 

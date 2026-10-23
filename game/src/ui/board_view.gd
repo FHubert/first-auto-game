@@ -30,23 +30,7 @@ var _slice: Dictionary = {}
 
 
 static func load_theme(theme_id: String) -> Dictionary:
-	var file := FileAccess.open(THEMES_PATH, FileAccess.READ)
-	if file == null:
-		return {}
-	var data: Variant = JSON.parse_string(file.get_as_text())
-	if typeof(data) != TYPE_DICTIONARY:
-		return {}
-	var themes: Array = (data as Dictionary).get("themes", [])
-	if themes.is_empty():
-		return {}
-	var found: Dictionary = themes[0]
-	for t: Dictionary in themes:
-		if t.get("id", "") == theme_id:
-			found = t
-			break
-	found = found.duplicate()
-	found["nine_slice"] = (data as Dictionary).get("nine_slice", {})
-	return found
+	return ThemeCatalog.theme(theme_id).duplicate()
 
 
 func _ready() -> void:
