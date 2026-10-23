@@ -58,10 +58,35 @@ class BalanceSimTest(unittest.TestCase):
     def test_starving_economy_fails(self):
         with tempfile.TemporaryDirectory() as d:
             cfg = Path(d) / "config.gd"
-            cfg.write_text('const DEFAULTS: Dictionary = {\n\t"shop_base_price": 100000,\n}\n')
+            cfg.write_text('const DEFAULTS: Dictionary = {\n\t"theme_cost_base": 100000,\n}\n')
             r = run(TOOLS / "balance_sim.py", "--players", "100", "--days", "30", "--config", cfg)
             self.assertEqual(r.returncode, 1, r.stdout)
             self.assertIn("starves", r.stdout)
+
+
+    def _json(self, cfg_text, players="200"):
+        with tempfile.TemporaryDirectory() as d:
+            cfg = Path(d) / "config.gd"
+            cfg.write_text("const DEFAULTS: Dictionary = {\n" + cfg_text + "}\n")
+            r = run(TOOLS / "balance_sim.py", "--json", "--players", players, "--days", "30", "--config", cfg)
+            return json.loads(r.stdout)
+
+    def test_json_has_ad_and_theme_metrics(self):
+        r = run(TOOLS / "balance_sim.py", "--json", "--players", "200")
+        data = json.loads(r.stdout)
+        for k in ("interstitials_per_dau", "rewarded_per_dau", "first_theme_day_median", "median_themes_day7",
+                  "first_theme_active_day_median", "third_theme_active_day_median",
+                  "third_theme_pct_daily_players", "median_coins_active_day7"):
+            self.assertIn(k, data)
+
+    def test_parses_array_keys(self):
+        hi = self._json('\t"daily_reward_base": 50,\n\t"daily_reward_multipliers": [10, 10, 10, 10, 10, 10, 10],\n')
+        lo = self._json('\t"daily_reward_base": 50,\n\t"daily_reward_multipliers": [1, 1, 1, 1, 1, 1, 1],\n')
+        self.assertGreater(hi["median_coins_day7"], lo["median_coins_day7"])
+
+    def test_interstitial_min_level_caps(self):
+        data = self._json('\t"interstitial_min_level": 1000,\n')
+        self.assertEqual(data["interstitials_per_dau"], 0)
 
 
 class GenAssetsTest(unittest.TestCase):
