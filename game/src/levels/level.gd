@@ -93,6 +93,8 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 	rewarded.reset()
 	round = GameRound.new()
 	round.start(level_data)
+	Analytics.track_progression("Start", mode, _level_id())
+	Analytics.track_design("level:start", float(round.min_moves()))
 	board.setup(round, theme_id)
 	hud.bind(round, level_no)
 	stuck_panel.visible = false
@@ -176,6 +178,7 @@ func restart() -> void:
 	state.level_restarts += 1
 	_after_action()
 	Analytics.track_progression("Fail", mode, _level_id())
+	Analytics.track_design("level:fail:restart")
 
 
 func buy_extra_tube() -> bool:
@@ -275,6 +278,7 @@ func watch_undo_refill() -> bool:
 
 func _apply_skip(source: String) -> void:
 	Analytics.track_progression("Fail", mode, _level_id())
+	Analytics.track_design("level:fail:skip")
 	Analytics.track_design(source)
 	state.level += 1
 	SaveSystem.save(state)
@@ -283,7 +287,15 @@ func _apply_skip(source: String) -> void:
 
 
 func pause() -> void:
+	quit_level()
 	pause_requested.emit()
+
+
+## Leaving an unfinished round counts as a level fail (reason quit).
+func quit_level() -> void:
+	if round != null and not round.is_done():
+		Analytics.track_progression("Fail", mode, _level_id())
+		Analytics.track_design("level:fail:quit")
 
 
 func _on_round_won() -> void:

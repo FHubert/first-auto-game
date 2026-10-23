@@ -18,9 +18,12 @@ var _screen: Node
 var _screen_name: String = ""
 var _popup: DailyRewardPopup
 var _popup_shown_day: int = -1
+var _session_start_s: float = 0.0
+var _session_open: bool = false
 
 
 func _ready() -> void:
+	track_session_start()
 	if state == null:
 		state = SaveSystem.load()
 	Locale.ensure_installed()
@@ -31,6 +34,29 @@ func _ready() -> void:
 		show_home()
 	else:
 		show_level()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		track_session_end()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		track_session_start()
+
+
+## Starts a focus session once (no duplicate after _ready + FOCUS_IN).
+func track_session_start() -> void:
+	if _session_open:
+		return
+	_session_open = true
+	_session_start_s = float(clock.call())
+	Analytics.track_design("session:start")
+
+
+func track_session_end() -> void:
+	if not _session_open:
+		return
+	_session_open = false
+	Analytics.track_design("session:end", maxf(0.0, float(clock.call()) - _session_start_s))
 
 
 func current_screen() -> Node:
