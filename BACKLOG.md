@@ -33,7 +33,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `StuckPanel` pojawia się przy `is_stuck()` i pokazuje „X ruchów od celu". Opcje: cofnij, +probówka (60 monet), +3 cofnięcia (20), podpowiedź w HUD (25), restart, pomiń (widoczne, gdy `can_skip`). Brak monet prowadzi do `Shop` (placeholder). Testy: zakup za monety zmniejsza saldo i przyznaje efekt; przy braku środków efekt nie jest przyznany. Wpis w `screens.txt`. `make check` zielone. ~240 linii.
   Skill: `godot-dev`
 
-- [ ] G-005 `todo` FTUE: tutorial poziomu 1 (3 kroki) (zależy od T-020)
+- [ ] G-005 `in_progress` FTUE: tutorial poziomu 1 (3 kroki) (zależy od T-020)
   KA: `tutorial_flow.gd` (czysta maszyna stanów): wskaż źródło, wskaż cel, ukończ. Krok przechodzi tylko po właściwym ruchu, a na koniec ustawia `settings.tutorial_done`. Overlay z dłonią w scenie Level. Pierwsze uruchomienie pomija `Home` i otwiera poziom 1. Testy maszyny stanów i test „poziom 1 ma 2 kolory, min_moves ≤ 4". `make check` zielone. ~200 linii.
   Skill: `game-economy`
 
