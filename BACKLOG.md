@@ -21,47 +21,15 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 
 
-- [ ] T-019 `review` Scena Level: BoardView (rysowanie probówek, tap, przelew tween, shake) (zależy od T-015, T-018) → PR #26
-  KA: `level.tscn` + `board_view.gd` rysuje `payload` w aktywnym motywie. Pierwszy tap wybiera probówkę (podniesienie), drugi wykonuje `pour` z tweenem `pour_anim_seconds`, a nielegalny ruch daje shake. Widok emituje sygnał `pour_finished`. Test headless: instancja sceny z poziomem 2 i 2 symulowane tapy dają zmianę stanu `GameRound`. Wpis w `tools/screens.txt`, `make screenshots` daje PNG. `make check` zielone. ~280 linii.
-  Skill: `godot-dev`
-
-- [ ] T-020 `review` HUD + LevelComplete + przepływ poziomów i zapis (zależy od T-019, G-004) → PR #27
-  KA: HUD pokazuje numer poziomu, ruchy, cofnij z licznikiem, restart i pauzę. Po wygranej ekran `LevelComplete` pokazuje monety i „idealnie", a „Dalej" przechodzi do kolejnego poziomu. `SaveSystem.save` po każdej wygranej. Test headless: wygrana ścieżką solvera podnosi `level` o 1 i coins o `win_reward`, a ponowne wczytanie zachowuje stan. Oba ekrany mają wpis w `screens.txt`. `make check` zielone. ~280 linii.
-  Skill: `godot-dev`
-
-- [ ] T-021 `review` StuckPanel + przyciski boosterów (ścieżka monet) (zależy od T-020) → PR #28
-  KA: `StuckPanel` pojawia się przy `is_stuck()` i pokazuje „X ruchów od celu". Opcje: cofnij, +probówka (60 monet), +3 cofnięcia (20), podpowiedź w HUD (25), restart, pomiń (widoczne, gdy `can_skip`). Brak monet prowadzi do `Shop` (placeholder). Testy: zakup za monety zmniejsza saldo i przyznaje efekt; przy braku środków efekt nie jest przyznany. Wpis w `screens.txt`. `make check` zielone. ~240 linii.
-  Skill: `godot-dev`
-
-- [ ] G-005 `review` FTUE: tutorial poziomu 1 (3 kroki) (zależy od T-020) → PR #29
-  KA: `tutorial_flow.gd` (czysta maszyna stanów): wskaż źródło, wskaż cel, ukończ. Krok przechodzi tylko po właściwym ruchu, a na koniec ustawia `settings.tutorial_done`. Overlay z dłonią w scenie Level. Pierwsze uruchomienie pomija `Home` i otwiera poziom 1. Testy maszyny stanów i test „poziom 1 ma 2 kolory, min_moves ≤ 4". `make check` zielone. ~200 linii.
-  Skill: `game-economy`
-
-- [ ] T-022 `review` Ekrany Home + Settings + nawigacja (zależy od T-020) → PR #30
-  KA: `Home` pokazuje „Graj: poziom N", monety, streak, pasek do następnego motywu (placeholder) oraz przyciski Motywy, Sklep i Ustawienia. `Settings` ma przełączniki muzyki, SFX, haptyki i języka, zapisywane w `GameState.settings`, oraz wersję z `BUILD_INFO`. Test headless: zmiana przełącznika przetrwa save/load. Oba ekrany w `screens.txt`. `make check` zielone. ~280 linii.
-  Skill: `godot-dev`
-
-- [ ] T-023 `review` Lokalizacja EN/PL/DE (CSV + TranslationServer) (zależy od T-022) → PR #31
-  KA: `game/locale/strings.csv` z kluczami wszystkich istniejących ekranów i import w projekcie. Test: każdy klucz ma 3 niepuste tłumaczenia, a teksty z prefiksem `btn_` mają ≤ 18 znaków. Język z ustawień albo systemowy. `make check` zielone. ~200 linii (bez CSV).
-  Skill: `godot-dev`
-
-- [ ] T-024 `review` Audio: generowane SFX + muzyka ambient + AudioService → PR #32
-  KA: `tools/gen_assets.py` generuje 6 SFX (przelew ×3 warianty, pełna probówka, wygrana, klik, błąd, monety) i 1 pętlę ambient OGG. Autoload `Audio` respektuje `music_on/sfx_on` i wycisza się przy utracie fokusu. Haptyka przez `Input.vibrate_handheld` przy `haptics_on`. Test: przy `sfx_on=false` `Audio.play_sfx` nie odtwarza. `make check` zielone. `docs/LICENSES.md` bez zmian (brak obcych plików). ~250 linii.
-  Skill: `asset-gen`
-
 
 ## P2 — monetyzacja i meta (z GDD v1.0, R-003)
 
-- [ ] G-008 `review` UI dzienne: DailyRewardPopup + karta Poziomu dnia na Home + tryb daily w Level (zależy od G-006, G-007, T-022) → PR #33
-  KA: popup przy pierwszym wejściu dnia (7 kafelków, „Odbierz", wariant „Uratuj streak"); karta na Home ze stanem i licznikiem do północy UTC; Level w trybie `daily` (bez „pomiń"). Test headless: symulowany dzień X, odbiór, ponowne wejście tego samego dnia nie pokazuje popupu. Wpisy w `screens.txt`. `make check` zielone. ~280 linii.
-  Skill: `godot-dev`
-
-- [ ] G-009 `review` ThemeCatalog + ekran Themes (zależy od G-004, T-018, T-022) → PR #34
-  KA: `theme_catalog.gd` wczytuje `themes.json`. Koszt n-tego płatnego motywu = round(600 × 1.8^(n-1)), czyli 600/1080/1944. Zakup przez `Economy.spend` (przy braku środków odrzucony), aktywny motyw zapisywany i stosowany w BoardView. Ekran Themes z podglądem i ceną; pasek „do następnego motywu" na Home. Testy kosztów, zakupu i persystencji. Wpis w `screens.txt`. `make check` zielone. ~280 linii.
-  Skill: `game-economy`
-
-- [ ] G-010 `todo` Rewarded: 6 placementów przez Ads.request_rewarded (zależy od T-021, G-008)
+- [ ] G-010 `in_progress` Rewarded: 6 placementów przez Ads.request_rewarded (zależy od T-021, G-008)
   KA: `double_coins` (LevelComplete, od poziomu 2), `extra_tube`, `undo_refill` (max 2 na poziom), `skip_level`, `daily_x2`, `streak_save` z id zgodnymi z `docs/MONETIZATION.md`. Kwota nagrody widoczna na przycisku przed reklamą, przycisk ukryty, gdy reklama nie jest gotowa. Testy z `FakeAdProvider`: granted przyznaje nagrodę dokładnie raz; skipped i unavailable nie przyznają nic; cap per poziom/dzień jest respektowany. `make check` zielone. ~260 linii.
+  Skill: `ads-iap`
+
+- [ ] G-010b `todo` Rewarded: przyciski UI dla 6 placementów (zależy od G-010)
+  KA: `LevelComplete` ma przycisk „×2" z kwotą premii (`Economy.rewarded_bonus`) obok „Dalej", widoczny od poziomu `rewarded_double_coins_min_level` i tylko gdy `Ads.is_rewarded_ready()`; znika po przyznaniu. `StuckPanel` i HUD mają warianty „obejrzyj reklamę" dla +probówka / +3 cofnięcia (obok wersji za monety) i „Pomiń (reklama)"; `DailyRewardPopup` pokazuje „Odbierz ×2" z kwotą i „Uratuj streak" tylko gdy reklama gotowa. Testy headless: przy `FakeAdProvider.always_ready=false` przyciski ukryte; tap „×2" dokłada premię dokładnie raz. Nowe klucze w `strings.csv` (EN/PL/DE). `make check` zielone. ~250 linii.
   Skill: `ads-iap`
 
 - [ ] G-011 `todo` balance_sim pod sort puzzle (zależy od G-004, G-006)
@@ -144,3 +112,12 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-018 `done` Assety wizualne: palety 4 motywów, sprite'y probówek (2 kształty), ikony UI, ikona aplikacji → PR #23 (zmergowany 2026-10-23)
 - [x] G-006 `done` DailyRewards: nagroda dzienna + streak + grace (zależy od T-017) → PR #24 (zmergowany 2026-10-23)
 - [x] G-007 `done` DailyChallenge: Poziom dnia z seeda dnia UTC (zależy od G-003, T-017) → PR #25 (zmergowany 2026-10-23)
+- [x] T-019 `done` Scena Level: BoardView (rysowanie probówek, tap, przelew tween, shake) (zależy od T-015, T-018) → PR #26 (zmergowany 2026-10-23)
+- [x] T-020 `done` HUD + LevelComplete + przepływ poziomów i zapis (zależy od T-019, G-004) → PR #27 (zmergowany 2026-10-23)
+- [x] T-021 `done` StuckPanel + przyciski boosterów (ścieżka monet) (zależy od T-020) → PR #28 (zmergowany 2026-10-23)
+- [x] G-005 `done` FTUE: tutorial poziomu 1 (3 kroki) (zależy od T-020) → PR #29 (zmergowany 2026-10-23)
+- [x] T-022 `done` Ekrany Home + Settings + nawigacja (zależy od T-020) → PR #30 (zmergowany 2026-10-23)
+- [x] T-023 `done` Lokalizacja EN/PL/DE (CSV + TranslationServer) (zależy od T-022) → PR #31 (zmergowany 2026-10-23)
+- [x] T-024 `done` Audio: generowane SFX + muzyka ambient + AudioService → PR #32 (zmergowany 2026-10-23)
+- [x] G-008 `done` UI dzienne: DailyRewardPopup + karta Poziomu dnia na Home + tryb daily w Level (zależy od G-006, G-007, T-022) → PR #33 (zmergowany 2026-10-23)
+- [x] G-009 `done` ThemeCatalog + ekran Themes (zależy od G-004, T-018, T-022) → PR #34 (zmergowany 2026-10-23)
