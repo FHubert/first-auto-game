@@ -53,4 +53,5 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 - P1: T-021 StuckPanel + Boosters (czysta klasa) + hint/+probówka w HUD + pomiń po restartach, 145 testów, QA: KA OK (uwaga o GDD — mechaniki już opisane) → PR #28 (auto-merge). #27 zmergowany.
 - P1: G-005 FTUE TutorialFlow (maszyna stanów) + overlay z dłonią + ukrycie boosterów w tutorialu, 150 testów, QA PASS → PR #29 (auto-merge). #28 zmergowany.
 - P1: T-022 Home + SettingsScreen + App router (pierwsze uruchomienie → poziom 1, pauza → Home), 156 testów, QA PASS → PR #30 (auto-merge). #29 zmergowany.
-- Inbox: T-035 pełna animacja przelewu, T-039 sygnał tube_deselected, T-038 testy shop_requested, T-036 szum FNV w logu testów, T-037 test wygranej bez „idealnie" + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).
+- P1: T-023 lokalizacja EN/PL/DE — strings.csv (37 kluczy) + Locale loader (bez [internationalization] w project.godot), 161 testów, QA PASS → PR #31 (auto-merge). #30 zmergowany.
+- Inbox: T-035 pełna animacja przelewu, T-040 font z diakrytykami, T-039 sygnał tube_deselected, T-038 testy shop_requested, T-036 szum FNV w logu testów, T-037 test wygranej bez „idealnie" + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).
