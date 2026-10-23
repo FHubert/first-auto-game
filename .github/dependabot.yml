@@ -1,12 +1,15 @@
+# Dependabot only reports; it must not open PRs. The Claude loop cannot merge
+# third-party PRs, so dependency bumps are done by the loop itself as backlog
+# tasks (see BACKLOG.md T-011). Security alerts still appear under Security.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-    labels: [bot, dependencies]
+      interval: monthly
+    open-pull-requests-limit: 0
   - package-ecosystem: bundler
     directory: /
     schedule:
-      interval: weekly
-    labels: [bot, dependencies]
+      interval: monthly
+    open-pull-requests-limit: 0
