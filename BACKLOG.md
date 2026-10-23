@@ -23,7 +23,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: kontrakt `start/step/result` zachowany; `step(action)` z `action = from*16 + to`. Dodane metody: `undo()` (ładunki `undo_free_per_level`, `add_undo_charges(n)`), `add_extra_tube()` (max `extra_tube_max_per_level`), `restart()`, `is_stuck()`, `hint() -> Vector2i` (1. ruch solvera), `moves_to_goal()`, `can_skip()` (po `skip_unlock_restarts`). `result()` zawiera `won, moves, min_moves, perfect, undos_used, boosters_used`. Testy dla każdej metody wg GDD → Mechaniki, w tym „po podpowiedzi moves_to_goal maleje o 1" dla 20 stanów. `make test` zielone. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-016 `todo` PlaytestBot = solver + tryb losowy (zależy od T-015)
+- [ ] T-016 `in_progress` PlaytestBot = solver + tryb losowy (zależy od T-015)
   KA: `make playtest` gra 200 poziomów ścieżką `solution`. Raport JSON: `rounds=200`, `wins=200`, `softlocks=0`, `errors=[]`, `avg_moves`, `interstitials_shown`. Tryb `--random` (losowe legalne ruchy, restart po `is_stuck`) raportuje `stuck_count` i 0 softlocków. Czas < 120 s na CI. ~200 linii.
   Skill: `godot-test`
 
