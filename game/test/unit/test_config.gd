@@ -12,7 +12,7 @@ func test_defaults_present() -> void:
 	assert_int(_cfg.get_value("interstitial_min_seconds")).is_equal(90)
 	assert_float(_cfg.get_value("rewarded_multiplier")).is_equal(2.0)
 	assert_int(_cfg.get_value("daily_reward_base")).is_equal(50)
-	assert_int(_cfg.get_value("starting_coins")).is_equal(0)
+	assert_int(_cfg.get_value("starting_coins")).is_equal(100)
 	assert_int(_cfg.get_value("session_target_seconds")).is_equal(180)
 
 
