@@ -14,9 +14,9 @@ const DEFAULTS: Dictionary = {
 	# Economy
 	"daily_reward_base": 50,
 	"starting_coins": 100,
-	"win_reward_coins": 10,
+	"win_reward_coins": 15,
 	# Economy (GDD v1.0)
-	"par_bonus_coins": 5,
+	"par_bonus_coins": 10,
 	"hint_cost_coins": 25,
 	"extra_tube_cost_coins": 60,
 	"undo_refill_cost_coins": 20,

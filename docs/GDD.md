@@ -95,13 +95,11 @@ Przykładowe wartości (z wzorów powyżej, do potwierdzenia testem generatora):
 
 | Waluta | Typ (miękka / twarda) | Źródła | Sinki | Uwagi |
 |---|---|---|---|---|
-| `coins` (Monety) | miękka (jedyna w MVP, skill §1) | wygrana poziomu (`win_reward_coins` = 10), premia „idealnie" (`par_bonus_coins` = 5, gdy ruchy ≤ `min_moves` + `par_slack_moves` = 2), ×2 za rewarded `double_coins` (`rewarded_multiplier` = 2.0), Poziom dnia (`daily_challenge_coins` = 50), nagroda dzienna (`daily_reward_base` = 50 × mnożnik dnia), start (`starting_coins` = 100), IAP (`coins_small`, `coins_large`, `starter_pack`) | dodatkowa probówka (`extra_tube_cost_coins` = 60), podpowiedź (`hint_cost_coins` = 25), +3 cofnięcia (`undo_refill_cost_coins` = 20), motywy (`theme_cost_base` = 600, `theme_cost_growth` = 1.8 → 600 / 1080 / 1944) | saldo nigdy < 0 (`Economy.spend` zwraca `false`, `GameState.from_dict` odrzuca ujemne) |
+| `coins` (Monety) | miękka (jedyna w MVP, skill §1) | wygrana poziomu (`win_reward_coins` = 15), premia „idealnie" (`par_bonus_coins` = 10, gdy ruchy ≤ `min_moves` + `par_slack_moves` = 2), ×2 za rewarded `double_coins` (`rewarded_multiplier` = 2.0), Poziom dnia (`daily_challenge_coins` = 50), nagroda dzienna (`daily_reward_base` = 50 × mnożnik dnia), start (`starting_coins` = 100), IAP (`coins_small`, `coins_large`, `starter_pack`) | dodatkowa probówka (`extra_tube_cost_coins` = 60), podpowiedź (`hint_cost_coins` = 25), +3 cofnięcia (`undo_refill_cost_coins` = 20), motywy (`theme_cost_base` = 600, `theme_cost_growth` = 1.8 → 600 / 1080 / 1944) | saldo nigdy < 0 (`Economy.spend` zwraca `false`, `GameState.from_dict` odrzuca ujemne) |
 | `undo_charges` (cofnięcia) | zasób per poziom, nie waluta | `undo_free_per_level` = 3 na start poziomu; +`undo_refill_amount` = 3 za rewarded `undo_refill` albo za monety | 1 cofnięcie = 1 ładunek | reset przy każdym starcie/restarcie poziomu |
 
-Szacunek przepływu dla gracza zaangażowanego (założenia: 10 poziomów/dzień, 40 % „idealnie", 25 % wygranych z ×2, streak średnio dzień 3–4) — do potwierdzenia `make sim` (zadanie G-011):
-- Źródła/dzień: 10 × 10 + 4 × 5 + 2,5 × 10 (×2) + 50 (Poziom dnia) + ~128 (średnia nagroda dzienna z cyklu 50/50/100/100/150/150/300) ≈ **~320 monet**.
-- Sinki/dzień: ~1 podpowiedź + ~0,5 probówki + ~0,5 cofnięć ≈ **~65 monet**; reszta zbierana na motywy → 1. motyw ok. dnia 2, 3. motyw ok. dnia 12–14 (cel 7/30 dni w sekcji Meta).
-- Ryzyko inflacji po kupieniu 3 motywów (dzień ~14): saldo rośnie ~250/dzień → mediana d30 / d1 ≈ 15–25× (< próg „explodes" 100× w `make sim`). Kolejne motywy (later) i rosnący koszt podpowiedzi w trudnych poziomach (later) to rezerwa sinków.
+Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany zarabia ~250–300 monet/dzień aktywny (8 wygranych × 15 + 3 × 10 „idealnie" + ~2 × 15 za ×2 + Poziom dnia + nagroda dzienna); 1. motyw w 2. dniu aktywnym, 3. motyw ok. 10. dnia aktywnego (cel 12–14; mediana wśród kupujących), interstitial 1,36/DAU, impresje łącznie 4,1/DAU, mediana d30/d1 ≈ 1,7 (brak inflacji). Przed kalibracją (10/5): 1. motyw 3. dnia, 3. motywu nikt nie kupował w 30 dni.
+- Rezerwa sinków przeciw inflacji: kolejne motywy (later) i rosnący koszt podpowiedzi w trudnych poziomach (later).
 
 **Klucze GameConfig (PROPOZYCJA dla `gameplay-dev`; istniejące oznaczone *)**
 
@@ -114,9 +112,9 @@ Szacunek przepływu dla gracza zaangażowanego (założenia: 10 poziomów/dzień
 | `daily_reward_base`* | 50 | |
 | `daily_reward_multipliers` | `[1, 1, 2, 2, 3, 3, 6]` | Array; dzień 7 = ×6 |
 | `starting_coins`* | **100** (było 0) | pierwszy sink (probówka 60) dostępny w 1. sesji |
-| `win_reward_coins`* | 10 | |
+| `win_reward_coins`* | **15** | G-013 (było 10) |
 | `par_slack_moves` | 2 | |
-| `par_bonus_coins` | 5 | |
+| `par_bonus_coins` | **10** | G-013 (było 5) |
 | `daily_challenge_coins` | 50 | |
 | `daily_unlock_level` | 3 | |
 | `session_target_seconds`* | 180 | |

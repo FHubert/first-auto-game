@@ -40,7 +40,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `interstitial_every_n_rounds`=5, `interstitial_min_seconds`=120, nowy klucz `interstitial_min_level`=8. `Ads.maybe_show_interstitial` nie pokazuje reklamy przy `ads_removed` ani po rewarded w tej samej przerwie. Testy w `test_ad_service.gd`; `make sim` pokazuje ≤ 2,5 interstitiala/DAU (poprzednio ~8,6 przy co 3 rundy). ~120 linii.
   Skill: `game-economy` + `ads-iap`
 
-- [ ] G-013 `todo` Kalibracja ekonomii wg `make sim` (zależy od G-001)
+- [ ] G-013 `review` Kalibracja ekonomii wg `make sim` (zależy od G-001) → PR #39
   KA: `game-designer` dobiera wartości w `GameConfig` (np. `win_reward_coins`, `par_bonus_coins`, `daily_reward_base`, `daily_challenge_coins`, `theme_cost_base/growth`) tak, by `make sim` dawał: 1. motyw ≤ 2. dnia aktywnego, 3. motyw w 12–14. dniu aktywnym u graczy grających codziennie (dziś: 3. dzień / nikt), interstitial ≤ 2,5/DAU, bez „explodes" (d30/d1 < 100×). Tabela przed/po w PR, aktualizacja tabeli kluczy i „Szacunku przepływu" w GDD (Ekonomia). Zmienia tylko `config.gd` + GDD + ewentualnie testy wartości. ~80 linii.
   Skill: `game-economy`
 
@@ -60,6 +60,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
+- [ ] T-046 `todo` playtest_bot.gd: fallback `win_reward_coins` = 10 w `GameConfig.get_value(..., 10)` nieaktualny po G-013 — usunąć fallback (klucz zawsze istnieje). Skill: godot-test
 - [ ] T-045 `todo` PlaytestBot (random): po przegranej bez podniesienia poziomu `maybe_show_interstitial(state.level - 1)` wołane wielokrotnie z tym samym numerem — liczyć przerwę raz na rundę (albo tylko po wygranej), żeby raport nie zawyżał interstitiali. Skill: godot-test
 - [ ] T-044 `todo` Skill game-economy §6: opis wyjścia nowego `make sim` (metryki motywów w dniach aktywnych, ads/DAU per placement, WARN zamiast błędu dla impresji, „starves" = mediana motywów do d7 < 1) — zadanie dotyczy wprost `.claude/`. Skill: game-economy
 
