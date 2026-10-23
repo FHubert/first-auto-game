@@ -1,1 +1,2 @@
 res://src/core/main.tscn
+res://src/levels/level.tscn
