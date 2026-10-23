@@ -24,7 +24,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P1 — core loop i retencja (z GDD v1.0, R-003)
 
-- [ ] T-013 `review` SortBoard: model planszy water sort (czysta klasa) → PR #__PR__
+- [ ] T-013 `review` SortBoard: model planszy water sort (czysta klasa) → PR #14
   KA: `game/src/core/sort_board.gd` (`class_name SortBoard extends RefCounted`): `tubes`, `capacity`, `can_pour(from,to)`, `pour(from,to)->bool` (przelewa całą górną serię w granicach wolnego miejsca; nielegalny ruch zwraca false i nie zmienia stanu), `is_won()`, `legal_moves()` bez no-opów (np. przelewu z jednokolorowej probówki do pustej), `canonical_key()`, `clone()`. Test tabelaryczny ≥ 10 przypadków z GDD → Mechaniki (w tym przypadek „2+2 monochromatyczne = niewygrane"). `make test` zielone. ~180 linii.
   Skill: `godot-dev`
 
