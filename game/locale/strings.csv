@@ -36,3 +36,16 @@ set_lang_pl,Polski,Polski,Polski
 set_lang_de,Deutsch,Deutsch,Deutsch
 btn_back,Back,Wróć,Zurück
 set_version,v%s (%s),v%s (%s),v%s (%s)
+daily_title,Daily reward,Nagroda dzienna,Tägliche Belohnung
+daily_streak,Streak: %d,Streak: %d,Serie: %d
+btn_claim,Claim,Odbierz,Abholen
+btn_claim_x2,Claim ×2,Odbierz ×2,Abholen ×2
+btn_save_streak,Save streak,Uratuj streak,Streak retten
+daily_challenge_title,Daily level,Poziom dnia,Tagesrätsel
+daily_locked,From level %d,Od poziomu %d,Ab Level %d
+daily_done,Done today ✓,Ukończono dziś ✓,Heute geschafft ✓
+daily_available,+%d coins,+%d monet,+%d Münzen
+daily_next_in,Next in %s,Następny za %s,Nächstes in %s
+btn_play_daily,Play,Graj,Spielen
+hud_daily,Daily level,Poziom dnia,Tagesrätsel
+lc_daily_title,Daily level done!,Poziom dnia ukończony!,Tagesrätsel geschafft!

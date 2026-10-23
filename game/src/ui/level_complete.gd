@@ -25,8 +25,8 @@ func _ready() -> void:
 		show_result(SAMPLE_COINS, true, SAMPLE_LEVEL)
 
 
-func show_result(coins: int, perfect: bool, level_no: int) -> void:
-	title_label.text = tr("lc_title") % level_no
+func show_result(coins: int, perfect: bool, level_no: int, title: String = "") -> void:
+	title_label.text = title if title != "" else tr("lc_title") % level_no
 	coins_label.text = tr("lc_coins") % coins
 	perfect_label.text = tr("lc_perfect")
 	perfect_label.visible = perfect

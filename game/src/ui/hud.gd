@@ -23,6 +23,7 @@ var extra_tube_button: Button
 
 var _round: GameRound
 var _level_no: int = 1
+var _title: String = ""
 
 
 func _ready() -> void:
@@ -63,10 +64,16 @@ func bind(round_in: GameRound, level_no: int) -> void:
 	refresh()
 
 
+## Pusty tekst przywraca domyslne "Poziom N".
+func set_title(text: String) -> void:
+	_title = text
+	refresh()
+
+
 func refresh() -> void:
 	if level_label == null:
 		return
-	level_label.text = tr("hud_level") % _level_no
+	level_label.text = _title if _title != "" else tr("hud_level") % _level_no
 	var moves: int = 0
 	var charges: int = 0
 	if _round != null:

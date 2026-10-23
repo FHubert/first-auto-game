@@ -6,6 +6,7 @@ signal play_pressed
 signal themes_pressed
 signal shop_pressed
 signal settings_pressed
+signal daily_pressed
 
 const ICON_COIN: String = "res://assets/sprites/ui/icon_coin.svg"
 const ICON_STREAK: String = "res://assets/sprites/ui/icon_streak.svg"
@@ -23,6 +24,13 @@ var theme_label: Label
 var themes_button: Button
 var shop_button: Button
 var settings_button: Button
+var daily_card: PanelContainer
+var daily_title_label: Label
+var daily_status_label: Label
+var daily_timer_label: Label
+var daily_button: Button
+
+var _timer_acc: float = 0.0
 
 
 func _ready() -> void:
@@ -41,6 +49,35 @@ func refresh() -> void:
 	theme_progress.max_value = cost
 	theme_progress.value = mini(state.coins, cost)
 	theme_label.text = tr("home_theme_progress") % [state.coins, cost]
+	_refresh_daily()
+
+
+func _process(delta: float) -> void:
+	_timer_acc += delta
+	if _timer_acc >= 1.0:
+		_timer_acc = 0.0
+		_refresh_daily()
+
+
+func _refresh_daily() -> void:
+	if daily_card == null:
+		return
+	var now: int = int(clock.call())
+	var day: int = DailyRewards.utc_day_from_unix(now)
+	var unlocked: bool = DailyChallenge.is_unlocked(state)
+	var done: bool = DailyChallenge.is_completed_today(state, day)
+	if not unlocked:
+		var lvl: int = int(GameConfig.get_value("daily_unlock_level"))
+		daily_status_label.text = tr("daily_locked") % lvl
+	elif done:
+		daily_status_label.text = tr("daily_done")
+	else:
+		daily_status_label.text = tr("daily_available") % DailyChallenge.reward_amount()
+	var left: int = DailyChallenge.seconds_to_next(now)
+	var hms: String = "%02d:%02d:%02d" % [left / 3600, (left % 3600) / 60, left % 60]
+	daily_timer_label.text = tr("daily_next_in") % hms
+	daily_button.text = tr("btn_play_daily")
+	daily_button.disabled = not unlocked or done
 
 
 func _build() -> void:
@@ -57,6 +94,7 @@ func _build() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
+	_build_daily_card(box)
 	play_button = _button(box, play_pressed)
 	theme_label = Label.new()
 	theme_label.add_theme_font_size_override("font_size", FONT_SIZE)
@@ -72,6 +110,22 @@ func _build() -> void:
 	shop_button.text = tr("btn_shop")
 	settings_button = _button(box, settings_pressed)
 	settings_button.text = tr("btn_settings")
+
+
+func _build_daily_card(parent: Control) -> void:
+	daily_card = PanelContainer.new()
+	parent.add_child(daily_card)
+	var col := VBoxContainer.new()
+	daily_card.add_child(col)
+	daily_title_label = Label.new()
+	daily_title_label.text = tr("daily_challenge_title")
+	daily_status_label = Label.new()
+	daily_timer_label = Label.new()
+	for l: Label in [daily_title_label, daily_status_label, daily_timer_label]:
+		l.add_theme_font_size_override("font_size", FONT_SIZE)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(l)
+	daily_button = _button(col, daily_pressed)
 
 
 func _icon_label(parent: Control, icon_path: String) -> Label:

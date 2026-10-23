@@ -9,6 +9,7 @@ signal home_requested
 signal shop_requested(reason: String)
 
 const MODE_CAMPAIGN: String = "campaign"
+const MODE_DAILY: String = "daily"
 
 @export var level: int = 2
 
@@ -17,6 +18,7 @@ var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
 var mode: String = MODE_CAMPAIGN
 var level_no: int = 1
+var utc_day: int = 0
 var tutorial: TutorialFlow
 
 @onready var board: BoardView = $Board
@@ -60,9 +62,20 @@ func _ready() -> void:
 
 
 func load_level(level_in: int, theme_id: String = "classic") -> void:
+	mode = MODE_CAMPAIGN
+	hud.set_title("")
 	level_no = level_in
 	var seed_value: int = int(GameConfig.get_value("campaign_seed", 1))
 	start_round(ContentGenerator.new().generate(seed_value, level_no), theme_id)
+
+
+## Poziom dnia: bez "pomin", bez podnoszenia state.level.
+func start_daily(day: int) -> void:
+	mode = MODE_DAILY
+	utc_day = day
+	level_no = day
+	start_round(DailyChallenge.level_for_day(day), state.theme_active)
+	hud.set_title(tr("hud_daily"))
 
 
 func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
@@ -79,6 +92,10 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 
 
 func on_next_pressed() -> void:
+	if mode == MODE_DAILY:
+		level_complete.visible = false
+		home_requested.emit()
+		return
 	level_complete.visible = false
 	load_level(state.level, state.theme_active)
 	next_requested.emit(state.level)
@@ -173,6 +190,8 @@ func buy_hint() -> bool:
 
 
 func skip_level() -> void:
+	if mode == MODE_DAILY:
+		return
 	if not round.can_skip():
 		return
 	Analytics.track_progression("Fail", mode, _level_id())
@@ -191,14 +210,20 @@ func _on_round_won() -> void:
 	Audio.play_sfx("win")
 	Audio.play_sfx("coins")
 	var result: Dictionary = round.result()
-	var coins: int = Economy.apply_win(state, result)
-	state.level += 1
-	state.levels_completed += 1
-	DailyRewards.register_play(state, DailyRewards.utc_day_from_unix(int(clock.call())))
+	var coins: int
+	var title: String = ""
+	if mode == MODE_DAILY:
+		coins = DailyChallenge.complete(state, utc_day, result)
+		title = tr("lc_daily_title")
+	else:
+		coins = Economy.apply_win(state, result)
+		state.level += 1
+		state.levels_completed += 1
+		DailyRewards.register_play(state, DailyRewards.utc_day_from_unix(int(clock.call())))
 	SaveSystem.save(state)
 	Analytics.track_progression("Complete", mode, _level_id(), int(result.get("moves", 0)))
 	hud.refresh()
-	level_complete.show_result(coins, bool(result.get("perfect", false)), level_no)
+	level_complete.show_result(coins, bool(result.get("perfect", false)), level_no, title)
 	level_won.emit(level_no, coins)
 
 
@@ -218,9 +243,11 @@ func _after_action() -> void:
 
 func _check_stuck() -> void:
 	if round.is_stuck() and not round.is_done():
-		stuck_panel.show_for(round)
+		stuck_panel.show_for(round, mode != MODE_DAILY)
 		Analytics.track_design("level:stuck", round.moves_to_goal())
 
 
 func _level_id() -> String:
+	if mode == MODE_DAILY:
+		return "daily_%d" % utc_day
 	return "level_%04d" % level_no
