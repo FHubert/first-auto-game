@@ -15,11 +15,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 
 
-- [ ] G-003 `review` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002) → PR #17
+- [ ] G-003 `done` ContentGenerator: tasowanie z seeda + solver + regeneracja seed+attempt (zależy od T-014, G-002) → PR #17
   KA: `generate(seed, level)` zwraca payload wg ADR-009. Testy: (a) determinizm, czyli 2 wywołania dają identyczne `tubes`; (b) golden hash dla poziomów 1, 2, 10, 50; (c) poziomy 1..200: odtworzenie `solution` przez `SortBoard` kończy się `is_won()` w `min_moves` ruchach, `attempt < gen_max_attempts`; (d) ≥ 95 % poziomów spełnia `min_moves >= floor` (odsetek w logu); (e) czas ≤ 500 ms/poziom headless (zmierzony i wypisany). Placeholder `is_solvable` zastąpiony. `make test` zielone. ~260 linii.
   Skill: `godot-dev`
 
-- [ ] T-015 `todo` GameRound na SortBoard: ruchy, cofnij, +probówka, restart, utknięcie, podpowiedź, „idealnie" (zależy od G-003)
+- [ ] T-015 `in_progress` GameRound na SortBoard: ruchy, cofnij, +probówka, restart, utknięcie, podpowiedź, „idealnie" (zależy od G-003)
   KA: kontrakt `start/step/result` zachowany; `step(action)` z `action = from*16 + to`. Dodane metody: `undo()` (ładunki `undo_free_per_level`, `add_undo_charges(n)`), `add_extra_tube()` (max `extra_tube_max_per_level`), `restart()`, `is_stuck()`, `hint() -> Vector2i` (1. ruch solvera), `moves_to_goal()`, `can_skip()` (po `skip_unlock_restarts`). `result()` zawiera `won, moves, min_moves, perfect, undos_used, boosters_used`. Testy dla każdej metody wg GDD → Mechaniki, w tym „po podpowiedzi moves_to_goal maleje o 1" dla 20 stanów. `make test` zielone. ~280 linii.
   Skill: `godot-dev`
 
