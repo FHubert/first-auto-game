@@ -30,7 +30,7 @@ jobs:
     # For `issues` events only act on `bot`-labelled issues; dispatch runs are always explicit.
     if: github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'bot')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
 
