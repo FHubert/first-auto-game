@@ -28,7 +28,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `double_coins` (LevelComplete, od poziomu 2), `extra_tube`, `undo_refill` (max 2 na poziom), `skip_level`, `daily_x2`, `streak_save` z id zgodnymi z `docs/MONETIZATION.md`. Kwota nagrody widoczna na przycisku przed reklamą, przycisk ukryty, gdy reklama nie jest gotowa. Testy z `FakeAdProvider`: granted przyznaje nagrodę dokładnie raz; skipped i unavailable nie przyznają nic; cap per poziom/dzień jest respektowany. `make check` zielone. ~260 linii.
   Skill: `ads-iap`
 
-- [ ] G-010b `in_progress` Rewarded: przyciski UI dla 6 placementów (zależy od G-010)
+- [ ] G-010b `review` Rewarded: przyciski UI dla 6 placementów (zależy od G-010) → PR #36
   KA: `LevelComplete` ma przycisk „×2" z kwotą premii (`Economy.rewarded_bonus`) obok „Dalej", widoczny od poziomu `rewarded_double_coins_min_level` i tylko gdy `Ads.is_rewarded_ready()`; znika po przyznaniu. `StuckPanel` i HUD mają warianty „obejrzyj reklamę" dla +probówka / +3 cofnięcia (obok wersji za monety) i „Pomiń (reklama)"; `DailyRewardPopup` pokazuje „Odbierz ×2" z kwotą i „Uratuj streak" tylko gdy reklama gotowa. Testy headless: przy `FakeAdProvider.always_ready=false` przyciski ukryte; tap „×2" dokłada premię dokładnie raz. Nowe klucze w `strings.csv` (EN/PL/DE). `make check` zielone. ~250 linii.
   Skill: `ads-iap`
 
@@ -82,6 +82,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-034 `todo` CI: `tools/test_tools.py` nie jest uruchamiane przez `make check` ani test.yml — dodać cel `make test-tools` do `check` (+ Pillow w `make setup`); dopieścić kształt `flask` w gen_assets. Skill: godot-test
 
 ## Pytania do Huberta
+- G-010: „Pomiń poziom" wyłącznie za rewarded (bez wariantu za monety); bez gotowej reklamy przycisk ukryty, zostaje restart i boostery za monety — przyjęto: tak, zgodnie z MONETIZATION, do zmiany.
 - R-001: mix rynków przy soft launchu do szacowania ARPDAU — przyjęto: 30 % US / 30 % DE / 40 % PL, do zmiany (bardziej US-owy mix podnosi ARPDAU, eCPM US ~5–10× PL).
 - R-001: wyróżnik na tle klonów sort puzzle — przyjęto: daily seed + odblokowywane motywy wizualne (doprecyzuje R-002), do zmiany.
 - R-002: nazwa i tytuł — przyjęto: „Vialo: Water Sort Puzzle” (zapasowe: „Flaskly: Color Sort Puzzle”, „Pourio: Daily Water Sort”), do zmiany; przed Fazą 4 sprawdzić EUIPO/UPRP i dostępność w ASC/Play.

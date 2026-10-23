@@ -65,3 +65,4 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 
 - Start: brak otwartych PR task/*; #26–#34 zmergowane → zadania `review` przeniesione do Done.
 - P2: G-010 (logika) RewardedPlacements (czysta klasa, cap per poziom, offer→granted), `Ads.is_rewarded_ready`, 4 klucze config, `watch_*` w Level, `claim_x2`/`save_streak_rewarded` w popupie; 190 testów → PR #35 (auto-merge, bez QA — P2). UI przycisków wydzielone do nowego zadania G-010b.
+- P2: G-010b przyciski UI dla placementów (×2 z kwotą na LevelComplete, +probówka/+cofnięcia (ad) w HUD i StuckPanel, Pomiń (ad), Odbierz ×2 z kwotą); 195 testów → PR #36 (auto-merge, bez QA — P2). #35 zmergowany.
