@@ -32,7 +32,9 @@ lint:
 playtest:
 	mkdir -p $(PROJECT)/test/reports
 	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --rounds=200 --seed=42 \
-		--report=$(ROOT)/$(PROJECT)/test/reports/playtest.json
+		--report=$(ROOT)/$(PROJECT)/test/reports/playtest.json && \
+	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --random --rounds=200 --seed=42 \
+		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_random.json
 
 sim:
 	python3 tools/balance_sim.py
