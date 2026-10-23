@@ -42,17 +42,32 @@ func test_30_days_distinct_and_solvable() -> void:
 
 
 func test_complete_grants_once() -> void:
-	assert_int(DailyChallenge.complete(_state, DAY, {"won": true, "moves": 20})).is_equal(50)
-	assert_int(_state.coins).is_equal(50)
+	assert_int(DailyChallenge.complete(_state, DAY, {"won": true, "moves": 20})).is_equal(
+		DailyChallenge.reward_amount()
+	)
+	assert_int(_state.coins).is_equal(DailyChallenge.reward_amount())
 	assert_int(_state.daily_completed_total).is_equal(1)
 	assert_int(_state.daily_last_completed_day).is_equal(DAY)
 	assert_int(_state.streak_days).is_equal(1)
 	assert_int(DailyChallenge.complete(_state, DAY, {"won": true, "moves": 20})).is_equal(0)
-	assert_int(_state.coins).is_equal(50)
-	assert_int(DailyChallenge.complete(_state, DAY + 1, {"won": true})).is_equal(50)
+	assert_int(_state.coins).is_equal(DailyChallenge.reward_amount())
+	assert_int(DailyChallenge.complete(_state, DAY + 1, {"won": true})).is_equal(
+		DailyChallenge.reward_amount()
+	)
 	assert_int(_state.daily_completed_total).is_equal(2)
-	assert_int(_state.coins).is_equal(100)
+	assert_int(_state.coins).is_equal(DailyChallenge.reward_amount() * 2)
 	assert_int(_state.streak_days).is_equal(2)
+
+
+func test_earlier_day_and_invalid_inputs() -> void:
+	assert_int(DailyChallenge.complete(_state, DAY, {"won": true})).is_equal(
+		DailyChallenge.reward_amount()
+	)
+	var coins: int = _state.coins
+	assert_int(DailyChallenge.complete(_state, DAY - 1, {"won": true})).is_equal(0)
+	assert_int(_state.coins).is_equal(coins)
+	assert_bool(DailyChallenge.can_complete(_state, 0)).is_false()
+	assert_int(DailyChallenge.complete(GameState.new(), DAY, {})).is_equal(0)
 
 
 func test_not_won_no_reward() -> void:

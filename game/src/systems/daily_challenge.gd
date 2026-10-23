@@ -4,7 +4,7 @@ extends RefCounted
 
 
 static func is_unlocked(state: GameState) -> bool:
-	return state.level >= int(GameConfig.get_value("daily_unlock_level", 3))
+	return state.level >= int(GameConfig.get_value("daily_unlock_level"))
 
 
 static func level_for_day(utc_day: int) -> Dictionary:
@@ -16,11 +16,11 @@ static func is_completed_today(state: GameState, utc_day: int) -> bool:
 
 
 static func can_complete(state: GameState, utc_day: int) -> bool:
-	return utc_day > 0 and is_unlocked(state) and not is_completed_today(state, utc_day)
+	return utc_day > 0 and is_unlocked(state) and utc_day > state.daily_last_completed_day
 
 
 static func reward_amount() -> int:
-	return int(GameConfig.get_value("daily_challenge_coins", 50))
+	return int(GameConfig.get_value("daily_challenge_coins"))
 
 
 ## Zalicza Poziom dnia. Zwraca przyznane monety (0 gdy przegrana/zablokowane/juz zaliczone).
