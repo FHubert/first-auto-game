@@ -32,13 +32,17 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `LevelComplete` ma przycisk „×2" z kwotą premii (`Economy.rewarded_bonus`) obok „Dalej", widoczny od poziomu `rewarded_double_coins_min_level` i tylko gdy `Ads.is_rewarded_ready()`; znika po przyznaniu. `StuckPanel` i HUD mają warianty „obejrzyj reklamę" dla +probówka / +3 cofnięcia (obok wersji za monety) i „Pomiń (reklama)"; `DailyRewardPopup` pokazuje „Odbierz ×2" z kwotą i „Uratuj streak" tylko gdy reklama gotowa. Testy headless: przy `FakeAdProvider.always_ready=false` przyciski ukryte; tap „×2" dokłada premię dokładnie raz. Nowe klucze w `strings.csv` (EN/PL/DE). `make check` zielone. ~250 linii.
   Skill: `ads-iap`
 
-- [ ] G-011 `todo` balance_sim pod sort puzzle (zależy od G-004, G-006)
+- [ ] G-011 `review` balance_sim pod sort puzzle (zależy od G-004, G-006) → PR #37
   KA: `tools/balance_sim.py` czyta nowe klucze (`theme_cost_base/growth`, koszty boosterów, `par_bonus_coins`, `daily_reward_multipliers`, `daily_challenge_coins`, `interstitial_min_seconds`, `interstitial_min_level`). `make sim` kończy się exit 0. W PR tabela: mediany monet d1/d7/d30, dzień zakupu 1. i 3. motywu (cel ~2 i ~12–14), impresje/DAU (interstitial ≤ 2,5, łącznie ≥ 3,0). `tools/test_tools.py` zielone. ~200 linii.
   Skill: `game-economy`
 
 - [ ] G-001 `todo` Balans: cap interstitiali (zależy od G-011)
   KA: `interstitial_every_n_rounds`=5, `interstitial_min_seconds`=120, nowy klucz `interstitial_min_level`=8. `Ads.maybe_show_interstitial` nie pokazuje reklamy przy `ads_removed` ani po rewarded w tej samej przerwie. Testy w `test_ad_service.gd`; `make sim` pokazuje ≤ 2,5 interstitiala/DAU (poprzednio ~8,6 przy co 3 rundy). ~120 linii.
   Skill: `game-economy` + `ads-iap`
+
+- [ ] G-013 `todo` Kalibracja ekonomii wg `make sim` (zależy od G-001)
+  KA: `game-designer` dobiera wartości w `GameConfig` (np. `win_reward_coins`, `par_bonus_coins`, `daily_reward_base`, `daily_challenge_coins`, `theme_cost_base/growth`) tak, by `make sim` dawał: 1. motyw ≤ 2. dnia aktywnego, 3. motyw w 12–14. dniu aktywnym u graczy grających codziennie (dziś: 3. dzień / nikt), interstitial ≤ 2,5/DAU, bez „explodes" (d30/d1 < 100×). Tabela przed/po w PR, aktualizacja tabeli kluczy i „Szacunku przepływu" w GDD (Ekonomia). Zmienia tylko `config.gd` + GDD + ewentualnie testy wartości. ~80 linii.
+  Skill: `game-economy`
 
 - [ ] T-025 `todo` Analityka: eventy z GDD → Analityka (zależy od G-010)
   KA: wszystkie 16 eventów z GDD wysyłane przez `Analytics` w opisanych momentach i z parametrami. `FakeAnalyticsProvider` zapisuje wywołania. Test: sekwencja start → complete (perfect) → ×2 → interstitial daje oczekiwaną listę wywołań z parametrami. Wpis do `docs/RELEASE_CHECKLIST.md`: lista do Data Safety/Privacy Labels. `make check` zielone. ~250 linii.
@@ -55,6 +59,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 ## P3 — polish / later
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
+
+- [ ] T-044 `todo` Skill game-economy §6: opis wyjścia nowego `make sim` (metryki motywów w dniach aktywnych, ads/DAU per placement, WARN zamiast błędu dla impresji, „starves" = mediana motywów do d7 < 1) — zadanie dotyczy wprost `.claude/`. Skill: game-economy
 
 - [ ] T-002 `todo` Wspólne, monotoniczne źródło version_code dla build-android.yml i release.yml (np. epoch-minutes lub licznik w vars); run_number per workflow może cofać numer i Play odrzuci AAB. Skill: godot-build
 - [ ] T-003 `todo` Implementacja --screenshot=<scene> --out=<dir> w main.gd (zapis PNG po 1 klatce), żeby tools/gen_screenshots.sh działał. Skill: godot-dev
