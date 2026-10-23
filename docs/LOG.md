@@ -43,3 +43,10 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 - P1: T-015 GameRound na SortBoard (undo/extra tube/restart/hint/is_stuck/perfect, PR #19), T-016 PlaytestBot solver + `--random` z `stuck_count` (PR #20), T-017 GameState v2 + migracja (PR #21), G-004 Economy (PR #22), T-018 assety: `themes.json` 4 motywy ΔE ≥ 20, probówki 9-slice, ikony UI, ikona aplikacji (PR #23), G-006 DailyRewards streak/grace (PR #24), G-007 DailyChallenge (PR #25, auto-merge). `make check` + qa-playtester przed każdym PR; 126 testów gdUnit4.
 - QA złapało 2 blockery tej samej klasy (cofnięty zegar → ponowna nagroda dzienna / Poziomu dnia) — poprawione przed merge. CI T-018 padł na braku Pillow → `make setup` instaluje Pillow.
 - Lekcja: PR-y zależne na gałęzi poprzednika stają się `dirty` po squash-merge rodzica → za każdym razem `rebase --onto origin/main` + ponowne uzbrojenie auto-merge. Inbox: T-030–T-034 (nity QA, test_tools w make check, flask polish). Pytanie do Huberta: odbiór nagrody dziennej podtrzymuje streak (przyjęto: tak). Blokery: brak.
+
+---
+
+## 2026-10-23 — sesja continuous-dev #3 (20:11 UTC – w trakcie)
+
+- P1: T-019 scena Level + BoardView/TubeView (motyw z themes.json, tap/przelew/shake, sygnał `pour_finished`, klucze `pour_anim_seconds`/`tube_lift_seconds`/`shake_seconds`), 132 testy, QA PASS (3 seedy 200/200) → PR #26 (auto-merge).
+- Inbox: T-035 pełna animacja przelewu + bezpieczeństwo tweenów. G-007 oznaczone `done` (#25 zmergowany).

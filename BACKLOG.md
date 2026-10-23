@@ -21,7 +21,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 
 
-- [ ] T-019 `in_progress` Scena Level: BoardView (rysowanie probówek, tap, przelew tween, shake) (zależy od T-015, T-018)
+- [ ] T-019 `review` Scena Level: BoardView (rysowanie probówek, tap, przelew tween, shake) (zależy od T-015, T-018) → PR #26
   KA: `level.tscn` + `board_view.gd` rysuje `payload` w aktywnym motywie. Pierwszy tap wybiera probówkę (podniesienie), drugi wykonuje `pour` z tweenem `pour_anim_seconds`, a nielegalny ruch daje shake. Widok emituje sygnał `pour_finished`. Test headless: instancja sceny z poziomem 2 i 2 symulowane tapy dają zmianę stanu `GameRound`. Wpis w `tools/screens.txt`, `make screenshots` daje PNG. `make check` zielone. ~280 linii.
   Skill: `godot-dev`
 
@@ -102,6 +102,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-031 `todo` PlaytestBot: test ścieżki `gave_up` (`max_restarts_per_round=0` → przegrana bez softlocka); udokumentować `--random`/`--max-restarts` w `.claude/skills/godot-test/SKILL.md` (zadanie dotyczy wprost `.claude/`). Skill: godot-test
 - [ ] T-032 `todo` GameState.from_dict: zły typ pojedynczego klucza `settings` odrzuca cały zapis (utrata postępu) — rozważyć reset klucza do domyślnej; `_as_int` bez górnego limitu (NaN/1e30). Skill: godot-dev
 - [ ] T-033 `todo` Economy: `rewarded_bonus` → `maxi(0, …)` przy multiplier < 1; `buy_booster` bez `SINK_THEME` (zakup motywu w G-009); testy `can_afford` i dwu zdarzeń Analytics w `apply_win`. Skill: game-economy
+- [ ] T-035 `todo` BoardView: pełna animacja przelewu wg GDD (przechylenie, ubywanie/przybywanie warstw, pulsowanie pełnej probówki) + ochrona tweenów przed `queue_free` w `_rebuild`/`resized`; nazwane stałe proporcji shake/pour; test z `animate=true` przez `scene_runner` i symulowany czas. Skill: godot-dev
 - [ ] T-034 `todo` CI: `tools/test_tools.py` nie jest uruchamiane przez `make check` ani test.yml — dodać cel `make test-tools` do `check` (+ Pillow w `make setup`); dopieścić kształt `flask` w gen_assets. Skill: godot-test
 
 ## Pytania do Huberta
