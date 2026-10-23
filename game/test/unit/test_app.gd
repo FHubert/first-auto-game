@@ -53,6 +53,18 @@ func test_navigation() -> void:
 	await get_tree().process_frame
 
 
+func test_shop_navigation() -> void:
+	var app := _app(true)
+	app.show_shop()
+	assert_str(app.current_screen_name()).is_equal("shop")
+	(app.current_screen() as ShopScreen).back_pressed.emit()
+	assert_str(app.current_screen_name()).is_equal("home")
+	app.show_shop("extra_tube", true)
+	(app.current_screen() as ShopScreen).back_pressed.emit()
+	assert_str(app.current_screen_name()).is_equal("level")
+	await get_tree().process_frame
+
+
 func test_session_start_and_end_events() -> void:
 	var prev: AnalyticsProvider = Analytics.provider
 	var fake := FakeAnalyticsProvider.new()

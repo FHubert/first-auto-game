@@ -52,7 +52,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: ADR-010 w `docs/DECISIONS.md`: wybór GodotGooglePlayBilling (wersja z Billing Library 8+, zweryfikowana) oraz pluginu StoreKit dla iOS, wraz ze statusem zgodności z Godot 4.7.2. Interfejs `IapProvider` (connect/products/purchase/restore, sygnały) i `FakeIapProvider`. Logika `Purchases.grant(sku)`: `remove_ads` ustawia `settings.ads_removed`, `coins_*` daje +500/+1500, `starter_pack` daje +800 i motyw „neon" jednorazowo. Testy: PURCHASED przyznaje, PENDING nie przyznaje, restore przywraca `remove_ads`, starter pack przyznawany tylko raz. `make check` zielone. Bez dodawania pluginów. ~250 linii.
   Skill: `ads-iap`
 
-- [ ] T-027 `todo` Ekran Shop + „Przywróć zakupy" + okno starter packa (zależy od T-026, G-009)
+- [ ] T-027 `review` Ekran Shop + „Przywróć zakupy" + okno starter packa (zależy od T-026, G-009) → PR #42
   KA: Shop pokazuje 4 sku z cenami z `IapProvider` (nigdy z kodu). „Przywróć zakupy" jest w Shop i Settings. `starter_pack` jest widoczny od `starter_offer_min_level`=12 przez `starter_offer_hours`=72 h. Wejście ze StuckPanel przy braku monet. Testy z `FakeIapProvider`: okno oferty (dzień startu, przed i po 72 h) oraz restore. Wpis w `screens.txt`. `make check` zielone. ~250 linii.
   Skill: `ads-iap`
 
@@ -68,6 +68,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
+- [ ] T-049 `todo` App.show_shop z Poziomu dnia: powrót woła `show_level()` (kampania) zamiast `show_daily_level()`; zapamiętać ekran źródłowy i wracać do właściwego trybu (albo Shop jako overlay nad Level, bez utraty rundy). Skill: godot-dev
 - [ ] T-046 `todo` playtest_bot.gd: fallback `win_reward_coins` = 10 w `GameConfig.get_value(..., 10)` nieaktualny po G-013 — usunąć fallback (klucz zawsze istnieje). Skill: godot-test
 - [ ] T-045 `todo` PlaytestBot (random): po przegranej bez podniesienia poziomu `maybe_show_interstitial(state.level - 1)` wołane wielokrotnie z tym samym numerem — liczyć przerwę raz na rundę (albo tylko po wygranej), żeby raport nie zawyżał interstitiali. Skill: godot-test
 - [ ] T-044 `todo` Skill game-economy §6: opis wyjścia nowego `make sim` (metryki motywów w dniach aktywnych, ads/DAU per placement, WARN zamiast błędu dla impresji, „starves" = mediana motywów do d7 < 1) — zadanie dotyczy wprost `.claude/`. Skill: game-economy
@@ -98,6 +99,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-034 `todo` CI: `tools/test_tools.py` nie jest uruchamiane przez `make check` ani test.yml — dodać cel `make test-tools` do `check` (+ Pillow w `make setup`); dopieścić kształt `flask` w gen_assets. Skill: godot-test
 
 ## Pytania do Huberta
+- T-027: wejście do Sklepu ze StuckPanel podmienia scenę — powrót startuje nową rundę tego samego poziomu (postęp ruchów przepada; gracz był utknięty) — przyjęto: tak w MVP, do zmiany (alternatywa: Shop jako overlay, T-049).
 - G-010: „Pomiń poziom" wyłącznie za rewarded (bez wariantu za monety); bez gotowej reklamy przycisk ukryty, zostaje restart i boostery za monety — przyjęto: tak, zgodnie z MONETIZATION, do zmiany.
 - R-001: mix rynków przy soft launchu do szacowania ARPDAU — przyjęto: 30 % US / 30 % DE / 40 % PL, do zmiany (bardziej US-owy mix podnosi ARPDAU, eCPM US ~5–10× PL).
 - R-001: wyróżnik na tle klonów sort puzzle — przyjęto: daily seed + odblokowywane motywy wizualne (doprecyzuje R-002), do zmiany.
