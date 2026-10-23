@@ -31,7 +31,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: nowe pola: `daily_reward_last_claim_day`, `daily_last_completed_day`, `daily_completed_total`, `streak_best`, `streak_saves_used` (z dniem okna), `themes_owned` (Array[String], domyślnie `["classic"]`), `theme_active`, `levels_completed`, `level_restarts` (bieżący poziom), `starter_offer_start_day`, `purchases` (sku → bool); `settings` z `music_on/sfx_on/haptics_on/ads_removed/tutorial_done/locale`. Testy: round-trip, migracja v1 daje wartości domyślne, odrzucanie złych typów i wartości ujemnych. `make test` zielone. ~220 linii.
   Skill: `godot-dev`
 
-- [ ] G-004 `in_progress` Economy: earn/spend, nagroda za wygraną, premia „idealnie", koszty boosterów (zależy od T-017)
+- [ ] G-004 `review` Economy: earn/spend, nagroda za wygraną, premia „idealnie", koszty boosterów (zależy od T-017) → PR #22
   KA: `economy.gd` (czysta klasa): `earn(state, amount, source)`, `spend(state, amount, sink) -> bool` (przy braku środków false i saldo bez zmian), `win_reward(result) -> int` (`win_reward_coins` + `par_bonus_coins` przy perfect). Do `config.gd` dodane klucze ekonomii z GDD (`par_*`, `*_cost_coins`, `undo_refill_amount`, `theme_cost_*`, `daily_challenge_coins`, `starting_coins`=100). Testy: saldo nigdy < 0, wartości zgodne z GDD. `make test` zielone. ~200 linii.
   Skill: `game-economy`
 
@@ -126,6 +126,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-030 `todo` GameRound: literały wag solvera (1.0 / fallback 3.0) jako const/klucz; komentarz o limicie ACTION_BASE=16 probówek; `add_extra_tube` przez metodę SortBoard zamiast mutacji `tubes`; `undo_refill_amount` bez konsumenta do G-010. Skill: godot-dev
 - [ ] T-031 `todo` PlaytestBot: test ścieżki `gave_up` (`max_restarts_per_round=0` → przegrana bez softlocka); udokumentować `--random`/`--max-restarts` w `.claude/skills/godot-test/SKILL.md` (zadanie dotyczy wprost `.claude/`). Skill: godot-test
 - [ ] T-032 `todo` GameState.from_dict: zły typ pojedynczego klucza `settings` odrzuca cały zapis (utrata postępu) — rozważyć reset klucza do domyślnej; `_as_int` bez górnego limitu (NaN/1e30). Skill: godot-dev
+- [ ] T-033 `todo` Economy: `rewarded_bonus` → `maxi(0, …)` przy multiplier < 1; `buy_booster` bez `SINK_THEME` (zakup motywu w G-009); testy `can_afford` i dwu zdarzeń Analytics w `apply_win`. Skill: game-economy
 
 ## Pytania do Huberta
 - R-001: mix rynków przy soft launchu do szacowania ARPDAU — przyjęto: 30 % US / 30 % DE / 40 % PL, do zmiany (bardziej US-owy mix podnosi ARPDAU, eCPM US ~5–10× PL).
