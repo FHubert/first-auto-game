@@ -18,7 +18,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: sekcje P1/P2 poniżej wypełnione 15–25 zadaniami wynikającymi z GDD, każde z KA i skillem, w kolejności zależności (core loop → save → UI → meta → monetyzacja). Zadanie podzielone tak, by każde mieściło się w ~300 liniach.
   Skill: `godot-dev`.
 
-- [ ] T-001 `review` Smoke: środowisko i pętla działają end-to-end → PR #__PR__
+- [ ] T-001 `review` Smoke: środowisko i pętla działają end-to-end → PR #13
   KA: `make setup && make check` przechodzi lokalnie i w CI (`test.yml` zielone na PR). Dodaj do `game/src/core/version.gd` stałą `BUILD_INFO` i test, który ją czyta. To jest dry-run pętli — ma się zakończyć zmergowanym PR.
   Skill: `godot-test`.
 
