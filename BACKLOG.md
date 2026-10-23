@@ -14,7 +14,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `docs/GDD.md` ze statusem `APPROVED` (zamiast `DRAFT`): core loop (1 akapit + diagram ASCII), sesja 2–5 min, progresja, ekonomia (waluty, sinki, źródła), meta (daily, streak), lista ekranów, lista mechanik z priorytetem MVP/later. Każda mechanika ma zdanie "jak to przetestujemy headless". `docs/MONETIZATION.md` z placementami. `docs/ASO.md` z 3 wariantami tytułu (sprawdzone w sklepach, że wolne) i 20 keywordami.
   Skill: `game-economy`, `ads-iap`, `aso`.
 
-- [ ] R-003 `todo` Backlog MVP z GDD
+- [ ] R-003 `in_progress` Backlog MVP z GDD
   KA: sekcje P1/P2 poniżej wypełnione 15–25 zadaniami wynikającymi z GDD, każde z KA i skillem, w kolejności zależności (core loop → save → UI → meta → monetyzacja). Zadanie podzielone tak, by każde mieściło się w ~300 liniach.
   Skill: `godot-dev`.
 
