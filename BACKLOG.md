@@ -36,7 +36,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `tools/balance_sim.py` czyta nowe klucze (`theme_cost_base/growth`, koszty boosterów, `par_bonus_coins`, `daily_reward_multipliers`, `daily_challenge_coins`, `interstitial_min_seconds`, `interstitial_min_level`). `make sim` kończy się exit 0. W PR tabela: mediany monet d1/d7/d30, dzień zakupu 1. i 3. motywu (cel ~2 i ~12–14), impresje/DAU (interstitial ≤ 2,5, łącznie ≥ 3,0). `tools/test_tools.py` zielone. ~200 linii.
   Skill: `game-economy`
 
-- [ ] G-001 `in_progress` Balans: cap interstitiali (zależy od G-011)
+- [ ] G-001 `review` Balans: cap interstitiali (zależy od G-011) → PR #38
   KA: `interstitial_every_n_rounds`=5, `interstitial_min_seconds`=120, nowy klucz `interstitial_min_level`=8. `Ads.maybe_show_interstitial` nie pokazuje reklamy przy `ads_removed` ani po rewarded w tej samej przerwie. Testy w `test_ad_service.gd`; `make sim` pokazuje ≤ 2,5 interstitiala/DAU (poprzednio ~8,6 przy co 3 rundy). ~120 linii.
   Skill: `game-economy` + `ads-iap`
 
@@ -60,6 +60,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
+- [ ] T-045 `todo` PlaytestBot (random): po przegranej bez podniesienia poziomu `maybe_show_interstitial(state.level - 1)` wołane wielokrotnie z tym samym numerem — liczyć przerwę raz na rundę (albo tylko po wygranej), żeby raport nie zawyżał interstitiali. Skill: godot-test
 - [ ] T-044 `todo` Skill game-economy §6: opis wyjścia nowego `make sim` (metryki motywów w dniach aktywnych, ads/DAU per placement, WARN zamiast błędu dla impresji, „starves" = mediana motywów do d7 < 1) — zadanie dotyczy wprost `.claude/`. Skill: game-economy
 
 - [ ] T-002 `todo` Wspólne, monotoniczne źródło version_code dla build-android.yml i release.yml (np. epoch-minutes lub licznik w vars); run_number per workflow może cofać numer i Play odrzuci AAB. Skill: godot-build
