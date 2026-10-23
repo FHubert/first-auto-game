@@ -29,7 +29,7 @@ jobs:
 
       # Godot binary lives in .tools, export templates in ~/.local/share/godot.
       - name: Cache Godot
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .tools
