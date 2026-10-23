@@ -16,3 +16,4 @@ Nowe wpisy dopisujemy na końcu, po zakończeniu sesji (CLAUDE.md, krok 9).
 ## 2026-10-23 — bump
 
 Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielone.
+- T-008: build workflows tylko workflow_dispatch/workflow_call do Fazy 4 (szum czerwonych runów).
