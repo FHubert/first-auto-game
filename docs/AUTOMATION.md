@@ -155,3 +155,14 @@ Definicja: 3 noce z rzędu czerwone, czyli `nightly-dev` nie doprowadził do zme
 
 Schemat hooków (zgodny z dokumentacją Claude Code): `hooks.<Zdarzenie>[] = { matcher, hooks: [{ type: "command", command, timeout (sekundy), if }] }`. Blokada: exit 2 + komunikat na stderr (PreToolUse) albo JSON `{"decision":"block","reason":"..."}` na stdout z exit 0 (Stop). Stop ma własne zabezpieczenie: pole `stop_hook_active` w wejściu oraz limit kolejnych kontynuacji po stronie Claude Code (domyślnie 8); nasz licznik ogranicza blokady do 2.
 Źródła: https://code.claude.com/docs/en/hooks, https://code.claude.com/docs/en/sub-agents, https://code.claude.com/docs/en/skills, https://code.claude.com/docs/en/permissions.
+
+## Stan wdrożenia (2026-10-23)
+Scheduled tasks założone w Claude Code Remote (tryb auto, powiadomienia push+e-mail), orkiestrator: claude-fable-5-1:
+
+| Task | Cron (Europe/Warsaw) | Uwaga |
+|---|---|---|
+| `first-auto-game: nightly-dev` | `49 1 * * *` | minuta przesunięta z 02:00, żeby uniknąć kolejki o pełnej godzinie |
+| `first-auto-game: weekly-analytics` | `44 19 * * 0` | j.w. (20:00 → 19:44) |
+| `first-auto-game: biweekly-release` | `44 8 * * 2` | nic nie robi do fazy 4 i bez istniejącego taga |
+
+Zatrzymanie pętli: wyłączyć task w liście scheduled tasks w Claude (nie trzeba nic zmieniać w repo).
