@@ -3,11 +3,18 @@ extends GdUnitTestSuite
 ## and no call site carries a duplicated literal fallback.
 
 const SRC_ROOT: String = "res://src"
+const CONFIG_SCRIPT: GDScript = preload("res://src/systems/config.gd")
 const MIN_KEYS: int = 40
 const SETTING_KEYS_RE: String = (
 	'"(notifications_on|tutorial_done|colorblind_symbols|daily_intro_seen'
 	+ '|music_on|sfx_on|haptics_on)"'
 )
+
+## Keys allowed to stay unread in src/ (each with a reason).
+const UNREAD_ALLOWED: Array[String] = [
+	# Design target from GDD (Sesja), not a runtime parameter.
+	"session_target_seconds",
+]
 
 
 func _gd_files(dir_path: String) -> Array[String]:
@@ -39,7 +46,7 @@ func _scan(pattern: String) -> Dictionary:
 
 
 func test_all_read_keys_exist_in_defaults() -> void:
-	var defaults: Dictionary = load("res://src/systems/config.gd").DEFAULTS
+	var defaults: Dictionary = CONFIG_SCRIPT.DEFAULTS
 	var found: Dictionary = _scan('get_value\\("([a-z0-9_]+)"')
 	assert_int(found.size()).is_greater_equal(MIN_KEYS)
 	var missing: Array[String] = []
@@ -49,6 +56,27 @@ func test_all_read_keys_exist_in_defaults() -> void:
 	(
 		assert_array(missing)
 		. override_failure_message("Keys missing in DEFAULTS: %s" % str(missing))
+		. is_empty()
+	)
+
+
+func test_every_default_key_is_read_in_src() -> void:
+	var defaults: Dictionary = CONFIG_SCRIPT.DEFAULTS
+	var re: RegEx = RegEx.new()
+	re.compile('"([a-z0-9_]+)"')
+	var seen: Dictionary = {}
+	for path: String in _gd_files(SRC_ROOT):
+		if path.ends_with("/systems/config.gd"):
+			continue
+		for m: RegExMatch in re.search_all(FileAccess.get_file_as_string(path)):
+			seen[m.get_string(1)] = true
+	var unread: Array[String] = []
+	for key: String in defaults:
+		if not seen.has(key) and not UNREAD_ALLOWED.has(key):
+			unread.append(key)
+	(
+		assert_array(unread)
+		. override_failure_message("DEFAULTS keys never read in src/: %s" % str(unread))
 		. is_empty()
 	)
 

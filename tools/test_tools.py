@@ -2,6 +2,7 @@
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -130,6 +131,40 @@ class BalanceSimTest(unittest.TestCase):
         r = run(TOOLS / "balance_sim.py", "--overlay", ROOT / "nope" / "missing.json")
         self.assertEqual(r.returncode, 2)
         self.assertIn("overlay not found", r.stderr)
+
+
+class SimConfigMirrorTest(unittest.TestCase):
+    """balance_sim.BUILTIN mirror keys must match GameConfig.DEFAULTS."""
+
+    @classmethod
+    def setUpClass(cls):
+        spec = importlib.util.spec_from_file_location("balance_sim_mirror", TOOLS / "balance_sim.py")
+        cls.sim = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.sim)
+        text = cls.sim.DEFAULT_CONFIG.read_text(encoding="utf-8")
+        body = re.search(r"\bDEFAULTS\b[^=\n]*=\s*\{(.*?)^\}", text, re.S | re.M).group(1)
+        cls.defaults = dict(re.findall(r"[\"']([A-Za-z_]\w*)[\"']\s*:\s*([^,\n]+),", body))
+        src = (TOOLS / "balance_sim.py").read_text(encoding="utf-8")
+        mirror_src = src.split("# --- sim-only", 1)[0]
+        cls.mirror_keys = [k for k in cls.sim.BUILTIN if f'"{k}":' in mirror_src]
+
+    def test_mirror_keys_exist_in_defaults(self):
+        self.assertGreater(len(self.mirror_keys), 20)
+        missing = [k for k in self.mirror_keys if k not in self.defaults]
+        self.assertEqual(missing, [], f"BUILTIN mirror keys missing in DEFAULTS: {missing}")
+
+    def test_mirror_numeric_values_match_defaults(self):
+        diffs = []
+        for k in self.mirror_keys:
+            v = self.sim.BUILTIN[k]
+            raw = self.defaults.get(k, "").strip()
+            if isinstance(v, (int, float)) and re.fullmatch(r"-?\d+(\.\d+)?", raw) and float(raw) != float(v):
+                diffs.append(f"{k}: BUILTIN={v} DEFAULTS={raw}")
+        self.assertEqual(diffs, [], f"BUILTIN differs from config.gd: {diffs}")
+
+    def test_load_default_config_has_no_warning(self):
+        _cfg, notes = self.sim.load_config(self.sim.DEFAULT_CONFIG)
+        self.assertFalse([n for n in notes if "WARNING" in n], notes)
 
 
 class GenAssetsTest(unittest.TestCase):
