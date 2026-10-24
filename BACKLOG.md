@@ -78,7 +78,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `rewarded_bonus` przy `multiplier < 1` (np. 0,5 lub 0) nigdy nie daje wartości ujemnej (test gdUnit4); testy `can_afford` (równo saldo → true, saldo − 1 → false); `apply_win` z premią „idealnie” rejestruje w `FakeAnalyticsProvider` dokładnie 2 eventy zasobów (nazwa i parametry wg GDD → Analityka: nagroda za wygraną + premia „idealnie”). `make sim` exit 0 bez zmiany wyników (porównanie podsumowania przed/po w opisie PR). `make check` zielone. ≤ ~60 linii.
   Skill: `game-economy`
 
-- [ ] T-084 `in_progress` PlaytestBot: interstitial liczony raz na rundę w trybie random + usunięcie przestarzałego fallbacku `win_reward_coins` (przeniesione z Inbox T-045, T-046)
+- [ ] T-084 `review` PlaytestBot: interstitial liczony raz na rundę w trybie random + usunięcie przestarzałego fallbacku `win_reward_coins` (przeniesione z Inbox T-045, T-046) → PR #__N__
   KA: `maybe_show_interstitial` wołane maks. 1× na zakończoną rundę (po przegranej bez awansu nie powtarza tego samego numeru) — test gdUnit4 na bocie: 3 przegrane tego samego poziomu → ≤ 1 wywołanie na rundę, licznik `interstitials_shown` w raporcie zgodny z `FakeAdProvider`; `get_value("win_reward_coins", 10)` → `get_value("win_reward_coins")` (grep fallbacku = 0). `make playtest` 200/200 bez softlocka, `interstitials_shown` w `playtest.json` podany przed/po w opisie PR. `make check` zielone. ≤ ~50 linii.
   Skill: `godot-test`
 
@@ -89,6 +89,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 ## P3 — polish / later
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
+- [ ] T-092 `todo` Skill godot-test §6: format `playtest.json` o pole `interstitial_calls` (T-084) i `playtest_random.json`; `AdService`: publiczny reset `_last_interstitial_s` (test bota ustawia pole prywatne `-INF`, bo realny zegar z innych suit blokuje pokaz przy symulowanym zegarze) (odkryte w T-084). Skill: godot-test
 - [ ] T-090 `todo` Level ma > 20 metod publicznych (`# gdlint: disable=max-public-methods` dodane w T-082) — wydzielić logikę rewarded/boosterów (`watch_*`, `buy_*`) do osobnej klasy `LevelOffers`/`BoosterFlow` bez zmiany zachowania; usunąć wyłączenie lintu (odkryte w T-082). Skill: godot-dev
 - [ ] T-091 `todo` Analityka: `Level.quit_level()` (pauza → Home) loguje `level:fail:quit`, a runda jest teraz wznawiana z `round_in_progress` — nie liczyć quit jako fail (albo osobny event `level:pause`), żeby nie zaniżać fail-rate w GA (odkryte w T-082). Skill: analytics-review
 - [ ] T-089 `todo` Skill godot-test: wzorzec testów parametryzowanych (gdlint `unused-argument` dla `test_parameters`, gdUnit opróżnia tablicę w trakcie — działa `assert_that(test_parameters).is_not_null()`); `GameRound.start` przy `payload.min_moves` jako Array/Dictionary rzuca błąd `int()` — osłonić w `from_dict` (odkryte w T-081). Skill: godot-test

@@ -20,7 +20,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 	var generator := ContentGenerator.new()
 	var state := GameState.new()
 	state.coins = int(GameConfig.get_value("starting_coins", 0))
-	var win_reward: int = int(GameConfig.get_value("win_reward_coins", 10))
+	var win_reward: int = int(GameConfig.get_value("win_reward_coins"))
 	var report: Dictionary = {
 		"mode": mode,
 		"rounds": 0,
@@ -34,6 +34,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		"perfect_count": 0,
 		"coins_end": 0,
 		"interstitials_shown": 0,
+		"interstitial_calls": 0,
 		"errors": [],
 		"elapsed_ms": 0,
 	}
@@ -88,13 +89,16 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 			if res["won"]:
 				report["wins"] += 1
 				state.coins += win_reward
+				var won_level: int = state.level
 				state.level += 1
+				# Like Level.on_next_pressed: ad break only after a win.
+				report["interstitial_calls"] += 1
+				Ads.maybe_show_interstitial(won_level)
 			else:
 				report["losses"] += 1
 		if state.coins < 0:
 			errors.append("round %d: negative coins (%d)" % [round_index, state.coins])
 		sim_time[0] += SIM_SECONDS_PER_ROUND
-		Ads.maybe_show_interstitial(state.level - 1)
 
 	report["interstitials_shown"] = Ads.interstitials_shown - shown_before
 	Ads.clock = old_clock
