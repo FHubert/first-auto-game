@@ -59,7 +59,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #5, refill #3): Faza 4 — prace bez kont, bez workflowów i bez pobierania binarek (ograniczenia sesji scheduled). Kolejność = zależności. -->
 
-- [ ] T-034 `todo` Bramka: `make test-tools` (uruchamia `tools/test_tools.py`) dołączony do `make check` + Pillow w `make setup` (przeniesione z Inbox)
+- [ ] T-034 `in_progress` Bramka: `make test-tools` (uruchamia `tools/test_tools.py`) dołączony do `make check` + Pillow w `make setup` (przeniesione z Inbox)
   KA: nowy cel `test-tools` w `Makefile` (`python3 tools/test_tools.py`, exit ≠ 0 przy błędzie), `check` zależy od `lint test test-tools export-check`; `make setup` instaluje Pillow przez pip idempotentnie (bez pobierania binarek z GitHub); celowo zepsuty test lokalnie → `make check` czerwone (opis w PR), po cofnięciu zielone; 25+ testów tools przechodzi w `make check`. Bez zmian w `.github/workflows/**` (podpięcie w `test.yml` → Inbox dla Huberta, jeśli `test.yml` nie woła `make check`). Kształt `flask` w gen_assets — poza zakresem (Inbox T-066). ≤ ~20 linii.
   Skill: `godot-test`
 
