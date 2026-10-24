@@ -120,12 +120,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - Refill #5 (T-096): ekran wygranej pokazuje jeden komunikat — „+1 kolor” ma pierwszeństwo przed paskiem postępu motywu (raz na 6 poziomów), w Poziomie dnia brak komunikatu; przyjęto: tak, do zmiany.
 
 ## Done (ostatnie 30)
-- [x] T-011 `done` CI: podbicie wersji akcji (częściowo 5/12; reszta → T-055) → PR #44 (zmergowany 2026-10-23)
-- [x] T-004 `done` `Gemfile.lock` wygenerowany i zacommitowany → PR #45 (zmergowany 2026-10-24)
-- [x] T-002 `done` CI: wspólne, monotoniczne źródło `version_code` — część 1: `tools/version_code.sh` + testy → PR #46 (zmergowany 2026-10-24)
-- [x] T-040 `done` UI: font OFL z diakrytykami (ą ć ę ł ń ó ś ź ż ä ö ü ß) jako domyślny font UI + etykieta `set_language` nad wyborem języka w Settings → PR #47 (zmergowany 2026-10-24)
-- [x] T-003 `done` Tryb `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]` w `main.gd`, żeby `tools/gen_screenshots.sh` produkował obrazy → PR #48 (zmergowany 2026-10-24)
-- [x] T-050 `done` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` → PR #49 (zmergowany 2026-10-24)
 - [x] T-060 `done` UI: nieprzezroczyste tło paneli nakładkowych (LevelComplete, DailyRewardPopup, StuckPanel, karta Poziomu dnia na Home) + regeneracja screenshotów sklepowych → PR #50 (zmergowany 2026-10-24)
 - [x] T-051 `done` Metadata sklepowe EN/PL/DE w `fastlane/metadata` (Android + iOS) z `docs/ASO.md` → PR #51 (zmergowany 2026-10-24)
 - [x] T-052 `done` Polityka prywatności (EN/PL) + odpowiedzi do Play Data Safety i App Store Privacy Labels → PR #52 (zmergowany 2026-10-24)
