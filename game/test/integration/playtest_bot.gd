@@ -27,6 +27,10 @@ var stay_on_level: bool = false
 var attempt_steps_limit: int = ATTEMPT_STEPS
 ## Starting `state.level` (measurement hook, e.g. plateau 56+ without playing 1..55).
 var start_level: int = 1
+## --stay: from this attempt on (1 = first) the bot adds an extra tube before move 1 (0 = off).
+var extra_tube_from_attempt: int = 0
+## Extra tube only on levels >= this (with `extra_tube_from_attempt`).
+var extra_tube_min_level: int = 1
 
 
 func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
@@ -61,6 +65,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		"won_within_3_by_bracket": _zero_brackets(),
 		"skips_by_bracket": _zero_brackets(),
 		"median_attempts_by_bracket": _zero_brackets(),
+		"extra_tubes_by_bracket": _zero_brackets(),
 		"errors": [],
 		"elapsed_ms": 0,
 	}
@@ -95,6 +100,14 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 			break
 		var game_round := GameRound.new()
 		game_round.start(level_data)
+		if (
+			stay_on_level
+			and extra_tube_from_attempt > 0
+			and state.level >= extra_tube_min_level
+			and stay_attempts + 1 >= extra_tube_from_attempt
+			and game_round.add_extra_tube()
+		):
+			report["extra_tubes_by_bracket"][bracket] += 1
 		var steps: int = 0
 		var gave_up: bool = false
 		if mode == MODE_RANDOM or mode == MODE_GREEDY:

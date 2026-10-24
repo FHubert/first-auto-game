@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 extends GdUnitTestSuite
 
 const KEYS: Array = [
@@ -25,6 +26,7 @@ const KEYS: Array = [
 	"won_within_3_by_bracket",
 	"skips_by_bracket",
 	"median_attempts_by_bracket",
+	"extra_tubes_by_bracket",
 ]
 
 ## 20 rounds is noise-level (seed 7: greedy 19 vs random 20); 50 rounds is stable.
@@ -253,6 +255,43 @@ func test_stay_lost_attempt_repeats_same_level() -> void:
 	var tubes: Array = plateau.last_level_data["payload"]["tubes"]
 	assert_array(tubes).is_equal(expected_plateau["payload"]["tubes"])
 	assert_int(rep_plateau["rounds_by_bracket"]["56+"]).is_equal(3)
+
+
+func _extra_tube_bot(from_attempt: int, min_level: int = 1) -> PlaytestBot:
+	var bot := PlaytestBot.new()
+	bot.stay_on_level = true
+	bot.use_campaign_seed = true
+	bot.attempt_steps_limit = 1
+	bot.extra_tube_from_attempt = from_attempt
+	bot.extra_tube_min_level = min_level
+	return bot
+
+
+func test_extra_tube_from_attempt_1_every_attempt() -> void:
+	var report: Dictionary = _extra_tube_bot(1).run(4, 42, PlaytestBot.MODE_GREEDY)
+	assert_int(report["rounds"]).is_equal(4)
+	assert_int(report["extra_tubes_by_bracket"]["1-7"]).is_equal(4)
+	assert_int(report["softlocks"]).is_equal(0)
+	var rnd := GameRound.new()
+	rnd.start(ContentGenerator.new().generate(1, 1))
+	assert_bool(rnd.add_extra_tube()).is_true()
+	assert_int(rnd.to_dict()["extra_tubes_added"]).is_equal(1)
+
+
+func test_extra_tube_from_attempt_2_skips_first_attempt() -> void:
+	var report: Dictionary = _extra_tube_bot(2).run(1, 42, PlaytestBot.MODE_GREEDY)
+	assert_int(report["extra_tubes_by_bracket"]["1-7"]).is_equal(0)
+	# attempt_steps_limit = 1 => every attempt is lost, so the level repeats: attempts 1..3.
+	var three: Dictionary = _extra_tube_bot(2).run(3, 42, PlaytestBot.MODE_GREEDY)
+	assert_int(three["attempts_by_bracket"]["1-7"]).is_equal(3)
+	assert_int(three["extra_tubes_by_bracket"]["1-7"]).is_equal(2)
+
+
+func test_extra_tube_below_min_level_not_added() -> void:
+	var report: Dictionary = _extra_tube_bot(1, 5).run(3, 42, PlaytestBot.MODE_GREEDY)
+	assert_int(report["extra_tubes_by_bracket"]["1-7"]).is_equal(0)
+	var off: Dictionary = _extra_tube_bot(0).run(3, 42, PlaytestBot.MODE_GREEDY)
+	assert_int(off["extra_tubes_by_bracket"]["1-7"]).is_equal(0)
 
 
 func _stay_report() -> Dictionary:
