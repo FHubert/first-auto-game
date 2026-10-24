@@ -243,6 +243,23 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
   | B: pełny exact w quick, 8 / 3000 | 9,8 / 194,3 | **209,1 / 252,7** | 42449 | 3/12 | 1/30 | bez zmian |
 
   Decyzja T-166: nie warto — wartości bez zmian (250 / 6 / 1000), flaga B usunięta. Sam większy budżet szybkiego przebiegu nie daje ani jednego `min_moves_exact` dla 26–37 (0/12), a podnosi p95 kampanii do 97,5 ms; jedyna konfiguracja z jakimkolwiek exact (B 8/3000: 3/12 — poziomy 26, 29, 35) łamie bramkę czasu Poziomu dnia (mediana 209 ms, p95 253 ms; 8 kolorów w daily). Poziomy 26–37 mają 7–8 kolorów i dokładny A* przy ≤ 3000 stanach rozstrzyga je rzadko — dokładna premia „idealnie” w tym przedziale wymagałaby lepszej heurystyki solvera, nie budżetu (Inbox). Golden hashe 1/2/10/50 identyczne we wszystkich konfiguracjach (zmiany budżetu dotykają tylko poziomów, których szybki przebieg nie rozstrzyga).
+
+  Pomiar T-171 (2026-10-24, `measure_gen_exact.gd` rozszerzony tymczasowo o oś `SortSolver.heuristic_mode`; ms z maszyny CI, 2 pełne przebiegi siatki, poniżej drugi — pierwszy różnił się o <= 3 ms; bramka jak T-129). Tryb 1: h = max(h_granice, h2), h2 = Σ_kolory (segmenty koloru na planszy − 1), dopuszczalna, bo jeden przelew łączy co najwyżej jedną parę segmentów tego samego koloru (h2 spada o <= 1), a h2 > h, gdy niepustych probówek jest więcej niż kolorów (h = segmenty − niepuste probówki, h2 = segmenty − kolory). Dowód empiryczny: `moves` identyczne we wszystkich przypadkach `exact` regresji.
+
+  | `heuristic_mode` / `gen_exact_max_colors` / `gen_exact_state_budget` | mediana / p95 ms kampania | mediana / p95 ms daily | `expanded_total` | exact 26–37 | exact daily | golden 1/2/10/50 |
+  |---|---|---|---|---|---|---|
+  | 0 / 6 / 1000 | 10,3 / 43,1 | 3,6 / 15,6 | 17154 | 0/12 | 0/30 | bez zmian |
+  | 0 / 6 / 3000 | 10,3 / 41,4 | 2,9 / 13,3 | 17154 | 0/12 | 0/30 | bez zmian |
+  | 0 / 8 / 1000 | 10,8 / 41,5 | 21,4 / 32,4 | 17154 | 0/12 | 0/30 | bez zmian |
+  | 0 / 8 / 3000 | 11,3 / 44,2 | 23,6 / 64,7 | 17154 | 0/12 | 0/30 | bez zmian |
+  | 1 / 6 / 1000 | 9,9 / 40,7 | 3,8 / 6,9 | 16278 | 0/12 | 0/30 | bez zmian |
+  | 1 / 6 / 3000 | 10,8 / 43,3 | 3,7 / 6,8 | 16278 | 0/12 | 0/30 | bez zmian |
+  | 1 / 8 / 1000 | 10,0 / 42,0 | **29,8** / 37,8 | 16627 | **6/12** | 7/30 | bez zmian |
+  | 1 / 8 / 3000 | 10,0 / 39,2 | **31,8** / 51,9 | 16627 | **6/12** | 7/30 | bez zmian |
+
+  Wpływ na pojedynczy solve (regresja, ta sama plansza): poziom 2 (exact) 56 → 9 stanów, poziom 10 (exact) 227 → 17, poziom 26 (exact, budżet 50000) 1215 → 42, z `moves` bez zmian; poziom 26 i Poziom dnia przy budżecie 1000 z „brak rozwiązania” → exact 16 / 23 ruchy (42 / 95 stanów); poziom 50 nadal nierozstrzygnięty w 1000. Ważony A* (fallback) zmienia ruchy (poziom 26: 18 → 19, 50: 38 → 37, daily: 25 → 24), czyli także poziomy poza 26–37.
+
+  Decyzja T-171: nie warto — bramka niespełniona na jednym kryterium: jedyna konfiguracja z exact >= 6/12 (tryb 1, 8 kolorów, budżet 1000 lub 3000) ma medianę Poziomu dnia 29,8–31,8 ms (> 25 ms; powtórzone w 2 przebiegach), bo exact obejmuje wtedy 8-kolorowe daily (7/30 exact), choć kampania mieści się w bramce (mediana 10 ms, p95 <= 42 ms). Kod `heuristic_mode` usunięty, `GameConfig.DEFAULTS` i golden hashe bez zmian. Heurystyka jest wartościowa (poziomy 26–37 6/12 exact przy 8 kolorach), więc wniosek do Inbox: osobne zadanie — `gen_exact_max_colors` zależne od trybu (kampania 8, daily 6) albo mediana daily mierzona z limitem czasu zamiast stałej 25 ms; wymaga też aktualizacji golden hashy i `EXPANDED_BUDGET` (zmienia się ważony fallback).
 - Co dzieje się z poziomem, który nie przechodzi testu: generator sam regeneruje z `seed + attempt` (attempt = 1..`gen_max_attempts`-1) — opisane w kroku 6; poziom nigdy nie trafia do gracza nierozwiązywalny. Jeśli w zakresie testowym wystąpi poziom bez rozwiązywalnej próby → test czerwony i zadanie na strojenie (`empty_tubes`, `gen_max_attempts`), nie wyłączenie testu.
 
 ## Ekrany
