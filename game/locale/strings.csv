@@ -86,3 +86,6 @@ shop_restore_none,Nothing to restore,Brak zakupów do przywrócenia,Nichts wiede
 shop_reason_extra_tube,Not enough coins for a tube,Za mało monet na probówkę,Zu wenig Münzen für ein Röhrchen
 shop_reason_hint,Not enough coins for a hint,Za mało monet na podpowiedź,Zu wenig Münzen für einen Tipp
 shop_reason_undo_refill,Not enough coins for undos,Za mało monet na cofnięcia,Zu wenig Münzen für Rückgängig
+share_daily_moves,%d moves (min %d),%d ruchów (min %d),%d Züge (min %d)
+btn_copy_result,Copy result,Kopiuj wynik,Ergebnis kopieren
+btn_copied,Copied!,Skopiowano!,Kopiert!
