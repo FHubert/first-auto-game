@@ -89,6 +89,7 @@ Przykładowe wartości (z wzorów powyżej, do potwierdzenia testem generatora):
 - Tempo: przy ~10–12 poziomach/dzień (3 sesje × 4 poziomy, założenie z KPI „sesje/DAU" cel 3,0) gracz osiąga plateau 12 kolorów ok. dnia 5–6; dalej różnorodność daje `d` (próg ruchów) i breathery.
 - Pierwszy „ładny" moment: sesja 2–3 (dzień 1–2) — pierwszy kupiony motyw (koszt `theme_cost_base` = 600 monet ≈ 1,5–2 dni gry, patrz Ekonomia). Drugi: dzień 7 streaka (nagroda ×6 = 300 monet).
 - Odblokowania: co 6 poziomów +1 kolor (komunikat na ekranie wygranej), Poziom dnia dostępny od ukończenia poziomu `daily_unlock_level` = 3 (po tutorialu), sklep motywów od poziomu 1.
+- Gracz casualowy (bot greedy, `--campaign`, seed 42, 200 rund; `make playtest` → `playtest_greedy.json`): 73 wygrane / 127 porażek, 0 softlocków. Win rate per przedział: 1–7 = 100 % (7/7), 8–25 = 100 % (18/18), 26–55 = 66,7 % (20/30), 56+ = 19,3 % (28/145). Reguła: 1–7 < 100 % albo 8–25 < 85 % → wpis do Inbox o strojeniu krzywej (stan: spełniona). Dla porównania bot random: 65 wygranych (26–55: 53,3 %, 56+: 16,6 %).
 
 ## Ekonomia
 *Waluty, źródła i sinki. Wartości startowe trzymamy w `game/src/systems/config.gd`, nie w tym dokumencie.*

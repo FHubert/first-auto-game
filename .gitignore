@@ -9,6 +9,8 @@ game/test/reports/*.xml
 game/test/reports/*.json
 game/test/reports/*.html
 game/test/reports/*/
+# gdUnit4 default report dir when run outside `make test` (e.g. single suite from CLI)
+game/reports/
 # Secrets
 *.keystore
 *.jks
