@@ -232,6 +232,7 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 - Testy muszą czekać na zadania (inaczej wycieki / „still in use” jak w T-112); test `take` po `request` == wynik synchroniczny pilnuje determinizmu.
 - Jeżeli w przyszłości `GameConfig` będzie zmieniany w trakcie gry (np. A/B w locie), prefetch musi brać snapshot wartości — wtedy nowy ADR.
 - Poziom dnia i pierwszy poziom po starcie aplikacji nadal synchroniczne (later: prefetch Poziomu dnia przy wejściu na `Home`).
+- Rozszerzenie (T-167): `App` zleca `request(campaign_seed, state.level)` przy wejściu na `Home` (pomija wznawialną rundę kampanii) i przekazuje instancję do `Level.prefetch` przy „Graj”; wyjście z `Home` gdzie indziej → `cancel_all()`.
 
 
 ## ADR-012: Lokalne notyfikacje — interfejs teraz, plugin w Fazie 5
