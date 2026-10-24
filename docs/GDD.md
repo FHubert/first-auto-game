@@ -174,7 +174,7 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
 - `StuckPanel` (overlay) — „Utknąłeś — X ruchów od celu": cofnij, +probówka (monety / rewarded `extra_tube`), +3 cofnięcia (monety / rewarded `undo_refill`), restart, pomiń (rewarded `skip_level`, po `skip_unlock_restarts` restartach); wejście z: `Level`; wyjście do: `Level`.
 - `LevelComplete` — monety (+premia „idealnie"), „×2" (rewarded `double_coins`), „Dalej"; komunikat o nowym kolorze/postępie motywu; tu (i tylko tu) może wystąpić interstitial `level_end` po „Dalej"; wejście z: `Level`; wyjście do: `Level` (następny), `Home`.
 - `Themes` — siatka motywów (podgląd probówek w palecie), cena / „Aktywny" / „Kup"; wejście z: `Home`; wyjście do: `Home`.
-- `Shop` — IAP: `remove_ads`, `coins_small`, `coins_large`, `starter_pack` (gdy aktywny), „Przywróć zakupy" (wymóg Apple 3.1.1); wejście z: `Home`, `StuckPanel` (brak monet); wyjście do: poprzedni ekran.
+- `Shop` — IAP: `remove_ads`, `coins_small`, `coins_large`, `starter_pack` (gdy aktywny), „Przywróć zakupy" (wymóg Apple 3.1.1); wejście z: `Home`, `StuckPanel` (brak monet); wyjście do: poprzedni ekran; ze `StuckPanel`/HUD otwierany jako overlay nad `Level` (runda i tryb zachowane), z `Home` jako pełny ekran.
 - `Settings` — dźwięk, muzyka, haptyka, język (EN/PL/DE/systemowy), „Przywróć zakupy", „Prywatność / zgoda" (UMP privacy options), wersja (`BUILD_INFO`); wejście z: `Home`, pauza w `Level`; wyjście do: poprzedni ekran.
 
 ## Mechaniki
