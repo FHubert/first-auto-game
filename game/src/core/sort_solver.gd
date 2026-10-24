@@ -10,8 +10,9 @@ const N_F: int = 0
 const N_H: int = 1
 const N_G: int = 2
 const N_BOARD: int = 3
-const N_PATH: int = 4
+const N_PARENT: int = 4  # węzeł-rodzic (Array) albo null dla korzenia
 const N_KEY: int = 5
+const N_MOVE: int = 6  # ruch rodzic -> ten węzeł
 
 
 ## Szuka najkrótszego (weight == 1.0) lub szybkiego (weight > 1.0) rozwiązania.
@@ -30,7 +31,7 @@ static func solve(board: SortBoard, max_states: int, weight: float = EXACT_WEIGH
 	var start_h: int = heuristic(board)
 	var start_key: String = board.canonical_key()
 	best_g[start_key] = 0
-	_push(heap, _node(0, start_h, board, [] as Array[Vector2i], start_key, weight))
+	_push(heap, _node(0, start_h, board, null, Vector2i.ZERO, start_key, weight))
 	var expanded: int = 0
 
 	while not heap.is_empty():
@@ -40,9 +41,8 @@ static func solve(board: SortBoard, max_states: int, weight: float = EXACT_WEIGH
 		if g > int(best_g.get(key, g)):
 			continue  # nieaktualny wpis (znaleziono lepsze g)
 		var cur: SortBoard = node[N_BOARD]
-		var cur_path: Array[Vector2i] = node[N_PATH]
 		if cur.is_won():
-			return _result(g, cur_path, exact_mode, expanded)
+			return _result(g, _path_of(node), exact_mode, expanded)
 		if expanded >= max_states:
 			var empty: Array[Vector2i] = []
 			return _result(NO_SOLUTION, empty, false, expanded)
@@ -55,9 +55,8 @@ static func solve(board: SortBoard, max_states: int, weight: float = EXACT_WEIGH
 			if best_g.has(nk) and int(best_g[nk]) <= ng:
 				continue
 			best_g[nk] = ng
-			var np: Array[Vector2i] = cur_path.duplicate()
-			np.append(m)
-			_push(heap, _node(ng, heuristic(nb), nb, np, nk, weight))
+			_push(heap, _node(ng, heuristic(nb), nb, node, m, nk, weight))
+		node[N_BOARD] = null  # rozwinięty: plansza niepotrzebna, zostaje tylko łańcuch rodziców
 
 	var no_path: Array[Vector2i] = []
 	return _result(NO_SOLUTION, no_path, true, expanded)
@@ -92,9 +91,20 @@ static func _result(moves: int, path: Array[Vector2i], exact: bool, expanded: in
 
 
 static func _node(
-	g: int, h: int, b: SortBoard, path: Array[Vector2i], key: String, weight: float
+	g: int, h: int, b: SortBoard, parent: Variant, move: Vector2i, key: String, weight: float
 ) -> Array:
-	return [float(g) + weight * float(h), h, g, b, path, key]
+	return [float(g) + weight * float(h), h, g, b, parent, key, move]
+
+
+## Odtwarza ścieżkę raz, idąc po rodzicach od węzła wygranej i odwracając wynik.
+static func _path_of(node: Array) -> Array[Vector2i]:
+	var path: Array[Vector2i] = []
+	var cur: Variant = node
+	while cur != null and (cur as Array)[N_PARENT] != null:
+		path.append((cur as Array)[N_MOVE])
+		cur = (cur as Array)[N_PARENT]
+	path.reverse()
+	return path
 
 
 ## Węzeł a lepszy od b: mniejsze f, przy remisie mniejsze h.
