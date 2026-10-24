@@ -57,6 +57,28 @@ class BalanceSimTest(unittest.TestCase):
         r = run(TOOLS / "balance_sim.py", "--players", "200", "--days", "30", "--seed", "1")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
+    def test_plateau_assist_take_rate_zero_equals_disabled(self):
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "o.json"
+            ov.write_text('{"plateau_assist_take_rate": 0}')
+            a = run(TOOLS / "balance_sim.py", "--players", "200", "--json", "--overlay", ov)
+            b = run(TOOLS / "balance_sim.py", "--players", "200", "--json", "--no-plateau-assist")
+            self.assertEqual(a.returncode, 0, a.stdout)
+            ja, jb = json.loads(a.stdout), json.loads(b.stdout)
+            ja.pop("overlay"), jb.pop("overlay")
+            self.assertEqual(ja, jb)
+            self.assertEqual(ja["plateau_assist_coins_per_dau"], 0)
+
+    def test_plateau_assist_take_rate_one_uses_rewarded_extra_tube(self):
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "o.json"
+            ov.write_text('{"plateau_assist_take_rate": 1}')
+            r = run(TOOLS / "balance_sim.py", "--players", "200", "--json", "--overlay", ov)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            j = json.loads(r.stdout)
+            self.assertGreater(j["rewarded_extra_tube_per_dau"], 0)
+            self.assertGreater(j["plateau_assist_coins_per_dau"], 0)
+
     def test_starving_economy_fails(self):
         with tempfile.TemporaryDirectory() as d:
             cfg = Path(d) / "config.gd"
