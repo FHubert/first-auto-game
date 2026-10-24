@@ -30,10 +30,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #9, refill #6): Faza 5 prep IV — wiarygodne CI i kadry, powrót z tła, widoczna meta — przed soft launchem bramka `make check` nie może dawać fałszywych czerwonych (próg 500 ms), PR-y nie mogą nieść przypadkowych PNG, a powrót z tła (najczęstsza ścieżka wejścia na mobile) musi liczyć czas rundy i pokazywać nagrodę dzienną, bo to dźwignie D1/D7 z KPI.md. Kolejność = zależności (T-108 przed zadaniami regenerującymi kadry: T-110, T-111). -->
 
-- [ ] T-107 `review` Test generatora: próg czasu na 95. percentylu + twardy sufit + deterministyczny budżet stanów zamiast pojedynczego `max_ms <= 500` (przeniesione z Inbox T-103; GDD → Generator contentu, kryterium e) → PR #92
-  KA: w `game/test/unit/test_content_generator.gd` → `test_levels_1_to_200_solvable_and_fast`: asercja `timings[0][0] <= MAX_MS_PER_LEVEL` zastąpiona trzema: (1) 95. percentyl czasów 200 poziomów (`timings[9][0]` po sortowaniu malejąco) `<= MAX_MS_PER_LEVEL` (500), (2) maksimum `<= MAX_MS_HARD` (nowa const 2000 — łapie grube regresje), (3) suma `payload.expanded` dla poziomów 1..200 `<= EXPANDED_BUDGET` (nowa const = zmierzona wartość bazowa × 1,10, zaokrąglona; bazowa wypisana w logu testu i w opisie PR) — deterministyczna, niezależna od obciążenia runnera. Asercje rozwiązywalności (a–d) i golden hashe bez zmian; liczba testów gdUnit4 nie maleje. `make test` uruchomione 3× z rzędu — 3× zielone (wynik w PR). `make check` zielone. ≤ ~30 linii.
-  Skill: `godot-test`
-
 - [ ] T-108 `todo` Screenshoty deterministyczne: stały zegar w trybie `--screenshot` + źródło zmian `05_themes.png` (przeniesione z Inbox T-106)
   KA: `ScreenshotArgs.parse` przyjmuje opcjonalne `--now=<unix>` (domyślnie nowa `const SCREENSHOT_NOW_UNIX: int = 1792843200` = 2026-10-24 12:00 UTC, dzień UTC 20750); `main.gd._run_screenshot` liczy `today` z tej wartości zamiast `Time.get_unix_time_from_system()` i ustawia `app.clock` na stały `Callable` przed `add_child` (licznik „do północy” na kadrze 03 i Poziom dnia stałe). Źródło niedeterminizmu `05_themes.png` (PL/DE) ustalone i usunięte (opis przyczyny w PR). Testy gdUnit4 ≥ 2 (`--now` sparsowane; brak `--now` → `SCREENSHOT_NOW_UNIX`). Weryfikacja: `make screenshots` 2× z rzędu → `sha256sum` wszystkich PNG w `fastlane/metadata/android/*/images/phoneScreenshots/` identyczne (wynik w PR); PNG zregenerowane jednorazowo. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `aso`
@@ -67,10 +63,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 <!-- Refill 2026-10-24 (continuous-dev #6, refill #4): poprawność ekonomii i raportów bota (wiarygodność make sim/playtest przed soft launchem), consent bez SDK. -->
 
 <!-- Refill 2026-10-24 (continuous-dev #8, refill #5, P2): reklamy/consent bez SDK — odporność na zawieszony provider i zmianę zgody; refaktor Level po paczce analityki P1; spójność PL. Kolejność = zależności. -->
-
-- [ ] T-101 `review` Refaktor: oferty rewarded i boostery z `Level` do klasy `LevelOffers` (`RefCounted`, bez `Node`), usunięcie `# gdlint: disable=max-public-methods` (przeniesione z Inbox T-090; zależy od T-093, T-094, T-095, T-096, T-097 — te same pliki) → PR #89
-  KA: `watch_*`, `buy_*`, `can_double_coins`, `double_coins_bonus` przeniesione do `game/src/levels/level_offers.gd` (`class_name LevelOffers`, zależności przez konstruktor/`bind`: `GameState`, `GameRound`, `RewardedPlacements`); `Level` wystawia `offers: LevelOffers`, HUD/StuckPanel/LevelComplete łączą się z `level.offers`; grep `max-public-methods` w `level.gd` = 0 i `make lint` zielone; liczba testów gdUnit4 nie maleje, asercje istniejących testów bez zmian (dozwolona tylko zmiana ścieżki wywołania `level.x()` → `level.offers.x()`); `make playtest` 200/200 bez softlocka. Zachowanie bez zmian (refaktor). ≤ ~200 linii zmienionych (głównie przeniesienie).
-  Skill: `godot-dev`
 
 <!-- Refill 2026-10-24 (continuous-dev #9, refill #6, P2): Faza 5 prep IV — higiena testów i kodu Level/App po refaktorze, dostępność, generator w GameConfig — czysty log runnera i testy brzegowe ekonomii zmniejszają ryzyko crashy (crash-free ≥ 99,5 %) przed SDK, symbole kolorów zdejmują barierę 12 kolorów (D1/D7), a budżety generatora w GameConfig pozwalają stroić czas generacji remote configiem. Kolejność = zależności (T-113 po T-101, T-114 po T-109, T-116 po T-107). -->
 
@@ -144,8 +136,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - Refill #6 (T-111): kadr sklepowy 02 — przyjęto: panel LevelComplete kompaktowy przy dolnej krawędzi także w grze (nie tylko w fixture kadru), żeby screenshot pokazywał prawdziwy ekran; do zmiany (alternatywa: specjalny układ tylko w trybie `--screenshot` — szybciej, ale kadr przestaje odpowiadać grze, ryzyko odrzucenia za mylące screenshoty).
 
 ## Done (ostatnie 30)
-- [x] T-063 `done` Consent w UI: `Boot` czeka na `ConsentFlow.finished` przed pierwszym `Ads` load + przycisk „Opcje prywatności” w Settings (zależy od T-062) → PR #56 (zmergowany 2026-10-24)
-- [x] T-064 `done` iOS: `game/ios/PrivacyInfo.xcprivacy` jako plik źródłowy (plist) zgodny z tabelą Privacy Labels w `docs/RELEASE_CHECKLIST.md` + test (bez zmian w `export_presets.cfg` — podpięcie w T-053) → PR #57 (zmergowany 2026-10-24)
 - [x] T-057 `done` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox) → PR #58 (zmergowany 2026-10-24)
 - [x] T-056 `done` BoardView/TubeView: warstwy płynu przycięte do kształtu probówki (dolna warstwa nie wystaje poza zaokrąglenie) (przeniesione z Inbox) → PR #59 (zmergowany 2026-10-24)
 - [x] T-061 `done` Home: odstęp nad przyciskiem „Graj” w karcie Poziomu dnia + regeneracja 15 screenshotów sklepowych (zależy od T-056, T-057, T-063) (przeniesione z Inbox) → PR #60 (zmergowany 2026-10-24)
@@ -174,3 +164,5 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-099 `done` Ads/Audio: watchdog odciszenia (`ad_unmute_timeout_seconds`, `ads:watchdog:unmute`) → PR #87 (zmergowany 2026-10-24)
 - [x] T-100 `done` Consent: re-personalizacja po „Opcjach prywatności”, `consent_finished` dla Settings, `Ads` PROCESS_MODE_ALWAYS → PR #88 (zmergowany 2026-10-24)
 - [x] T-102 `done` Lokalizacja PL: „Uratuj serię” zamiast „Uratuj streak” + test → PR #85 (zmergowany 2026-10-24)
+- [x] T-101 `done` Refaktor: `LevelOffers` (RefCounted, sygnały) — oferty rewarded i boostery poza `Level` → PR #89 (zmergowany 2026-10-24)
+- [x] T-107 `done` Test generatora: próg p95 ≤ 500 ms, sufit 2000 ms, deterministyczny budżet `expanded` → PR #92 (zmergowany 2026-10-24)
