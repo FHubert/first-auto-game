@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS: Dictionary = {
 	"ads_removed": false,
 	"tutorial_done": false,
 	"locale": "",
+	"daily_intro_seen": false,
 }
 ## Int fields as [name, minimum]; default is the initial value of the member.
 const INT_FIELDS: Array = [

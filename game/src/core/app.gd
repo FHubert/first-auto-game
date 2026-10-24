@@ -138,7 +138,7 @@ func show_home() -> void:
 			Analytics.track_design("nav:shop")
 			show_shop()
 	)
-	home.daily_pressed.connect(show_daily_level)
+	home.daily_pressed.connect(_on_home_daily_pressed)
 	add_child(home)
 	_maybe_show_daily_popup(home)
 
@@ -189,6 +189,13 @@ func show_level() -> void:
 		return
 	_discard_snapshot()
 	add_child(level)
+
+
+func _on_home_daily_pressed() -> void:
+	state.settings[Home.DAILY_INTRO_SEEN_KEY] = true
+	SaveSystem.save(state)
+	Analytics.track_design("nav:daily")
+	show_daily_level()
 
 
 func show_daily_level() -> void:

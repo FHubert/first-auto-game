@@ -24,6 +24,7 @@ home_play,Play: level %d,Graj: poziom %d,Spielen: Level %d
 home_streak,Streak: %d,Seria: %d,Serie: %d
 home_streak_best,Best: %d,Rekord: %d,Rekord: %d
 home_daily_total,Completed: %d,Ukończone: %d,Geschafft: %d
+home_daily_new,New!,Nowość!,Neu!
 lc_new_color,Next level: +1 color,Następny poziom: +1 kolor,Nächstes Level: +1 Farbe
 lc_theme_progress,Next theme: %d / %d,Następny motyw: %d / %d,Nächstes Thema: %d / %d
 home_theme_progress,to next theme: %d / %d,do następnego motywu: %d / %d,bis zum nächsten Thema: %d / %d
