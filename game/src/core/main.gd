@@ -87,6 +87,7 @@ func _run_playtest(args: PackedStringArray) -> int:
 		_arg_value(args, "--max-restarts", str(bot.max_restarts_per_round))
 	)
 	bot.use_campaign_seed = "--campaign" in args
+	bot.stay_on_level = "--stay" in args
 	var mode: String = PlaytestBot.MODE_SOLVER
 	if "--greedy" in args:
 		mode = PlaytestBot.MODE_GREEDY
