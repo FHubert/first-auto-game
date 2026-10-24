@@ -175,6 +175,11 @@ func reset_break() -> void:
 	_rewarded_in_break = false
 
 
+## Resets the interstitial cooldown so the next call may show at once (tests / bot).
+func reset_interstitial_cooldown() -> void:
+	_last_interstitial_s = -INF
+
+
 func is_rewarded_ready() -> bool:
 	if consent_state == ConsentState.PENDING:
 		return false
