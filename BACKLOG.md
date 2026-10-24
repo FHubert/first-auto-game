@@ -54,7 +54,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `GameRound.to_dict()/from_dict()` (czysta klasa) — round-trip: plansza, `moves`, stos undo, pozostałe ładunki undo/extra tube, `mode` (`campaign`/`daily`), numer poziomu / dzień UTC; `from_dict` z niespójnych danych (zła pojemność probówki, kolor poza paletą) → `null` (start od nowa, bez crasha). `GameState.SCHEMA_VERSION = 3`, pole `round_in_progress` (Dictionary, domyślnie pusty), migracja v2→v3 w istniejącym wzorcu. Testy gdUnit4 ≥ 5: round-trip po 3 ruchach i 1 undo; daily vs campaign; uszkodzony dict → null; migracja v2→v3; wygrana czyści `round_in_progress`. `make check` zielone. ≤ ~150 linii.
   Skill: `godot-dev`
 
-- [ ] T-082 `review` Wznowienie rundy cz. 2: zapis `round_in_progress` przy `FOCUS_OUT`/`WM_CLOSE_REQUEST` i przed pokazem reklamy, odtworzenie przy starcie (zależy od T-081) → PR #__N__
+- [ ] T-082 `review` Wznowienie rundy cz. 2: zapis `round_in_progress` przy `FOCUS_OUT`/`WM_CLOSE_REQUEST` i przed pokazem reklamy, odtworzenie przy starcie (zależy od T-081) → PR #73
   KA: `App._notification` (istniejące `FOCUS_OUT`/`WM_CLOSE_REQUEST`) i `AdService` przed pokazem zapisują bieżącą rundę; przy starcie, jeśli `round_in_progress` niepusty i zgodny (Poziom dnia z innego dnia UTC → odrzucony), „Graj” na Home wznawia tę rundę. Testy gdUnit4 z wstrzykniętym zegarem: (a) 3 ruchy → symulowany `FOCUS_OUT` → nowy `App` → Level ma te same `moves` i planszę; (b) daily z wczoraj → nowa runda; (c) wygrana → `round_in_progress` pusty; (d) wznowienie nie emituje nowego `level_start` (`FakeAnalyticsProvider`). `make check` zielone. ≤ ~120 linii.
   Skill: `godot-dev`
 
