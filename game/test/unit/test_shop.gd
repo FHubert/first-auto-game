@@ -36,6 +36,16 @@ func _shop(level: int = 12) -> ShopScreen:
 	return s
 
 
+func test_backdrop_is_opaque_first_child() -> void:
+	var s := _shop()
+	assert_object(s.get_child(0)).is_same(s.backdrop)
+	assert_float(s.backdrop.anchor_right).is_equal(1.0)
+	assert_float(s.backdrop.anchor_bottom).is_equal(1.0)
+	var box := s.backdrop.get_theme_stylebox("panel") as StyleBoxFlat
+	assert_object(box).is_not_null()
+	assert_float(box.bg_color.a).is_equal(1.0)
+
+
 func test_starter_window() -> void:
 	var s := _shop(12)
 	assert_bool(s.has_card("starter_pack")).is_true()

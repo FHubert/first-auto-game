@@ -337,6 +337,11 @@ func _finish_purchase(ok: bool) -> bool:
 	return ok
 
 
+## Odswieza HUD/plansze/stuck panel po powrocie ze sklepu (overlay).
+func refresh_after_shop() -> void:
+	_after_action()
+
+
 func _after_action() -> void:
 	board.refresh()
 	hud.refresh()

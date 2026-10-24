@@ -7,6 +7,7 @@ signal purchase_requested(sku: String)
 
 const FONT_SIZE: int = 32
 const MARGIN: int = 48
+const UI_THEME: Theme = preload("res://assets/fonts/ui_theme.tres")
 const SKU_ORDER: Array[String] = ["starter_pack", "remove_ads", "coins_small", "coins_large"]
 
 var state: GameState
@@ -14,6 +15,7 @@ var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system()
 var reason: String = ""
 var coins_label: Label
 var reason_label: Label
+var backdrop: PanelContainer
 var status_label: Label
 var restore_button: Button
 var back_button: Button
@@ -116,6 +118,12 @@ func _button(parent: Control, text: String, height: int) -> Button:
 
 
 func _build() -> void:
+	backdrop = PanelContainer.new()
+	backdrop.theme = UI_THEME
+	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(backdrop)
+	move_child(backdrop, 0)
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for side: String in ["left", "top", "right", "bottom"]:
