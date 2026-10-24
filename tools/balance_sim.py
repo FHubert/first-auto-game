@@ -42,8 +42,8 @@ DEFAULT_CONFIG = ROOT / "game" / "src" / "systems" / "config.gd"
 BUILTIN = {
     # --- keys that mirror GameConfig.DEFAULTS (overridden from config.gd) ---
     "starting_coins": 100,
-    "win_reward_coins": 10,
-    "par_bonus_coins": 5,
+    "win_reward_coins": 15,
+    "par_bonus_coins": 10,
     "rewarded_multiplier": 2.0,
     "daily_reward_base": 50,
     "daily_reward_multipliers": [1, 1, 2, 2, 3, 3, 6],
@@ -56,8 +56,8 @@ BUILTIN = {
     "undo_refill_cost_coins": 20,
     "theme_cost_base": 600,
     "theme_cost_growth": 1.8,
-    "interstitial_every_n_rounds": 3,
-    "interstitial_min_seconds": 90,
+    "interstitial_every_n_rounds": 5,
+    "interstitial_min_seconds": 120,
     "interstitial_min_level": 8,
     "rewarded_double_coins_min_level": 2,
     "streak_grace_days": 1,
