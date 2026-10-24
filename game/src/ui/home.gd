@@ -13,6 +13,8 @@ const ICON_STREAK: String = "res://assets/sprites/ui/icon_streak.svg"
 const FONT_SIZE: int = 32
 const BUTTON_HEIGHT: int = 100
 const MARGIN: int = 48
+const CARD_SEPARATION: int = 16
+const CARD_PADDING: int = 20
 
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
@@ -120,8 +122,13 @@ func _build() -> void:
 func _build_daily_card(parent: Control) -> void:
 	daily_card = PanelContainer.new()
 	parent.add_child(daily_card)
+	var pad := MarginContainer.new()
+	for side: String in ["left", "top", "right", "bottom"]:
+		pad.add_theme_constant_override("margin_" + side, CARD_PADDING)
+	daily_card.add_child(pad)
 	var col := VBoxContainer.new()
-	daily_card.add_child(col)
+	col.add_theme_constant_override("separation", CARD_SEPARATION)
+	pad.add_child(col)
 	daily_title_label = Label.new()
 	daily_title_label.text = tr("daily_challenge_title")
 	daily_status_label = Label.new()

@@ -40,7 +40,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: plist z `NSPrivacyTracking` (true — AdMob z ATT), `NSPrivacyTrackingDomains`, `NSPrivacyCollectedDataTypes` (typy z tabeli T-052), `NSPrivacyAccessedAPITypes` (UserDefaults / FileTimestamp / SystemBootTime z kodami powodów — każdy kod z linkiem do dokumentacji Apple w komentarzu PR albo `ZWERYFIKUJ`). Test w `tools/test_tools.py`: `plistlib.load` parsuje plik, 4 klucze główne istnieją, każdy typ danych z tabeli Privacy Labels występuje w `NSPrivacyCollectedDataTypes` (i odwrotnie). Domeny trackingu SDK: tylko potwierdzone w dokumentacji Google, inaczej pusta lista + `ZWERYFIKUJ` w `docs/RELEASE_CHECKLIST.md`. `make check` zielone (po T-034 test wchodzi w bramkę). ≤ ~120 linii.
   Skill: `store-release`
 
-- [ ] T-057 `todo` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox)
+- [ ] T-057 `review` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox) → PR #58
   KA: fixture kadru LevelComplete w `ScreenshotFixtures` ustawia `show_result` z wartościami z ekonomii (`win_reward_coins` + premia „idealnie” z `GameConfig`, nie literały) — test gdUnit4: etykieta monet po fixture ≠ „+0” i równa `Economy`-wyliczonej kwocie; `perfect_label` widoczny. `make screenshots` → kadr 02 ×3 języki odświeżony. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `godot-dev`
 
@@ -48,7 +48,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: rysowanie warstw w `tube_view.gd` ograniczone do wnętrza probówki (np. dolna warstwa jako prostokąt + zaokrąglony spód o promieniu z sprite'a, albo `clip_children` z maską) dla obu kształtów z T-018; stałe proporcji jako nazwane `const`/klucze. Test gdUnit4: dla probówki pełnej i z 1 warstwą prostokąt/obrys dolnej warstwy mieści się w `Rect2` wnętrza probówki (z tolerancją 1 px) w obu kształtach. Kadr Level (01) obejrzany po `make screenshots`. `make check` zielone. ≤ ~100 linii.
   Skill: `godot-dev`
 
-- [ ] T-061 `todo` Home: odstęp nad przyciskiem „Graj” w karcie Poziomu dnia + regeneracja 15 screenshotów sklepowych (zależy od T-056, T-057, T-063) (przeniesione z Inbox)
+- [ ] T-061 `review` Home: odstęp nad przyciskiem „Graj” w karcie Poziomu dnia + regeneracja 15 screenshotów sklepowych (zależy od T-056, T-057, T-063) (przeniesione z Inbox) → PR #60
   KA: `separation` VBox karty z nazwanej stałej/stylu (≥ 12 px przy 1080×1920); test gdUnit4: odstęp między etykietą stanu a przyciskiem „Graj” ≥ stała. `make screenshots` → 15 PNG (5 kadrów × EN/PL/DE) odświeżonych i zacommitowanych, test rozmiarów z T-050 zielony; kadry 01–05 obejrzane, lista uwag w opisie PR. `make check` zielone. ≤ ~40 linii + PNG.
   Skill: `aso`
 
@@ -93,6 +93,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-069 `todo` ConsentFlow: `ok=false` z `request_consent_info_update` idzie dalej ze statusem providera (`unknown`) — rozważyć osobny event `consent:ump:error` + test; `FakeConsentProvider` nie umie zwrócić `ok=false`. Skill: ads-iap
 - [ ] T-070 `todo` Ads.show_privacy_options: po zamknięciu opcji prywatności (callback ze statusem) ponownie ustawić `provider.set_personalized` wg nowej zgody + odświeżyć `Settings.apply_from_state` przez `Ads.consent_finished`; `Ads` jako autoload może potrzebować `process_mode = PROCESS_MODE_ALWAYS` dla `poll()` przy pauzie drzewa. Skill: ads-iap
 - [ ] T-071 `todo` iOS manifest (T-053): sprawdzić, czy preset iOS Godota 4.7 generuje własny PrivacyInfo.xcprivacy z opcji `privacy/*` (nie dublować z `game/ios/PrivacyInfo.xcprivacy`) i czy engine wymaga dodatkowych kategorii required-reason API (np. DiskSpace/statfs); zweryfikować kody powodów CA92.1/C617.1/35F9.1 i linked/tracking 6 typów. Skill: store-release
+- [ ] T-072 `todo` Home/ASO: etykieta `home_streak` w PL/DE pokazuje „Streak: %d” (nieprzetłumaczone — kadr 03/04 PL/DE); przetłumaczyć („Seria: %d” / „Serie: %d”), sprawdzić inne klucze z angielskim w PL/DE; popup 04 nachodzi na kartę Poziomu dnia (ucięty napis w tle) — rozważyć ukrycie karty pod popupem. Skill: aso
 - [ ] T-067 `todo` tools/test_tools.py: `Image.open` bez `with` → ResourceWarning: unclosed file w logu testów; użyć `with Image.open(...) as im`. Skill: godot-test
 - [ ] T-058 `todo` Screenshoty iOS 6,9" (1320×2868) w `fastlane/metadata/ios/<locale>/` — tylko po weryfikacji wymaganego rozmiaru w dokumentacji App Store Connect (link w zadaniu). Skill: aso
 - [ ] T-059 `todo` `export/screenshots_raw/` jest ignorowane, ale `fastlane/metadata/android/*/images/` nie — ustalić politykę (commitowane tylko kadry sklepowe z T-050; smoke-screenshoty z `screens.txt` do `export/`). Skill: aso
