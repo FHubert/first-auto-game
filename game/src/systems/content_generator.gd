@@ -28,7 +28,7 @@ func generate(seed_value: int, level: int) -> Dictionary:
 ## Daily Level for a UTC day number (level 0, seed from daily_seed_salt).
 func generate_daily(utc_day: int) -> Dictionary:
 	var params: Dictionary = daily_params(utc_day)
-	var salt: int = int(GameConfig.get_value("daily_seed_salt", 104729))
+	var salt: int = int(GameConfig.get_value("daily_seed_salt"))
 	var data: Dictionary = _generate_with_params(_mix(salt, utc_day), params, 0)
 	return {
 		"seed": salt,
@@ -77,7 +77,7 @@ func _generate_with_params(level_seed: int, params: Dictionary, level: int) -> D
 ## Tries gen_max_attempts shuffles; returns the first board reaching the floor,
 ## else the best solvable one, else {}.
 func _search(level_seed: int, params: Dictionary) -> Dictionary:
-	var max_states: int = int(GameConfig.get_value("solver_max_states", 50000))
+	var max_states: int = int(GameConfig.get_value("solver_max_states"))
 	# Cheap pass first: boards the solver cannot crack quickly are skipped (reshuffled).
 	var quick_budget: int = int(GameConfig.get_value("gen_quick_state_budget"))
 	var quick: Dictionary = _search_pass(level_seed, params, mini(max_states, quick_budget))
@@ -88,8 +88,8 @@ func _search(level_seed: int, params: Dictionary) -> Dictionary:
 
 ## One pass over the attempts with `max_states` for both exact and weighted solves.
 func _search_pass(level_seed: int, params: Dictionary, max_states: int) -> Dictionary:
-	var attempts: int = int(GameConfig.get_value("gen_max_attempts", 20))
-	var weight: float = float(GameConfig.get_value("solver_fallback_weight", 3.0))
+	var attempts: int = int(GameConfig.get_value("gen_max_attempts"))
+	var weight: float = float(GameConfig.get_value("solver_fallback_weight"))
 	var floor_moves: int = int(params["min_moves_floor"])
 	var best: Dictionary = {}
 	var best_moves: int = 0
@@ -174,26 +174,26 @@ func _empty_payload(params: Dictionary) -> Dictionary:
 
 ## Level parameters from GameConfig (colors, tubes, breather, difficulty, min moves).
 func level_params(level: int) -> Dictionary:
-	var colors: int = int(GameConfig.get_value("tutorial_colors", 2))
+	var colors: int = int(GameConfig.get_value("tutorial_colors"))
 	if level > 1:
-		var per_extra: int = maxi(1, int(GameConfig.get_value("levels_per_extra_color", 6)))
+		var per_extra: int = maxi(1, int(GameConfig.get_value("levels_per_extra_color")))
 		var extra: int = (level - 2) / per_extra
 		colors = mini(
-			int(GameConfig.get_value("colors_max", 12)),
-			int(GameConfig.get_value("colors_start", 3)) + extra
+			int(GameConfig.get_value("colors_max")),
+			int(GameConfig.get_value("colors_start")) + extra
 		)
-	var every: int = maxi(1, int(GameConfig.get_value("breather_every", 5)))
+	var every: int = maxi(1, int(GameConfig.get_value("breather_every")))
 	var breather: bool = level % every == 0
 	var d: float = difficulty_curve(level)
 	if breather:
-		d *= float(GameConfig.get_value("breather_factor", 0.65))
+		d *= float(GameConfig.get_value("breather_factor"))
 	d = clampf(d, 0.0, 1.0)
-	var easy: float = float(GameConfig.get_value("min_moves_factor_easy", 1.2))
-	var hard: float = float(GameConfig.get_value("min_moves_factor_hard", 2.0))
-	var empty: int = int(GameConfig.get_value("empty_tubes", 2))
+	var easy: float = float(GameConfig.get_value("min_moves_factor_easy"))
+	var hard: float = float(GameConfig.get_value("min_moves_factor_hard"))
+	var empty: int = int(GameConfig.get_value("empty_tubes"))
 	return {
 		"level": level,
-		"capacity": int(GameConfig.get_value("tube_capacity", 4)),
+		"capacity": int(GameConfig.get_value("tube_capacity")),
 		"empty_tubes": empty,
 		"colors": colors,
 		"tubes": colors + empty,
@@ -205,16 +205,16 @@ func level_params(level: int) -> Dictionary:
 
 ## Parameters for the Daily Level (level 0, fixed colors and move factor).
 func daily_params(utc_day: int) -> Dictionary:
-	var colors: int = int(GameConfig.get_value("daily_colors", 8))
-	var factor: float = float(GameConfig.get_value("daily_min_moves_factor", 1.8))
-	var easy: float = float(GameConfig.get_value("min_moves_factor_easy", 1.2))
-	var hard: float = float(GameConfig.get_value("min_moves_factor_hard", 2.0))
-	var empty: int = int(GameConfig.get_value("empty_tubes", 2))
+	var colors: int = int(GameConfig.get_value("daily_colors"))
+	var factor: float = float(GameConfig.get_value("daily_min_moves_factor"))
+	var easy: float = float(GameConfig.get_value("min_moves_factor_easy"))
+	var hard: float = float(GameConfig.get_value("min_moves_factor_hard"))
+	var empty: int = int(GameConfig.get_value("empty_tubes"))
 	var span: float = maxf(hard - easy, 0.0001)
 	return {
 		"level": 0,
 		"utc_day": utc_day,
-		"capacity": int(GameConfig.get_value("tube_capacity", 4)),
+		"capacity": int(GameConfig.get_value("tube_capacity")),
 		"empty_tubes": empty,
 		"colors": colors,
 		"tubes": colors + empty,
@@ -226,8 +226,8 @@ func daily_params(utc_day: int) -> Dictionary:
 
 ## Logistic curve between difficulty_min and difficulty_max (all from GameConfig).
 func difficulty_curve(level: int) -> float:
-	var d_min: float = float(GameConfig.get_value("difficulty_min", 0.1))
-	var d_max: float = float(GameConfig.get_value("difficulty_max", 1.0))
-	var mid: float = float(GameConfig.get_value("difficulty_midpoint_level", 20))
-	var k: float = float(GameConfig.get_value("difficulty_steepness", 0.15))
+	var d_min: float = float(GameConfig.get_value("difficulty_min"))
+	var d_max: float = float(GameConfig.get_value("difficulty_max"))
+	var mid: float = float(GameConfig.get_value("difficulty_midpoint_level"))
+	var k: float = float(GameConfig.get_value("difficulty_steepness"))
 	return d_min + (d_max - d_min) / (1.0 + exp(-k * (float(level) - mid)))

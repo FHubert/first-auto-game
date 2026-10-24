@@ -32,7 +32,7 @@ func _ready() -> void:
 	skip_button.text = tr("btn_skip_ad")
 	close_button.text = tr("btn_close")
 	extra_tube_button.text = tr("btn_extra_tube") % Economy.extra_tube_cost()
-	var amount: int = int(GameConfig.get_value("undo_refill_amount", 3))
+	var amount: int = int(GameConfig.get_value("undo_refill_amount"))
 	undo_refill_button.text = tr("btn_undo_refill") % [amount, Economy.undo_refill_cost()]
 	extra_tube_ad_button.text = tr("btn_extra_tube_ad")
 	undo_refill_ad_button.text = tr("btn_undo_refill_ad") % amount

@@ -43,7 +43,7 @@ func _process(_delta: float) -> void:
 func poll_watchdog() -> void:
 	if not _ad_break_open or _watchdog_fired:
 		return
-	var limit: float = float(GameConfig.get_value("ad_unmute_timeout_seconds", 90))
+	var limit: float = float(GameConfig.get_value("ad_unmute_timeout_seconds"))
 	if float(clock.call()) - _muted_at_s >= limit:
 		_watchdog_fired = true
 		_ad_break_open = false
@@ -133,9 +133,9 @@ func _make_default_consent_provider() -> ConsentProvider:
 ## True when an interstitial was shown. Needs: ads not removed, level >= min level,
 ## level hits the every-N cap, min-seconds gap, no rewarded ad in this break, ad ready.
 func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
-	var every_n: int = int(GameConfig.get_value("interstitial_every_n_rounds", 5))
-	var min_seconds: float = float(GameConfig.get_value("interstitial_min_seconds", 120))
-	var min_level: int = int(GameConfig.get_value("interstitial_min_level", 8))
+	var every_n: int = int(GameConfig.get_value("interstitial_every_n_rounds"))
+	var min_seconds: float = float(GameConfig.get_value("interstitial_min_seconds"))
+	var min_level: int = int(GameConfig.get_value("interstitial_min_level"))
 	# Every call marks the end of a break, so the flag is always consumed.
 	var rewarded_in_break: bool = _rewarded_in_break
 	_rewarded_in_break = false

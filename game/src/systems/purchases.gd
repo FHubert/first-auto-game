@@ -65,18 +65,12 @@ func grant(sku: String) -> bool:
 		SKU_REMOVE_ADS:
 			state.settings["ads_removed"] = true
 		SKU_COINS_SMALL:
-			Economy.earn(
-				state, int(GameConfig.get_value("iap_coins_small", 500)), Economy.SOURCE_IAP
-			)
+			Economy.earn(state, int(GameConfig.get_value("iap_coins_small")), Economy.SOURCE_IAP)
 		SKU_COINS_LARGE:
-			Economy.earn(
-				state, int(GameConfig.get_value("iap_coins_large", 1500)), Economy.SOURCE_IAP
-			)
+			Economy.earn(state, int(GameConfig.get_value("iap_coins_large")), Economy.SOURCE_IAP)
 		SKU_STARTER:
-			Economy.earn(
-				state, int(GameConfig.get_value("iap_starter_coins", 800)), Economy.SOURCE_IAP
-			)
-			var theme_id: String = str(GameConfig.get_value("iap_starter_theme", "neon"))
+			Economy.earn(state, int(GameConfig.get_value("iap_starter_coins")), Economy.SOURCE_IAP)
+			var theme_id: String = str(GameConfig.get_value("iap_starter_theme"))
 			if not state.owns_theme(theme_id):
 				state.themes_owned.append(theme_id)
 	if NON_CONSUMABLE.has(sku):
@@ -92,11 +86,11 @@ func grant(sku: String) -> bool:
 func starter_offer_visible(level: int, now_unix: int) -> bool:
 	if state == null or state.has_purchase(SKU_STARTER):
 		return false
-	if level < int(GameConfig.get_value("starter_offer_min_level", 12)):
+	if level < int(GameConfig.get_value("starter_offer_min_level")):
 		return false
 	if state.starter_offer_start_day == 0:
 		state.starter_offer_start_day = now_unix
-	var window_s: int = int(GameConfig.get_value("starter_offer_hours", 72)) * 3600
+	var window_s: int = int(GameConfig.get_value("starter_offer_hours")) * 3600
 	return now_unix - state.starter_offer_start_day < window_s
 
 
