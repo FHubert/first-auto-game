@@ -22,7 +22,7 @@ Exit code 1 when the economy
 Ad density (interstitial <= 2.5, total >= 3.0 per DAU) only prints a WARN, it does not fail.
 Statistics are taken over *engaged* players (active on >= 2 of the first 7 days).
 
-Usage: python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 [--json] [--config PATH]
+Usage: python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 [--json] [--config PATH] [--overlay PATH]
 """
 from __future__ import annotations
 
@@ -115,6 +115,39 @@ def load_config(path: Path) -> tuple[dict, list[str]]:
             found += 1
     notes.append(f"loaded {found} known key(s) from {path.name}")
     return cfg, notes
+
+
+def apply_overlay(cfg: dict, path: Path) -> tuple[list[str], list[str]]:
+    """Overlay a remote-config JSON on cfg in place; returns (applied keys, ignored keys).
+
+    Raises FileNotFoundError / ValueError (bad JSON or non-object) for the caller to report.
+    """
+    if not path.exists():
+        raise FileNotFoundError(str(path))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"overlay is not valid JSON: {path} ({e})") from e
+    if not isinstance(data, dict):
+        raise ValueError(f"overlay must be a JSON object: {path}")
+    applied: list[str] = []
+    ignored: list[str] = []
+    for key, val in data.items():
+        old = cfg.get(key)
+        if key not in cfg or isinstance(val, (str, bool)) or val is None:
+            ignored.append(key)
+        elif isinstance(old, list):
+            if not isinstance(val, list) or not all(isinstance(x, (int, float)) for x in val):
+                ignored.append(key)
+                continue
+            cfg[key] = [int(x) if float(x).is_integer() else x for x in val]
+            applied.append(key)
+        elif isinstance(val, (int, float)):
+            cfg[key] = int(val) if isinstance(old, int) and float(val).is_integer() else val
+            applied.append(key)
+        else:
+            ignored.append(key)
+    return applied, ignored
 
 
 def poisson(rnd: random.Random, lam: float) -> int:
@@ -315,6 +348,8 @@ def main(argv: list | None = None) -> int:
     ap.add_argument("--days", type=int, default=30)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    ap.add_argument("--overlay", type=Path, default=None,
+                    help="JSON z docs/remote_config/ nakladany na config.gd (klucze nieznane symulacji sa ignorowane)")
     ap.add_argument("--json", action="store_true", help="print machine-readable JSON only")
     args = ap.parse_args(argv)
     if args.days < 8:
@@ -323,6 +358,18 @@ def main(argv: list | None = None) -> int:
     cfg, notes = load_config(args.config)
     for n in notes:
         print(f"[balance_sim] {n}", file=sys.stderr)
+    if args.overlay is not None:
+        try:
+            applied, ignored = apply_overlay(cfg, args.overlay)
+        except FileNotFoundError:
+            print(f"[balance_sim] overlay not found: {args.overlay}", file=sys.stderr)
+            return 2
+        except ValueError as e:
+            print(f"[balance_sim] {e}", file=sys.stderr)
+            return 2
+        for k in ignored:
+            print(f"[balance_sim] ignored overlay key: {k}", file=sys.stderr)
+        print(f"[balance_sim] applied overlay {args.overlay.name}: {len(applied)} key(s)", file=sys.stderr)
 
     res = simulate(cfg, args.players, args.days, args.seed)
     if res["engaged"] == 0:
@@ -363,6 +410,7 @@ def main(argv: list | None = None) -> int:
         "players": args.players,
         "days": args.days,
         "seed": args.seed,
+        "overlay": str(args.overlay) if args.overlay else None,
         "engaged_players": eng,
         "median_coins_day1": day1,
         "median_coins_day7": day7,
@@ -388,7 +436,8 @@ def main(argv: list | None = None) -> int:
     if args.json:
         print(json.dumps(out, indent=2))
     else:
-        print(f"players={args.players} days={args.days} seed={args.seed} engaged={eng}")
+        ov = args.overlay.name if args.overlay else "none"
+        print(f"players={args.players} days={args.days} seed={args.seed} overlay={ov} engaged={eng}")
         print(f"median coins: day1={day1:.0f}  day7={day7:.0f}  day{args.days}={last:.0f}")
         print(f"median themes owned by day 7: {med_themes_d7:.1f}")
         fm = "n/a" if first_med is None else f"{first_med:.0f}"

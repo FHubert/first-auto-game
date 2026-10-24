@@ -1,4 +1,5 @@
 """Self-tests for the python/bash tools. Run: python3 -m unittest discover -s tools -p "test_*.py"."""
+import importlib.util
 import json
 import os
 import shutil
@@ -87,6 +88,48 @@ class BalanceSimTest(unittest.TestCase):
     def test_interstitial_min_level_caps(self):
         data = self._json('\t"interstitial_min_level": 1000,\n')
         self.assertEqual(data["interstitials_per_dau"], 0)
+
+    def _sim_module(self):
+        spec = importlib.util.spec_from_file_location("balance_sim", TOOLS / "balance_sim.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_overlay_h1_changes_rewarded_multiplier_and_coins(self):
+        ov = ROOT / "docs" / "remote_config" / "h1_b.json"
+        args = ("--json", "--players", "200", "--seed", "1")
+        with_ov = json.loads(run(TOOLS / "balance_sim.py", *args, "--overlay", ov).stdout)
+        base = json.loads(run(TOOLS / "balance_sim.py", *args).stdout)
+        self.assertTrue(with_ov["overlay"].endswith("h1_b.json"))
+        self.assertIsNone(base["overlay"])
+        self.assertNotEqual(with_ov["median_coins_day7"], base["median_coins_day7"])
+        sim = self._sim_module()
+        cfg, _ = sim.load_config(sim.DEFAULT_CONFIG)
+        applied, _ignored = sim.apply_overlay(cfg, ov)
+        self.assertEqual(cfg["rewarded_multiplier"], 3.0)
+        self.assertIn("rewarded_multiplier", applied)
+
+    def test_overlay_unknown_key_is_ignored(self):
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "ov.json"
+            ov.write_text(json.dumps({"starter_offer_min_level": 6, "remote_config_variant": "x"}))
+            r = run(TOOLS / "balance_sim.py", "--players", "100", "--overlay", ov)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertIn("ignored overlay key: starter_offer_min_level", r.stderr)
+            self.assertIn("overlay=ov.json", r.stdout)
+
+    def test_overlay_bad_json_exits_2(self):
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "bad.json"
+            ov.write_text("{not json")
+            self.assertEqual(run(TOOLS / "balance_sim.py", "--overlay", ov).returncode, 2)
+            ov.write_text("[1, 2]")
+            self.assertEqual(run(TOOLS / "balance_sim.py", "--overlay", ov).returncode, 2)
+
+    def test_overlay_missing_file_exits_2(self):
+        r = run(TOOLS / "balance_sim.py", "--overlay", ROOT / "nope" / "missing.json")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("overlay not found", r.stderr)
 
 
 class GenAssetsTest(unittest.TestCase):
