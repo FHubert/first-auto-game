@@ -5,6 +5,8 @@ extends Control
 signal next_pressed
 signal home_pressed
 signal double_pressed
+## Panel zmienil minimalna wysokosc (po rozlozeniu zawijanego tekstu) - plansza ma sie dopasowac.
+signal panel_height_changed
 
 const SAMPLE_COINS: int = 15
 const SAMPLE_LEVEL: int = 2
@@ -18,9 +20,13 @@ const SAMPLE_LEVEL: int = 2
 @onready var home_button: Button = $Panel/Box/Buttons/HomeButton
 
 
-## Wysokosc panelu liczona od dolnej krawedzi (px, z marginesem) - plansza ma sie zmiescic nad nim.
+## Odleglosc gornej krawedzi panelu od dolnej krawedzi ekranu (px, Z marginesem `-offset_bottom`):
+## stala z sceny albo wysokosc z tresci (np. dlugi komunikat postepu) - co wieksze.
+## Panel rosnie w gore (grow_vertical = begin), wiec
+## `panel_rect().size.y == panel_height() - margines`.
 func panel_height() -> float:
-	return -$Panel.offset_top
+	var min_h: float = $Panel.get_combined_minimum_size().y - $Panel.offset_bottom
+	return maxf(-$Panel.offset_top, min_h)
 
 
 func panel_rect() -> Rect2:
@@ -29,6 +35,7 @@ func panel_rect() -> Rect2:
 
 func _ready() -> void:
 	Locale.ensure_installed()
+	$Panel.minimum_size_changed.connect(func() -> void: panel_height_changed.emit())
 	next_button.text = tr("btn_next")
 	next_button.pressed.connect(func() -> void: next_pressed.emit())
 	double_button.pressed.connect(func() -> void: double_pressed.emit())

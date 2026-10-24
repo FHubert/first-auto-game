@@ -97,6 +97,7 @@ func _ready() -> void:
 	hud.pause_pressed.connect(pause)
 	level_complete.next_pressed.connect(on_next_pressed)
 	level_complete.home_pressed.connect(func() -> void: home_requested.emit())
+	level_complete.panel_height_changed.connect(_refit_board)
 	if autoload_level and round == null:
 		load_level(state.level, state.theme_active)
 
@@ -282,6 +283,7 @@ func undo() -> void:
 
 func restart() -> void:
 	_stop_confetti()
+	_reset_board_fit()
 	round.restart()
 	state.level_restarts += 1
 	_after_action()
@@ -352,14 +354,20 @@ func _on_round_won() -> void:
 
 
 ## Przesuwa plansze nad panel wygranej (dolna krawedz probowek tuz nad panelem).
-## Gdy zawartosc sie nie miesci (3 rzedy) - zostawia plansze bez zmian.
+## Gdy zawartosc sie nie miesci (3 rzedy) - przywraca plansze sprzed dopasowania.
 func fit_board_above_panel() -> void:
 	var bottom: float = level_complete.panel_height()
 	var tubes_top: float = size.y - bottom - FIT_GAP_PX - board.content_height()
 	if tubes_top < hud.offset_bottom - HUD_OVERLAP_PX:
+		_reset_board_fit()
 		return
 	board.offset_top = tubes_top - BoardView.LIFT_PX
 	board.offset_bottom = -bottom
+
+
+func _refit_board() -> void:
+	if level_complete.visible:
+		fit_board_above_panel()
 
 
 func _reset_board_fit() -> void:
