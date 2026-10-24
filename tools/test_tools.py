@@ -333,5 +333,92 @@ class PrivacyDocsTest(unittest.TestCase):
                         self.assertTrue("(2026-" in line or "ZWERYFIKUJ" in line)
 
 
+class PrivacyManifestTest(unittest.TestCase):
+    PLIST = ROOT / "game" / "ios" / "PrivacyInfo.xcprivacy"
+    CHECKLIST = ROOT / "docs" / "RELEASE_CHECKLIST.md"
+    CATEGORY_MAP = {
+        "Identifiers → Device ID": "NSPrivacyCollectedDataTypeDeviceID",
+        "Usage Data → Product Interaction": "NSPrivacyCollectedDataTypeProductInteraction",
+        "Usage Data → Advertising Data": "NSPrivacyCollectedDataTypeAdvertisingData",
+        "Purchases → Purchase History": "NSPrivacyCollectedDataTypePurchaseHistory",
+        "Diagnostics → Crash Data": "NSPrivacyCollectedDataTypeCrashData",
+        "Location → Coarse Location": "NSPrivacyCollectedDataTypeCoarseLocation",
+    }
+
+    def load(self):
+        import plistlib
+
+        with open(self.PLIST, "rb") as f:
+            return plistlib.load(f)
+
+    def table_categories(self):
+        cats = []
+        in_table = False
+        for line in self.CHECKLIST.read_text(encoding="utf-8").splitlines():
+            if "| Kategoria (ASC) |" in line:
+                in_table = True
+                continue
+            if in_table:
+                if not line.strip():
+                    break
+                if line.startswith("  | ") and not line.startswith("  |---"):
+                    cats.append(line.split("|")[1].strip())
+        return cats
+
+    def test_plist_parses_and_has_main_keys(self):
+        data = self.load()
+        for key in ("NSPrivacyTracking", "NSPrivacyTrackingDomains", "NSPrivacyCollectedDataTypes", "NSPrivacyAccessedAPITypes"):
+            self.assertIn(key, data)
+        self.assertIs(data["NSPrivacyTracking"], True)
+        self.assertIsInstance(data["NSPrivacyTrackingDomains"], list)
+        if not data["NSPrivacyTrackingDomains"]:
+            lines = self.CHECKLIST.read_text(encoding="utf-8").splitlines()
+            self.assertTrue(
+                any("ZWERYFIKUJ" in l and ("PrivacyInfo.xcprivacy" in l or "tracking domains" in l) for l in lines)
+            )
+
+    def test_collected_types_match_checklist(self):
+        import re
+
+        cats = self.table_categories()
+        unknown = [c for c in cats if c not in self.CATEGORY_MAP]
+        self.assertEqual(unknown, [], "category missing from CATEGORY_MAP")
+        expected = {self.CATEGORY_MAP[c] for c in cats}
+        items = self.load()["NSPrivacyCollectedDataTypes"]
+        actual = {i["NSPrivacyCollectedDataType"] for i in items}
+        self.assertEqual(expected, actual, f"diff: {expected ^ actual}")
+        self.assertEqual(len(items), len(actual), "duplicate data type")
+        for i in items:
+            with self.subTest(t=i["NSPrivacyCollectedDataType"]):
+                self.assertEqual(
+                    set(i),
+                    {
+                        "NSPrivacyCollectedDataType",
+                        "NSPrivacyCollectedDataTypeLinked",
+                        "NSPrivacyCollectedDataTypeTracking",
+                        "NSPrivacyCollectedDataTypePurposes",
+                    },
+                )
+                self.assertTrue(i["NSPrivacyCollectedDataTypePurposes"])
+                for p in i["NSPrivacyCollectedDataTypePurposes"]:
+                    self.assertTrue(re.match(r"^NSPrivacyCollectedDataTypePurpose\w+$", p))
+
+    def test_accessed_api_types(self):
+        import re
+
+        apis = {a["NSPrivacyAccessedAPIType"]: a["NSPrivacyAccessedAPITypeReasons"] for a in self.load()["NSPrivacyAccessedAPITypes"]}
+        for cat in ("UserDefaults", "FileTimestamp", "SystemBootTime"):
+            name = "NSPrivacyAccessedAPICategory" + cat
+            with self.subTest(cat=name):
+                self.assertTrue(apis.get(name))
+                for code in apis[name]:
+                    self.assertTrue(re.match(r"^[0-9A-F]{4}\.[0-9]$", code), code)
+
+    def test_tracking_flags_consistent(self):
+        data = self.load()
+        if any(i["NSPrivacyCollectedDataTypeTracking"] is True for i in data["NSPrivacyCollectedDataTypes"]):
+            self.assertIs(data["NSPrivacyTracking"], True)
+
+
 if __name__ == "__main__":
     unittest.main()
