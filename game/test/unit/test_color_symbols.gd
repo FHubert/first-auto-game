@@ -92,3 +92,27 @@ func test_settings_toggle_persists() -> void:
 	s.state.settings["colorblind_symbols"] = false
 	s.apply_from_state()
 	assert_bool(s.symbols_toggle.button_pressed).is_false()
+
+
+func test_symbol_contrast_at_least_3_to_1_for_all_theme_liquids() -> void:
+	var worst: float = 99.0
+	var best: float = 0.0
+	for t: Variant in ThemeCatalog.all():
+		var liquids: Array = (t as Dictionary)["liquids"]
+		for i: int in liquids.size():
+			var liquid := Color(str(liquids[i]))
+			var sym: Color = ColorSymbols.symbol_color(liquid)
+			var mixed: Color = liquid.lerp(sym, ColorSymbols.SYMBOL_ALPHA)
+			var ratio: float = ColorSymbols.contrast_ratio(mixed, liquid)
+			print("symbol_contrast %s/%d %.2f" % [(t as Dictionary)["id"], i, ratio])
+			worst = minf(worst, ratio)
+			best = maxf(best, ratio)
+			assert_float(ratio).is_greater_equal(3.0)
+	print("symbol_contrast min=%.2f max=%.2f" % [worst, best])
+
+
+func test_symbol_color_deterministic_and_extremes() -> void:
+	var c := Color("#ADB5BD")
+	assert_that(ColorSymbols.symbol_color(c)).is_equal(ColorSymbols.symbol_color(c))
+	assert_that(ColorSymbols.symbol_color(Color.WHITE)).is_equal(ColorSymbols.SYMBOL_DARK)
+	assert_that(ColorSymbols.symbol_color(Color.BLACK)).is_equal(ColorSymbols.SYMBOL_LIGHT)

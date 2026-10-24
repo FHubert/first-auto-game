@@ -13,9 +13,6 @@ const LIQUID_MARGIN_BOTTOM: float = 13.0
 const LIQUID_MARGIN_TOP: float = 40.0
 const BOTTOM_RADIUS: float = 36.0
 const ARC_SEGMENTS: int = 8
-const SYMBOL_LIGHT: Color = Color("#FFFFFF", 0.85)
-const SYMBOL_DARK: Color = Color("#14213D")
-const SYMBOL_DARK_LUMINANCE: float = 0.6
 
 var index: int = 0
 var capacity: int = 4
@@ -116,8 +113,7 @@ func _draw() -> void:
 		var rect: Rect2 = layer_rect(size, capacity, i)
 		draw_colored_polygon(layer_polygon(rect, i == 0, BOTTOM_RADIUS), liquids[c])
 		if show_symbols:
-			var tint: Color = SYMBOL_LIGHT
-			if (liquids[c] as Color).get_luminance() > SYMBOL_DARK_LUMINANCE:
-				tint = SYMBOL_DARK
+			var tint: Color = ColorSymbols.symbol_color(liquids[c])
+			tint.a = ColorSymbols.SYMBOL_ALPHA
 			draw_colored_polygon(ColorSymbols.polygon(c, rect), tint)
 			symbols_drawn += 1

@@ -13,6 +13,7 @@ const ASO_STREAK: int = 4  # claiming on the next day lands on cycle day 5
 const ASO_HOME_DAILY_TOTAL: int = 23
 const ASO_HOME_STREAK_BEST: int = 12
 const ASO_HOME_STREAK_DAYS: int = 5
+const SYMBOLS_LEVEL: int = 32  # 8 colors with the default curve
 const ASO_THEMES: Array = ["classic", "pastel", "neon", "ocean"]
 
 
@@ -65,6 +66,10 @@ static func make(fixture: String, utc_day: int = 0) -> GameState:
 			state.streak_days = ASO_STREAK
 			state.last_play_utc_day = maxi(utc_day - 1, 0)
 			state.daily_reward_last_claim_day = maxi(utc_day - 1, 0)
+		"symbols":
+			state.level = SYMBOLS_LEVEL
+			state.levels_completed = SYMBOLS_LEVEL - 1
+			state.settings[ColorSymbols.SETTING_KEY] = true
 		"aso_themes":
 			state.level = ASO_LEVEL
 			state.coins = ASO_COINS

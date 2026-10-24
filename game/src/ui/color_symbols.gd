@@ -10,12 +10,38 @@ const ARC_POINTS: int = 9
 const STAR_INNER: float = 0.45
 const PLUS_ARM: float = 0.3
 const BAR_HALF_HEIGHT: float = 0.3
+const SYMBOL_LIGHT: Color = Color("#FFFFFF")
+const SYMBOL_DARK: Color = Color("#14213D")
+const SYMBOL_ALPHA: float = 0.85
 
 
 ## Czy symbole sa wlaczone w ustawieniach (zly typ / brak klucza = false).
 static func enabled(settings: Dictionary) -> bool:
 	var v: Variant = settings.get(SETTING_KEY, false)
 	return typeof(v) == TYPE_BOOL and v
+
+
+## Luminancja wzgledna WCAG 2.x (sRGB z linearyzacja kanalow).
+static func relative_luminance(c: Color) -> float:
+	return 0.2126 * _lin(c.r) + 0.7152 * _lin(c.g) + 0.0722 * _lin(c.b)
+
+
+static func _lin(v: float) -> float:
+	return v / 12.92 if v <= 0.03928 else pow((v + 0.055) / 1.055, 2.4)
+
+
+## Wspolczynnik kontrastu WCAG (L1 + 0,05) / (L2 + 0,05), >= 1.
+static func contrast_ratio(a: Color, b: Color) -> float:
+	var la: float = relative_luminance(a)
+	var lb: float = relative_luminance(b)
+	return (maxf(la, lb) + 0.05) / (minf(la, lb) + 0.05)
+
+
+## Biel albo granat (opaque) - ten z wyzszym kontrastem wzgledem plynu (T-126).
+static func symbol_color(liquid: Color) -> Color:
+	if contrast_ratio(SYMBOL_LIGHT, liquid) >= contrast_ratio(SYMBOL_DARK, liquid):
+		return SYMBOL_LIGHT
+	return SYMBOL_DARK
 
 
 ## Wielokat symbolu dla koloru wpisany w SYMBOL_SCALE mniejszego boku rect, wysrodkowany.
