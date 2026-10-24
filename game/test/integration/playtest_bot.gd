@@ -9,8 +9,15 @@ const MAX_STEPS: int = 600
 ## Random walk may cycle forever without ever being stuck; restart after this many steps.
 const ATTEMPT_STEPS: int = 150
 const SIM_SECONDS_PER_ROUND: float = 30.0
+## Level brackets [min, max] for the per-bracket report; labels in the same order.
+const BRACKETS: Array = [[1, 7], [8, 25], [26, 55], [56, 1000000]]
+const BRACKET_LABELS: Array = ["1-7", "8-25", "26-55", "56+"]
 
 var max_restarts_per_round: int = 50
+## true: boards from GameConfig "campaign_seed" (as Level.load_level), not run_seed + i.
+var use_campaign_seed: bool = false
+## Level data of the most recently generated round (test hook, e.g. to check the seed used).
+var last_level_data: Dictionary = {}
 
 
 func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
@@ -36,9 +43,13 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		"coins_end": 0,
 		"interstitials_shown": 0,
 		"interstitial_calls": 0,
+		"rounds_by_bracket": _zero_brackets(),
+		"losses_by_bracket": _zero_brackets(),
 		"errors": [],
 		"elapsed_ms": 0,
 	}
+	var rounds_by_bracket: Dictionary = report["rounds_by_bracket"]
+	var losses_by_bracket: Dictionary = report["losses_by_bracket"]
 	var errors: Array = report["errors"]
 	var total_steps: int = 0
 	var total_moves: int = 0
@@ -52,7 +63,12 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 
 	for i in rounds:
 		var round_index: int = i + 1
-		var level_data: Dictionary = generator.generate(run_seed + i, state.level)
+		var gen_seed: int = run_seed + i
+		if use_campaign_seed:
+			gen_seed = int(GameConfig.get_value("campaign_seed"))
+		var level_data: Dictionary = generator.generate(gen_seed, state.level)
+		last_level_data = level_data
+		var bracket: String = _bracket_label(state.level)
 		if not _valid_level(level_data):
 			errors.append("round %d: invalid level data" % round_index)
 			break
@@ -68,6 +84,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 			steps = _play_solution(game_round, level_data, round_index, errors)
 		var finished: bool = game_round.is_done()
 		report["rounds"] += 1
+		rounds_by_bracket[bracket] += 1
 		total_steps += steps
 		if not finished and not gave_up:
 			report["softlocks"] += 1
@@ -77,6 +94,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 			# Random player lost (restart limit): not a bug. Advance a level (no coins)
 			# so the bot does not sit on one hard level for all rounds.
 			report["losses"] += 1
+			losses_by_bracket[bracket] += 1
 			state.level += 1
 		else:
 			var res: Dictionary = game_round.result()
@@ -97,6 +115,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 				Ads.maybe_show_interstitial(won_level)
 			else:
 				report["losses"] += 1
+				losses_by_bracket[bracket] += 1
 		if state.coins < 0:
 			errors.append("round %d: negative coins (%d)" % [round_index, state.coins])
 		sim_time[0] += SIM_SECONDS_PER_ROUND
@@ -110,6 +129,20 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		report["avg_moves"] = float(total_moves) / float(finished_rounds)
 	report["elapsed_ms"] = Time.get_ticks_msec() - started_ms
 	return report
+
+
+func _zero_brackets() -> Dictionary:
+	var out: Dictionary = {}
+	for label: String in BRACKET_LABELS:
+		out[label] = 0
+	return out
+
+
+func _bracket_label(level: int) -> String:
+	for idx in BRACKETS.size():
+		if level <= int(BRACKETS[idx][1]):
+			return BRACKET_LABELS[idx]
+	return BRACKET_LABELS[BRACKET_LABELS.size() - 1]
 
 
 func _play_solution(

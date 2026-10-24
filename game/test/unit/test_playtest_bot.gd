@@ -15,6 +15,8 @@ const KEYS: Array = [
 	"coins_end",
 	"interstitials_shown",
 	"interstitial_calls",
+	"rounds_by_bracket",
+	"losses_by_bracket",
 	"errors",
 	"elapsed_ms",
 ]
@@ -117,3 +119,40 @@ func test_random_restarts_capped_per_round() -> void:
 	var report: Dictionary = bot.run(20, 42, PlaytestBot.MODE_RANDOM)
 	assert_int(report["max_restarts_seen"]).is_less_equal(2)
 	assert_int(report["restarts_total"]).is_greater_equal(1)
+
+
+func _sum_values(d: Dictionary) -> int:
+	var total: int = 0
+	for v: int in d.values():
+		total += v
+	return total
+
+
+func test_bracket_sums_match_totals() -> void:
+	var bot := PlaytestBot.new()
+	bot.max_restarts_per_round = 0
+	var report: Dictionary = bot.run(30, 42, PlaytestBot.MODE_RANDOM)
+	assert_int(_sum_values(report["rounds_by_bracket"])).is_equal(report["rounds"])
+	assert_int(_sum_values(report["losses_by_bracket"])).is_equal(report["losses"])
+	assert_array(report["rounds_by_bracket"].keys()).contains_exactly(
+		["1-7", "8-25", "26-55", "56+"]
+	)
+
+
+func test_campaign_seed_uses_campaign_board() -> void:
+	var bot := PlaytestBot.new()
+	bot.use_campaign_seed = true
+	bot.run(1, 42, PlaytestBot.MODE_SOLVER)
+	var expected: Dictionary = ContentGenerator.new().generate(
+		int(GameConfig.get_value("campaign_seed")), 1
+	)
+	assert_array(bot.last_level_data["payload"]["tubes"]).is_equal(expected["payload"]["tubes"])
+
+
+func test_first_session_random_player_has_no_losses() -> void:
+	var bot := PlaytestBot.new()
+	bot.use_campaign_seed = true
+	bot.max_restarts_per_round = 50
+	var report: Dictionary = bot.run(7, 42, PlaytestBot.MODE_RANDOM)
+	assert_int(report["rounds_by_bracket"]["1-7"]).is_equal(7)
+	assert_int(report["losses_by_bracket"]["1-7"]).is_equal(0)
