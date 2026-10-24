@@ -30,7 +30,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `SaveSystem.load` używa `JSON.new().parse()` + kod błędu (uszkodzony plik → stan domyślny, bez `ERROR:` w stdout); `FNV_OFFSET` w `test_content_generator.gd` jako literał ze znakiem (-3750763034362895579) — golden hashe bez zmian (test zielony bez edycji oczekiwanych wartości); `tools/test_tools.py` otwiera obrazy przez `with Image.open(...) as im`. Weryfikacja: `make test 2>&1 | grep -cE "Parse JSON failed|Cannot represent"` = 0 i `python3 -W error::ResourceWarning tools/test_tools.py` exit 0. `make check` zielone. ≤ ~40 linii.
   Skill: `godot-test`
 
-- [ ] T-076 `todo` Lokalizacja: `home_streak` i inne nieprzetłumaczone klucze w PL/DE + test „PL/DE ≠ EN” (przeniesione z Inbox T-072)
+- [ ] T-076 `in_progress` Lokalizacja: `home_streak` i inne nieprzetłumaczone klucze w PL/DE + test „PL/DE ≠ EN” (przeniesione z Inbox T-072)
   KA: `strings.csv`: `home_streak` PL „Seria: %d” (DE „Serie: %d” już jest); test gdUnit4 w teście lokalizacji: dla każdego klucza wartość PL i DE ≠ EN, z jawną listą wyjątków `SAME_AS_EN` w teście (≤ 5 pozycji, np. nazwa gry, „OK”). Popup nagrody dziennej na Home (kadr 04): karta Poziomu dnia ukryta na czas popupu — test gdUnit4 (`visible == false` przy otwartym popupie, `true` po zamknięciu). `make screenshots` → kadry 03/04 PL/DE odświeżone. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `aso`
 
