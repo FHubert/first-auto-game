@@ -233,3 +233,22 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 - Jeżeli w przyszłości `GameConfig` będzie zmieniany w trakcie gry (np. A/B w locie), prefetch musi brać snapshot wartości — wtedy nowy ADR.
 - Poziom dnia i pierwszy poziom po starcie aplikacji nadal synchroniczne (later: prefetch Poziomu dnia przy wejściu na `Home`).
 
+
+## ADR-012: Lokalne notyfikacje — interfejs teraz, plugin w Fazie 5
+
+**Data:** 2026-10-24
+**Status:** Proposed (T-150)
+
+**Kontekst:**
+- Reguła 3 KPI: retencja D7 (≥ 12 %) jest najsłabszym ogniwem, a przypomnienie o serii / Poziomie dnia to najtańsza dźwignia powrotu.
+- Brak SDK i kont w tej fazie — nie da się zweryfikować pluginu na urządzeniu, więc nie dodajemy zależności.
+- `ConsentProvider` pokazuje wzorzec: interfejs no-op w repo, realna implementacja podmieniana później.
+
+**Decyzja:**
+- Czysta `NotificationPlanner` (RefCounted; czas i strefa wstrzykiwane) planuje 0–2 wpisy, a `NotificationProvider` (no-op) i `FakeNotificationProvider` (testy) izolują platformę. Bez nowej zależności (ADR-007 bez zmian do czasu wyboru pluginu).
+- Plugin Android 13+ (`POST_NOTIFICATIONS`) / iOS (`UNUserNotificationCenter`) w Fazie 5 osobnym ADR.
+
+**Konsekwencje:**
+- Logika w pełni testowalna headless; podpięcie w `Main` i ustawienia — kolejne zadania.
+- Klucze tłumaczeń (`notif_*`) dopisuje T-151; do tego czasu planner zwraca tylko nazwy kluczy.
+- ZWERYFIKUJ: nazwa pluginu dla Godot 4.7 (kompatybilność z eksportem Android/iOS).

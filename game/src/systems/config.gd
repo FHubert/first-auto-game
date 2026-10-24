@@ -28,6 +28,10 @@ const DEFAULTS: Dictionary = {
 	"daily_unlock_level": 3,
 	"daily_month_goal": 20,
 	"daily_month_goal_coins": 300,
+	# Local notifications (T-150)
+	"notif_local_hour": 19,
+	"notif_streak_min_days": 2,
+	"notif_comeback_days": 3,
 	# Session
 	"session_target_seconds": 180,
 	# Difficulty curve (logistic)
@@ -111,6 +115,9 @@ const RANGES: Dictionary = {
 	"daily_unlock_level": [0, 1000],
 	"daily_month_goal": [1, 31],
 	"daily_month_goal_coins": [0, 5000],
+	"notif_local_hour": [0, 23],
+	"notif_streak_min_days": [1, 365],
+	"notif_comeback_days": [2, 14],
 	"session_target_seconds": [0, 86400],
 	"difficulty_min": [0.0, 1.0],
 	"difficulty_max": [0.0, 1.0],

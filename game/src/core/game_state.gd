@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS: Dictionary = {
 	"tutorial_done": false,
 	"locale": "",
 	"daily_intro_seen": false,
+	"notifications_on": true,
 }
 ## Int fields as [name, minimum]; default is the initial value of the member.
 const INT_FIELDS: Array = [
