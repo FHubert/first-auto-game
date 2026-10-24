@@ -35,9 +35,7 @@ func after_test() -> void:
 	Ads.provider = _prev_ads_provider
 	Ads.reset_consent()
 	SaveSystem.save_path = _old_path
-	for p in [SAVE_PATH, SAVE_PATH + ".tmp"]:
-		if FileAccess.file_exists(p):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+	TestSaveCleanup.remove(SAVE_PATH)
 	GameConfig.reset()
 
 

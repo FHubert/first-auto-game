@@ -24,9 +24,7 @@ func after_test() -> void:
 
 
 func _cleanup() -> void:
-	for p in [SAVE_PATH, SAVE_PATH + ".bak", SAVE_PATH + ".tmp"]:
-		if FileAccess.file_exists(p):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+	TestSaveCleanup.remove(SAVE_PATH)
 
 
 func _write_raw(path: String, text: String) -> void:

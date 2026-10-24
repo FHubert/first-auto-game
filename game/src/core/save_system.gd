@@ -11,7 +11,11 @@ var last_load_source: String = ""
 
 ## Path of the backup copy (previous valid save).
 func backup_path() -> String:
-	return save_path + ".bak"
+	return backup_path_for(save_path)
+
+
+static func backup_path_for(path: String) -> String:
+	return path + ".bak"
 
 
 ## Writes to a temp file, verifies it, keeps the previous save as .bak, then renames over the

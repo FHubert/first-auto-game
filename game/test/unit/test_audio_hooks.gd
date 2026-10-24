@@ -33,8 +33,7 @@ func after_test() -> void:
 	Audio.haptics_on = _old_haptics_on
 	if is_instance_valid(_level):
 		_level.free()
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	TestSaveCleanup.remove(SAVE_PATH)
 	SaveSystem.save_path = _old_path
 
 
