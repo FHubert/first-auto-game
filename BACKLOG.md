@@ -50,7 +50,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `App` po `theme_selected` odświeża aktywny Level (paleta + tło + kształt) bez resetu rundy — test gdUnit4: wybór motywu przy otwartym Level → kolory warstw w `BoardView` = paleta nowego motywu, liczba ruchów bez zmian; etykiety w Themes przez `tr("theme_name_<id>")` (klucze EN/PL/DE, objęte testem kompletności z T-023); grep `THEMES_PATH` w `board_view.gd` = 0. GDD → Meta: zdanie o koszcie wg pozycji w katalogu (zgodne z `ThemeCatalog`). `make check` zielone. ≤ ~100 linii.
   Skill: `godot-dev`
 
-- [ ] T-081 `todo` Wznowienie rundy po zabiciu aplikacji cz. 1: serializacja `GameRound` (plansza, stos undo, ładunki, ruchy, tryb, seed) + GameState schema v3 z migracją v2→v3 (zależy od T-074; wiersz w GDD → Mechaniki)
+- [ ] T-081 `review` Wznowienie rundy po zabiciu aplikacji cz. 1: serializacja `GameRound` (plansza, stos undo, ładunki, ruchy, tryb, seed) + GameState schema v3 z migracją v2→v3 (zależy od T-074; wiersz w GDD → Mechaniki) → PR #72
   KA: `GameRound.to_dict()/from_dict()` (czysta klasa) — round-trip: plansza, `moves`, stos undo, pozostałe ładunki undo/extra tube, `mode` (`campaign`/`daily`), numer poziomu / dzień UTC; `from_dict` z niespójnych danych (zła pojemność probówki, kolor poza paletą) → `null` (start od nowa, bez crasha). `GameState.SCHEMA_VERSION = 3`, pole `round_in_progress` (Dictionary, domyślnie pusty), migracja v2→v3 w istniejącym wzorcu. Testy gdUnit4 ≥ 5: round-trip po 3 ruchach i 1 undo; daily vs campaign; uszkodzony dict → null; migracja v2→v3; wygrana czyści `round_in_progress`. `make check` zielone. ≤ ~150 linii.
   Skill: `godot-dev`
 
@@ -89,6 +89,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 ## P3 — polish / later
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
+- [ ] T-089 `todo` Skill godot-test: wzorzec testów parametryzowanych (gdlint `unused-argument` dla `test_parameters`, gdUnit opróżnia tablicę w trakcie — działa `assert_that(test_parameters).is_not_null()`); `GameRound.start` przy `payload.min_moves` jako Array/Dictionary rzuca błąd `int()` — osłonić w `from_dict` (odkryte w T-081). Skill: godot-test
 - [ ] T-088 `todo` Lokalizacja PL: `btn_save_streak` „Uratuj streak” → „Uratuj serię” (spójnie z `home_streak`/`daily_streak` „Seria”); sprawdzić `MAX_BTN_LEN` i inne wystąpienia anglicyzmu „streak” w PL (odkryte w T-076). Skill: aso
 - [ ] T-087 `todo` `make test`: po zakończeniu runnera `WARNING: 4 ObjectDB instances were leaked at exit` i `ERROR: 2 resources still in use at exit` (także przy zielonym przebiegu) — znaleźć źródło (`--verbose`), posprzątać w `after()`/`auto_free` (odkryte w T-075). Skill: godot-test
 

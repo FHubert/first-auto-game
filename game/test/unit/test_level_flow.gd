@@ -86,6 +86,12 @@ func test_win_is_saved() -> void:
 	assert_int(loaded.coins).is_equal(_level.state.coins)
 
 
+func test_win_clears_round_in_progress() -> void:
+	_level.state.round_in_progress = {"mode": "campaign"}
+	_win()
+	assert_dict(_level.state.round_in_progress).is_empty()
+
+
 func test_next_loads_following_level() -> void:
 	_win()
 	_level.on_next_pressed()
