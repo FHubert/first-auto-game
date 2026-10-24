@@ -2,11 +2,16 @@ extends GdUnitTestSuite
 
 const SAVE_PATH: String = "user://test_app.json"
 
+const TEST_DAY: int = 20000
+const TEST_NOW_UNIX: int = TEST_DAY * 86400 + 100
+
 var _old_path: String
+var _t: Array[int] = [TEST_NOW_UNIX]
 
 
 func before_test() -> void:
 	GameConfig.reset()
+	_t[0] = TEST_NOW_UNIX
 	_old_path = SaveSystem.save_path
 	SaveSystem.save_path = SAVE_PATH
 	_cleanup()
@@ -25,6 +30,7 @@ func _cleanup() -> void:
 
 func _app(tutorial_done: bool) -> App:
 	var app: App = auto_free(App.new())
+	app.clock = func() -> int: return _t[0]
 	app.state = GameState.new()
 	app.state.settings["tutorial_done"] = tutorial_done
 	add_child(app)
@@ -152,6 +158,7 @@ func test_session_start_and_end_events() -> void:
 
 func _app_from_save() -> App:
 	var app: App = auto_free(App.new())
+	app.clock = func() -> int: return _t[0]
 	app.state = SaveSystem.load()
 	app.state.settings["tutorial_done"] = true
 	add_child(app)
