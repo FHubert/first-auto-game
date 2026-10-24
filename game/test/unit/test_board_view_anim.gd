@@ -96,3 +96,15 @@ func test_setup_during_pour_cancels_without_signal() -> void:
 	assert_bool(_views_match_board()).is_true()
 	await await_millis(int(DURATION * 1000) + 300)
 	assert_array(_count).is_empty()
+
+
+func test_restart_during_pulse_resets_scale() -> void:
+	# undo() uses the same path (_after_action -> board.refresh), so restart covers both.
+	GameConfig.apply_remote({"tube_full_pulse_seconds": 0.3})
+	_level.board.pulse_tube(0)
+	await await_millis(60)
+	assert_vector(_level.board.view_scale(0)).is_not_equal(Vector2.ONE)
+	_level.restart()
+	assert_vector(_level.board.view_scale(0)).is_equal_approx(Vector2.ONE, Vector2(0.001, 0.001))
+	await await_millis(400)
+	assert_vector(_level.board.view_scale(0)).is_equal_approx(Vector2.ONE, Vector2(0.001, 0.001))

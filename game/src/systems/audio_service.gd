@@ -3,6 +3,8 @@ extends Node
 
 ## Emitted on every play_sfx call (even when muted); observation point for tests.
 signal sfx_requested(sfx_name: String)
+## Emitted when haptics are enabled and a vibration is requested; observation point for tests.
+signal haptic_requested(duration_ms: int)
 
 const SFX: Dictionary = {
 	"pour":
@@ -120,6 +122,7 @@ func haptic(duration_ms: int = HAPTIC_MS) -> bool:
 	if not haptics_on:
 		return false
 	last_haptic_ms = duration_ms
+	haptic_requested.emit(duration_ms)
 	if OS.has_feature("mobile"):
 		Input.vibrate_handheld(duration_ms)
 		return true

@@ -66,6 +66,7 @@ const DEFAULTS: Dictionary = {
 	"pour_anim_seconds": 0.4,
 	"tube_lift_seconds": 0.1,
 	"shake_seconds": 0.2,
+	"tube_full_pulse_seconds": 0.25,
 	# IAP
 	"iap_coins_small": 500,
 	"iap_coins_large": 1500,
