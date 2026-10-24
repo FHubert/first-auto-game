@@ -8,6 +8,7 @@ const KEYS: Array = [
 	"softlocks",
 	"stuck_count",
 	"restarts_total",
+	"max_restarts_seen",
 	"avg_moves",
 	"avg_steps",
 	"perfect_count",
@@ -35,7 +36,7 @@ func _loose_ad_caps() -> FakeAdProvider:
 	var fake := FakeAdProvider.new()
 	Ads.provider = fake
 	# Earlier suites may leave a real-clock timestamp; the bot uses a simulated clock.
-	Ads._last_interstitial_s = -INF
+	Ads.reset_interstitial_cooldown()
 	(
 		GameConfig
 		. apply_remote(
@@ -94,3 +95,25 @@ func test_interstitial_solver_every_round() -> void:
 	assert_int(report["interstitial_calls"]).is_equal(6)
 	assert_int(report["interstitials_shown"]).is_equal(6)
 	assert_int(fake.interstitials_shown).is_equal(6)
+
+
+func test_random_gave_up_is_loss_without_softlock() -> void:
+	# Seed 42 / 20 rounds: 18 wins, 2 losses. A loss = gave_up (restart limit hit):
+	# the bot advances a level without coins, it is not a softlock.
+	var bot := PlaytestBot.new()
+	bot.max_restarts_per_round = 0
+	var report: Dictionary = bot.run(20, 42, PlaytestBot.MODE_RANDOM)
+	assert_int(report["rounds"]).is_equal(20)
+	assert_int(report["softlocks"]).is_equal(0)
+	assert_array(report["errors"]).is_empty()
+	assert_int(report["wins"] + report["losses"]).is_equal(20)
+	assert_int(report["losses"]).is_greater_equal(1)
+
+
+func test_random_restarts_capped_per_round() -> void:
+	# Seed 42 / 20 rounds: 5 restarts in total, the busiest round used all 2 allowed.
+	var bot := PlaytestBot.new()
+	bot.max_restarts_per_round = 2
+	var report: Dictionary = bot.run(20, 42, PlaytestBot.MODE_RANDOM)
+	assert_int(report["max_restarts_seen"]).is_less_equal(2)
+	assert_int(report["restarts_total"]).is_greater_equal(1)

@@ -29,6 +29,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		"softlocks": 0,
 		"stuck_count": 0,
 		"restarts_total": 0,
+		"max_restarts_seen": 0,
 		"avg_moves": 0.0,
 		"avg_steps": 0.0,
 		"perfect_count": 0,
@@ -128,6 +129,7 @@ func _play_solution(
 
 
 ## Random legal moves; restart when stuck. Returns {steps, gave_up}.
+## report["max_restarts_seen"] = max restarts actually performed in one round.
 func _play_random(
 	game_round: GameRound,
 	rng: RandomNumberGenerator,
@@ -153,6 +155,8 @@ func _play_random(
 			if restarts > max_restarts_per_round:
 				return {"steps": steps, "gave_up": true}
 			game_round.restart()
+			# Counted after the limit check: only restarts actually performed.
+			report["max_restarts_seen"] = maxi(int(report["max_restarts_seen"]), restarts)
 			continue
 		var m: Vector2i = moves[rng.randi_range(0, moves.size() - 1)]
 		if not game_round.try_move(m.x, m.y):
