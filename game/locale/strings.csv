@@ -23,6 +23,9 @@ tut_finish,Finish it - sort the colors!,Dokończ — posortuj kolory!,Mach weite
 home_play,Play: level %d,Graj: poziom %d,Spielen: Level %d
 home_streak,Streak: %d,Seria: %d,Serie: %d
 home_streak_best,Best: %d,Rekord: %d,Rekord: %d
+home_daily_month,This month: %d/%d,W tym miesiącu: %d/%d,Diesen Monat: %d/%d
+home_daily_month_done,Monthly goal reached!,Cel miesiąca zdobyty!,Monatsziel erreicht!
+lc_month_goal,Monthly goal: +%d coins!,Cel miesiąca: +%d monet!,Monatsziel: +%d Münzen!
 home_daily_total,Completed: %d,Ukończone: %d,Geschafft: %d
 home_daily_new,New!,Nowość!,Neu!
 lc_new_color,Next level: +1 color,Następny poziom: +1 kolor,Nächstes Level: +1 Farbe
