@@ -13,7 +13,9 @@ const KNOWN_SCENES: Array[String] = [
 	"res://src/ui/themes_screen.tscn",
 	"res://src/ui/shop_screen.tscn",
 ]
-const KNOWN_FIXTURES: Array[String] = ["default", "midgame"]
+const KNOWN_FIXTURES: Array[String] = [
+	"default", "midgame", "aso_level", "aso_win", "aso_home", "aso_daily", "aso_themes"
+]
 const ACTIONS: Dictionary = {
 	"res://src/core/main.tscn": "home",
 	"res://src/levels/level.tscn": "level",

@@ -37,13 +37,17 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: plik `.ttf` z Google Fonts (OFL 1.1) w `game/assets/fonts/` + `OFL.txt` + wiersz w `docs/LICENSES.md`; font ustawiony przez zasób `Theme` w scenach UI (bez zmian w `project.godot` poza dozwolonymi sekcjami). Test gdUnit4: każdy znak każdego tekstu z `strings.csv` (EN/PL/DE) przechodzi `font.has_char()`. Etykieta nad wyborem języka w `SettingsScreen` z kluczem w CSV (EN/PL/DE). `make check` zielone. ≤ ~120 linii.
   Skill: `asset-gen`
 
-- [ ] T-003 `in_progress` Tryb `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]` w `main.gd`, żeby `tools/gen_screenshots.sh` produkował obrazy (zależy od T-040)
+- [ ] T-003 `review` Tryb `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]` w `main.gd`, żeby `tools/gen_screenshots.sh` produkował obrazy (zależy od T-040) → PR #48
   KA: parser argumentów jako czysta funkcja z testem gdUnit4 (poprawne argumenty, brak `--out`, nieznana scena → kod wyjścia ≠ 0); scena ładuje się ze stanem z fixture (in-memory `GameState`, bez zapisu do save'a gracza), po 2 klatkach zapisuje PNG i kończy exit 0; zły argument → exit ≠ 0. `make screenshots` lokalnie pod `xvfb-run` daje 1 PNG na każdą linię `tools/screens.txt` (lista plików w opisie PR). `make check` zielone. ≤ ~150 linii.
   Skill: `godot-dev`
 
-- [ ] T-050 `todo` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` (zależy od T-003)
+- [ ] T-050 `review` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` (zależy od T-003) → PR #__PR__
   KA: fixtures dla 5 kadrów z ASO (Level ~20 / 6 kolorów w trakcie gry, LevelComplete z „idealnie”, Home z kartą Poziomu dnia, DailyRewardPopup dzień 5 streaka, Themes z 4 motywami); `gen_screenshots.sh` iteruje po `en-US`/`pl-PL`/`de-DE` z `--lang`, captiony z ASO przetłumaczone (PL/DE natywnie) w `frame_screenshots.py`. Test w `tools/test_tools.py`: 15 plików PNG, każdy 1080×1920 (proporcja ≤ 2:1, wymóg Play). Wersja iOS (rozmiar 6,9") — tylko jeśli wymagany rozmiar zweryfikowany w dokumentacji ASC, inaczej wpis do Inbox. Zadanie wprost dotyczy `fastlane/metadata`. ≤ ~200 linii (bez PNG).
   Skill: `aso`
+
+- [ ] T-060 `todo` UI: nieprzezroczyste tło paneli nakładkowych (LevelComplete, DailyRewardPopup, StuckPanel, karta Poziomu dnia na Home) + regeneracja screenshotów sklepowych (zależy od T-050)
+  KA: `PanelContainer` w `level_complete.tscn`, `stuck_panel.tscn`, `daily_reward_popup.tscn` i panele budowane w kodzie (`home.gd`) dostają `StyleBoxFlat` (tło `background_alt` z `tools/palette.json` alfa 1.0, promień rogów, margines) przez `ui_theme.tres` (styl `PanelContainer/styles/panel`) albo `theme_override_styles/panel` — spód ekranu nie prześwituje przez tekst (dziś domyślny panel Godota ma alfa ~0,6 → kadry 02/04 nieczytelne). Pod popupem przyciemnienie `ColorRect` (alfa z klucza w `GameConfig` lub stała w scenie). Test gdUnit4: `LevelComplete`/`DailyRewardPopup` po `show_*` mają stylebox panelu z `bg_color.a == 1.0`. `make screenshots` → 15 PNG odświeżone i zacommitowane; kadry 02 i 04 obejrzane (tekst czytelny). `make check` zielone. ≤ ~120 linii + PNG.
+  Skill: `godot-dev`
 
 - [ ] T-051 `todo` Metadata sklepowe EN/PL/DE w `fastlane/metadata` (Android + iOS) z `docs/ASO.md`
   KA: Android `en-US`/`pl-PL`/`de-DE`: `title.txt`, `short_description.txt`, `full_description.txt`, `changelogs/default.txt`; iOS `en-US`/`pl`/`de-DE`: `name.txt`, `subtitle.txt`, `keywords.txt`, `description.txt`, `privacy_url.txt` (URL z T-052 albo placeholder `__PRIVACY_URL__`). Opis zawiera informację o reklamach i IAP (jak w ASO). Test w `tools/test_tools.py`: limity (tytuł/name/subtitle ≤ 30 znaków, short ≤ 80, full/description ≤ 4000, keywords ≤ 100 bajtów, brak słów z tytułu w keywords), żaden plik nie zawiera „TBD”. Zadanie wprost dotyczy `fastlane/metadata` (bez `Fastfile`). ≤ ~200 linii tekstu.
@@ -81,6 +85,10 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
+- [ ] T-056 `todo` BoardView: dolna warstwa płynu wystaje poza zaokrąglenie probówki (widać na screenshocie Level z T-003) — maska/clip warstw do kształtu probówki. Skill: godot-dev
+- [ ] T-057 `todo` Screenshoty: fixture „pre-win” dla LevelComplete (dziś `_on_round_won` bez realnej wygranej daje „+0 coins”) — po T-050 sprawdzić, czy `show_result` z wartościami fixture wystarcza. Skill: godot-dev
+- [ ] T-058 `todo` Screenshoty iOS 6,9" (1320×2868) w `fastlane/metadata/ios/<locale>/` — tylko po weryfikacji wymaganego rozmiaru w dokumentacji App Store Connect (link w zadaniu). Skill: aso
+- [ ] T-059 `todo` `export/screenshots_raw/` jest ignorowane, ale `fastlane/metadata/android/*/images/` nie — ustalić politykę (commitowane tylko kadry sklepowe z T-050; smoke-screenshoty z `screens.txt` do `export/`). Skill: aso
 - [ ] T-055 `blocked` CI: dokończyć T-011 — zweryfikować na stronach releases i podbić: actions/download-artifact (v4→v7?, para z upload-artifact v7), setup-java, android-actions/setup-android, ruby/setup-ruby, maxim-lobanov/setup-xcode, google-github-actions/setup-gcloud, EnricoMi/publish-unit-test-result-action; `actionlint` (w sesji bez dostępu do github.com/releases i bez pobierania binarek — zrobić w sesji z dostępem). Skill: godot-build — powód: edycja `.github/workflows/` niedostępna w sesji scheduled (jak T-002b)
 - [ ] T-049 `todo` App.show_shop z Poziomu dnia: powrót woła `show_level()` (kampania) zamiast `show_daily_level()`; zapamiętać ekran źródłowy i wracać do właściwego trybu (albo Shop jako overlay nad Level, bez utraty rundy). Skill: godot-dev
 - [ ] T-046 `todo` playtest_bot.gd: fallback `win_reward_coins` = 10 w `GameConfig.get_value(..., 10)` nieaktualny po G-013 — usunąć fallback (klucz zawsze istnieje). Skill: godot-test

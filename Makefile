@@ -16,7 +16,7 @@ endif
 
 export GODOT_VERSION GDUNIT_REF
 
-.PHONY: setup test lint playtest sim export-check check screenshots
+.PHONY: setup test lint playtest sim export-check check screenshots screenshots-smoke
 
 setup:
 	bash tools/setup_env.sh
@@ -52,4 +52,7 @@ export-check:
 check: lint test export-check
 
 screenshots:
+	bash tools/gen_screenshots.sh --store
+
+screenshots-smoke:
 	bash tools/gen_screenshots.sh
