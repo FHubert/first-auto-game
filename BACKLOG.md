@@ -28,7 +28,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `Level.quit_level()` dla nieukończonej rundy rejestruje tylko `track_design("level:pause", moves)` — bez `track_progression("Fail", …)`; `App` w jednym helperze (np. `_discard_snapshot()`) przy każdym odrzuceniu lub nadpisaniu niepustego `round_in_progress` (daily z innego dnia UTC, kampania z innym poziomem, `Level.resume` → false, start rundy innego trybu nadpisujący snapshot) rejestruje dokładnie raz `track_progression("Fail", <mode snapshotu>, <level_id snapshotu>)` + `track_design("level:fail:abandon")` i czyści pole. Testy gdUnit4 z `FakeAnalyticsProvider` ≥ 4: (a) pauza → 0 `Fail`, 1 `level:pause`; (b) pauza → „Graj” (wznowienie) → wygrana → w sekwencji progression dokładnie 1 `Start`, 0 `Fail`, 1 `Complete`; (c) daily z wczoraj + karta Poziomu dnia → 1 `level:fail:abandon`, `round_in_progress` pusty po zapisie; (d) restart nadal loguje `level:fail:restart`. grep `level:fail:quit` w `game/src` = 0; wpisy `level_fail`/`level_pause` zgodne z GDD → Analityka (refill #5). `make check` zielone. ≤ ~80 linii.
   Skill: `godot-dev` + `analytics-review`
 
-- [ ] T-094 `in_progress` Analityka: parametry `level_complete` z GDD — czas rundy, cofnięcia, boostery, „idealnie” (zależy od T-093, ten sam `level.gd`)
+- [ ] T-094 `review` Analityka: parametry `level_complete` z GDD — czas rundy, cofnięcia, boostery, „idealnie” (zależy od T-093, ten sam `level.gd`) → PR #79
   KA: `GameRound` ma pole `elapsed_s: float` (serializowane w `to_dict/from_dict`; brak pola w starym snapshocie → 0, bez zmiany schema GameState); `Level` dolicza czas z wstrzykniętego `clock` od `_bind_round` do snapshotu/wygranej (wznowienie nie zeruje); `GameRound.result()` zwraca `undos_used`, `boosters_used`, `elapsed_s`. Przy wygranej (kampania i daily) `Level` rejestruje oprócz `Complete`: `level:complete:perfect` albo `level:complete:normal` (value = sekundy rundy), `level:complete:undos` (value = `undos_used`), `level:complete:boosters` (value = `boosters_used`). Testy gdUnit4 ≥ 4: ścieżka solvera bez boosterów → `perfect`, undos 0, boosters 0; 2× undo + 1 hint → 2 / 1; zegar +37 s → value 37 (±1); snapshot po 20 s → `resume` → wygrana po kolejnych 10 s → 30 (±1). Nazwy zgodne z GDD → Analityka (refill #5). `make check` zielone. ≤ ~120 linii.
   Skill: `godot-dev` + `analytics-review`
 
@@ -112,6 +112,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-066 `todo` gen_assets: dopieścić kształt probówki `flask` (wydzielone z T-034). Skill: asset-gen
 
 - [ ] T-103 `todo` `test_content_generator.gd` → `test_levels_1_to_200_solvable_and_fast`: twardy próg `max_ms <= 500` bywa przekroczony na obciążonej maszynie CI (odkryte w T-093: 543 ms, przy ponownym uruchomieniu OK) — mierzyć medianę/percentyl albo ustawić próg z `GameConfig`/stałej z marginesem; nie osłabiać asercji „rozwiązywalny”. Skill: godot-test
+
+- [ ] T-104 `todo` `Level.elapsed_s` liczy też czas w tle bez zabicia aplikacji (FOCUS_OUT robi snapshot = flush, ale po FOCUS_IN `_round_bound_at` nie jest przestawiane) — przy `NOTIFICATION_APPLICATION_FOCUS_IN` ponownie zakotwiczyć licznik (np. `Level.resume_clock()` wołane z `App._notification`) + test z wstrzykniętym zegarem (odkryte w T-094, QA). Skill: godot-dev
 
 ## Pytania do Huberta
 - T-027: wejście do Sklepu ze StuckPanel podmieniało scenę (postęp ruchów przepadał) — rozwiązane w T-049: Shop jako overlay nad Level, powrót do tej samej rundy i trybu (campaign/daily).

@@ -7,6 +7,8 @@ extends RefCounted
 const ACTION_BASE: int = 16
 const NO_HINT: Vector2i = Vector2i(-1, -1)
 
+## Aktywny czas rundy w sekundach, sumowany przez wznowienia; aktualizowany przez Level.
+var elapsed_s: float = 0.0
 var _level_data: Dictionary = {}
 var _start_tubes: Array = []
 var _board: SortBoard = SortBoard.new()
@@ -44,6 +46,7 @@ func start(level_data: Dictionary) -> void:
 	_undos_used = 0
 	_boosters_used = 0
 	_restarts = 0
+	elapsed_s = 0.0
 	_extra_tubes_added = 0
 	_undo_charges = _cfg_int("undo_free_per_level")
 	_solver_cache = {}
@@ -63,6 +66,7 @@ func to_dict() -> Dictionary:
 		"extra_tubes_added": _extra_tubes_added,
 		"boosters_used": _boosters_used,
 		"restarts": _restarts,
+		"elapsed_s": elapsed_s,
 	}
 
 
@@ -108,6 +112,9 @@ static func from_dict(d: Dictionary) -> GameRound:
 	r._undos_used = ints[1]
 	r._boosters_used = ints[2]
 	r._restarts = ints[3]
+	var el: Variant = d.get("elapsed_s")
+	if typeof(el) == TYPE_FLOAT or typeof(el) == TYPE_INT:
+		r.elapsed_s = maxf(0.0, float(el))
 	r._done = r._board.is_won()
 	r._won = r._done
 	return r
@@ -287,6 +294,7 @@ func result() -> Dictionary:
 		"undos_used": _undos_used,
 		"boosters_used": _boosters_used,
 		"restarts": _restarts,
+		"elapsed_s": elapsed_s,
 		"steps": _moves,
 	}
 

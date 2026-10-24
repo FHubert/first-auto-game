@@ -25,6 +25,7 @@ var utc_day: int = 0
 var tutorial: TutorialFlow
 var rewarded: RewardedPlacements = RewardedPlacements.new()
 
+var _round_bound_at: int = 0
 var _last_win_coins: int = 0
 var _last_win_perfect: bool = false
 var _last_win_title: String = ""
@@ -113,6 +114,7 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 
 ## Podpina biezaca runde do widokow (plansza, HUD, tutorial, oferty).
 func _bind_round(theme_id: String) -> void:
+	_round_bound_at = int(clock.call())
 	board.setup(round, theme_id)
 	hud.bind(round, level_no)
 	stuck_panel.visible = false
@@ -124,10 +126,18 @@ func _bind_round(theme_id: String) -> void:
 	_refresh_offers()
 
 
+## Dolicza czas od ostatniego bind/flush do round.elapsed_s (idempotentne).
+func _flush_elapsed() -> void:
+	var now: int = int(clock.call())
+	round.elapsed_s += float(maxi(0, now - _round_bound_at))
+	_round_bound_at = now
+
+
 ## Snapshot biezacej rundy do round_in_progress; {} gdy brak rundy lub ukonczona.
 func snapshot() -> Dictionary:
 	if round == null or round.is_done():
 		return {}
+	_flush_elapsed()
 	return GameState.round_snapshot(mode, level_no, utc_day, round)
 
 
@@ -352,6 +362,7 @@ func quit_level() -> void:
 func _on_round_won() -> void:
 	Audio.play_sfx("win")
 	Audio.play_sfx("coins")
+	_flush_elapsed()
 	var result: Dictionary = round.result()
 	var coins: int
 	var title: String = ""
@@ -369,6 +380,10 @@ func _on_round_won() -> void:
 	_last_win_perfect = bool(result.get("perfect", false))
 	_last_win_title = title
 	Analytics.track_progression("Complete", mode, _level_id(), int(result.get("moves", 0)))
+	var kind: String = "perfect" if _last_win_perfect else "normal"
+	Analytics.track_design("level:complete:" + kind, float(result.get("elapsed_s", 0.0)))
+	Analytics.track_design("level:complete:undos", float(result.get("undos_used", 0)))
+	Analytics.track_design("level:complete:boosters", float(result.get("boosters_used", 0)))
 	hud.refresh()
 	level_complete.show_result(coins, _last_win_perfect, level_no, title)
 	level_complete.set_double_offer(double_coins_bonus(), can_double_coins())
