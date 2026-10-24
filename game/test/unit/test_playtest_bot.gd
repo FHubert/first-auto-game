@@ -27,7 +27,11 @@ const KEYS: Array = [
 	"skips_by_bracket",
 	"median_attempts_by_bracket",
 	"extra_tubes_by_bracket",
+	"won_le3_pct_by_bracket",
+	"won_first_pct_by_bracket",
 ]
+## T-162 gate (26-55 within 3 tries, %), reduced sample (1 seed).
+const GATE_26_55: float = 50.0
 
 ## 20 rounds is noise-level (seed 7: greedy 19 vs random 20); 50 rounds is stable.
 const GREEDY_VS_RANDOM_ROUNDS: int = 50
@@ -317,3 +321,21 @@ func test_stay_closed_levels_match_wins_plus_skips() -> void:
 		assert_int(report["won_within_3_by_bracket"][label]).is_less_equal(
 			report["levels_won_by_bracket"][label]
 		)
+
+
+func test_report_pct_keys_have_four_brackets() -> void:
+	var report: Dictionary = PlaytestBot.new().run(2, 7)
+	for key: String in ["won_le3_pct_by_bracket", "won_first_pct_by_bracket"]:
+		assert_array(report[key].keys()).contains_exactly_in_any_order(PlaytestBot.BRACKET_LABELS)
+
+
+func test_assist_gate_26_55_reduced_sample() -> void:
+	var bot := PlaytestBot.new()
+	bot.use_campaign_seed = true
+	bot.stay_on_level = true
+	bot.start_level = 26
+	bot.extra_tube_min_level = int(GameConfig.get_value("plateau_assist_min_level"))
+	bot.extra_tube_from_attempt = int(GameConfig.get_value("plateau_assist_from_attempt"))
+	var report: Dictionary = bot.run(100, 42, PlaytestBot.MODE_GREEDY)
+	assert_array(report["errors"]).is_empty()
+	assert_float(report["won_le3_pct_by_bracket"]["26-55"]).is_greater_equal(GATE_26_55)

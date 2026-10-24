@@ -2,6 +2,7 @@ extends Control
 ## Entry scene. With `-- --playtest` it runs the headless bot instead of the UI.
 
 const DEFAULT_REPORT: String = "res://test/reports/playtest.json"
+const ASSIST_REPORT: String = "res://test/reports/playtest_assist.json"
 
 @onready var _label: Label = $Build
 
@@ -84,17 +85,24 @@ func _show_screenshot_screen(app: App, action: String, fixture: String = "defaul
 func _run_playtest(args: PackedStringArray) -> int:
 	var rounds: int = int(_arg_value(args, "--rounds", "200"))
 	var run_seed: int = int(_arg_value(args, "--seed", "42"))
-	var report_path: String = _arg_value(args, "--report", DEFAULT_REPORT)
+	var assist: bool = "--assist" in args
+	var default_report: String = ASSIST_REPORT if assist else DEFAULT_REPORT
+	var report_path: String = _arg_value(args, "--report", default_report)
 	var bot := PlaytestBot.new()
 	bot.max_restarts_per_round = int(
 		_arg_value(args, "--max-restarts", str(bot.max_restarts_per_round))
 	)
-	bot.use_campaign_seed = "--campaign" in args
-	bot.stay_on_level = "--stay" in args
-	bot.extra_tube_from_attempt = int(_arg_value(args, "--extra-tube-from", "0"))
-	bot.extra_tube_min_level = int(_arg_value(args, "--extra-tube-min-level", "1"))
+	bot.use_campaign_seed = assist or "--campaign" in args
+	bot.stay_on_level = assist or "--stay" in args
+	var from_default: String = "0"
+	var min_default: String = "1"
+	if assist:
+		from_default = str(GameConfig.get_value("plateau_assist_from_attempt"))
+		min_default = str(GameConfig.get_value("plateau_assist_min_level"))
+	bot.extra_tube_from_attempt = int(_arg_value(args, "--extra-tube-from", from_default))
+	bot.extra_tube_min_level = int(_arg_value(args, "--extra-tube-min-level", min_default))
 	var mode: String = PlaytestBot.MODE_SOLVER
-	if "--greedy" in args:
+	if "--greedy" in args or assist:
 		mode = PlaytestBot.MODE_GREEDY
 	elif "--random" in args:
 		mode = PlaytestBot.MODE_RANDOM

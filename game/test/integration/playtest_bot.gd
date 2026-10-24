@@ -66,6 +66,8 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		"skips_by_bracket": _zero_brackets(),
 		"median_attempts_by_bracket": _zero_brackets(),
 		"extra_tubes_by_bracket": _zero_brackets(),
+		"won_le3_pct_by_bracket": _zero_pcts(),
+		"won_first_pct_by_bracket": _zero_pcts(),
 		"errors": [],
 		"elapsed_ms": 0,
 	}
@@ -181,6 +183,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 	var medians: Dictionary = report["median_attempts_by_bracket"]
 	for label: String in BRACKET_LABELS:
 		medians[label] = _median(attempts_per_won[label])
+	_fill_pcts(report)
 	report["interstitials_shown"] = Ads.interstitials_shown - shown_before
 	Ads.clock = old_clock
 	report["coins_end"] = state.coins
@@ -190,6 +193,26 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		report["avg_moves"] = float(total_moves) / float(finished_rounds)
 	report["elapsed_ms"] = Time.get_ticks_msec() - started_ms
 	return report
+
+
+func _zero_pcts() -> Dictionary:
+	var out: Dictionary = {}
+	for label: String in BRACKET_LABELS:
+		out[label] = 0.0
+	return out
+
+
+## Percent of closed levels (won + skipped) won in <= 3 tries / in the 1st try.
+func _fill_pcts(report: Dictionary) -> void:
+	for label: String in BRACKET_LABELS:
+		var closed: int = (
+			int(report["levels_won_by_bracket"][label]) + int(report["skips_by_bracket"][label])
+		)
+		if closed > 0:
+			var within: int = int(report["won_within_3_by_bracket"][label])
+			var first: int = int(report["won_first_try_by_bracket"][label])
+			report["won_le3_pct_by_bracket"][label] = float(within) / float(closed) * 100.0
+			report["won_first_pct_by_bracket"][label] = float(first) / float(closed) * 100.0
 
 
 func _zero_brackets() -> Dictionary:
