@@ -33,6 +33,11 @@ offset_bottom = 150.0
 grow_horizontal = 2
 script = ExtResource("3_hud")
 
+[node name="Confetti" type="CPUParticles2D" parent="."]
+emitting = false
+one_shot = true
+explosiveness = 1.0
+
 [node name="LevelComplete" parent="." instance=ExtResource("4_lc")]
 layout_mode = 1
 

@@ -13,6 +13,8 @@ const MODE_CAMPAIGN: String = "campaign"
 const MODE_DAILY: String = "daily"
 ## Haptic length on tube close (2x AudioService.HAPTIC_MS).
 const TUBE_FULL_HAPTIC_MS: int = 40
+const CONFETTI_AMOUNT: int = 48
+const CONFETTI_COLORS: int = 6
 
 @export var level: int = 2
 
@@ -24,6 +26,7 @@ var level_no: int = 1
 var utc_day: int = 0
 var tutorial: TutorialFlow
 var rewarded: RewardedPlacements = RewardedPlacements.new()
+var effects_enabled: bool = true
 
 var _round_bound_at: int = 0
 var _tutorial_max_step: int = 0
@@ -33,6 +36,7 @@ var _last_win_title: String = ""
 
 @onready var board: BoardView = $Board
 @onready var hud: Hud = $Hud
+@onready var confetti: CPUParticles2D = $Confetti
 @onready var level_complete: LevelComplete = $LevelComplete
 @onready var stuck_panel: StuckPanel = $StuckPanel
 @onready var tutorial_overlay: TutorialOverlay = $TutorialOverlay
@@ -115,6 +119,7 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 
 ## Podpina biezaca runde do widokow (plansza, HUD, tutorial, oferty).
 func _bind_round(theme_id: String) -> void:
+	_stop_confetti()
 	_round_bound_at = int(clock.call())
 	board.setup(round, theme_id)
 	hud.bind(round, level_no)
@@ -253,6 +258,7 @@ func undo() -> void:
 
 
 func restart() -> void:
+	_stop_confetti()
 	round.restart()
 	state.level_restarts += 1
 	_after_action()
@@ -415,7 +421,55 @@ func _on_round_won() -> void:
 		LevelComplete.progress_message(level_no, mode, state)
 	)
 	level_complete.set_double_offer(double_coins_bonus(), can_double_coins())
+	_start_confetti()
 	level_won.emit(level_no, coins)
+
+
+func _start_confetti() -> void:
+	if not effects_enabled:
+		return
+	confetti.amount = CONFETTI_AMOUNT
+	confetti.lifetime = float(GameConfig.get_value("confetti_seconds", 1.2))
+	confetti.one_shot = true
+	confetti.explosiveness = 1.0
+	confetti.position = board.position + Vector2(board.size.x * 0.5, 0.0)
+	confetti.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	confetti.emission_rect_extents = Vector2(board.size.x * 0.5, 4.0)
+	confetti.direction = Vector2(0, 1)
+	confetti.spread = 60.0
+	confetti.gravity = Vector2(0, 600)
+	confetti.initial_velocity_min = 150.0
+	confetti.initial_velocity_max = 350.0
+	confetti.angular_velocity_min = -360.0
+	confetti.angular_velocity_max = 360.0
+	confetti.scale_amount_min = 4.0
+	confetti.scale_amount_max = 8.0
+	confetti.color_initial_ramp = _confetti_ramp()
+	confetti.restart()
+	confetti.emitting = true
+
+
+func _stop_confetti() -> void:
+	confetti.emitting = false
+
+
+## Gradient z pierwszych kolorow palety aktywnego motywu.
+func _confetti_ramp() -> Gradient:
+	var liquids: Array = board.theme_data.get("liquids", [])
+	var n: int = mini(CONFETTI_COLORS, liquids.size())
+	var ramp := Gradient.new()
+	if n == 0:
+		ramp.offsets = PackedFloat32Array([0.0])
+		ramp.colors = PackedColorArray([Color.WHITE])
+		return ramp
+	var offs := PackedFloat32Array()
+	var cols := PackedColorArray()
+	for i in n:
+		offs.append(float(i) / float(maxi(1, n - 1)))
+		cols.append(Color(str(liquids[i])))
+	ramp.offsets = offs
+	ramp.colors = cols
+	return ramp
 
 
 func _finish_purchase(ok: bool) -> bool:
