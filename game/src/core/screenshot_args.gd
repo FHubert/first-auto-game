@@ -26,6 +26,7 @@ const KNOWN_FIXTURES: Array[String] = [
 	"aso_themes",
 	"symbols",
 	"symbols_neon",
+	"plateau_assist",
 ]
 const ACTIONS: Dictionary = {
 	"res://src/core/main.tscn": "home",

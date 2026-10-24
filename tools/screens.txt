@@ -9,3 +9,4 @@ res://src/ui/themes_screen.tscn
 res://src/ui/shop_screen.tscn
 res://src/levels/level.tscn|symbols|symbols
 res://src/levels/level.tscn|symbols_neon|symbols_neon
+res://src/levels/level.tscn|plateau_assist|plateau_assist

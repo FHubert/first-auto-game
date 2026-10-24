@@ -44,6 +44,7 @@ var _last_month_goal_hit: bool = false
 
 @onready var board: BoardView = $Board
 @onready var hud: Hud = $Hud
+@onready var assist_bar: AssistBar = $AssistBar
 @onready var confetti: CPUParticles2D = $Confetti
 @onready var level_complete: LevelComplete = $LevelComplete
 @onready var stuck_panel: StuckPanel = $StuckPanel
@@ -99,6 +100,8 @@ func _ready() -> void:
 	level_complete.double_pressed.connect(func() -> void: offers.watch_double_coins())
 	stuck_panel.restart_pressed.connect(restart)
 	stuck_panel.skip_pressed.connect(offers.watch_skip)
+	assist_bar.coins_pressed.connect(func() -> void: offers.assist_buy_extra_tube())
+	assist_bar.ad_pressed.connect(func() -> void: offers.assist_watch_extra_tube())
 	hud.undo_pressed.connect(undo)
 	hud.restart_pressed.connect(restart)
 	hud.pause_pressed.connect(pause)
@@ -314,6 +317,7 @@ func _prefetch_next() -> void:
 
 
 func pause() -> void:
+	assist_bar.visible = false
 	quit_level()
 	pause_requested.emit()
 
@@ -475,6 +479,7 @@ func _after_action() -> void:
 func _check_stuck() -> void:
 	if round.is_stuck() and not round.is_done():
 		stuck_panel.show_for(round, mode != MODE_DAILY, offers.ad_offers())
+		assist_bar.visible = false
 		Analytics.track_design("level:stuck", round.moves_to_goal())
 
 
@@ -491,3 +496,4 @@ static func level_id_for(mode_in: String, level_no_in: int, utc_day_in: int) -> 
 func _refresh_offers() -> void:
 	var o: Dictionary = offers.ad_offers()
 	hud.set_ad_offers(bool(o["extra_tube"]), bool(o["undo_refill"]))
+	assist_bar.apply(offers.plateau_assist())
