@@ -103,6 +103,7 @@ func test_board_and_level_use_catalog() -> void:
 
 func test_app_routes_to_themes() -> void:
 	var app: App = auto_free(App.new())
+	app.clock = TestClock.fixed()
 	app.state = GameState.new()
 	app.state.settings["tutorial_done"] = true
 	add_child(app)
@@ -163,6 +164,7 @@ func test_screen_uses_translated_names() -> void:
 
 func test_app_theme_selected_hook() -> void:
 	var app: App = auto_free(App.new())
+	app.clock = TestClock.fixed()
 	app.state = GameState.new()
 	app.state.settings["tutorial_done"] = true
 	add_child(app)
