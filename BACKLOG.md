@@ -24,28 +24,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #8, refill #5): Faza 5 prep III — wiarygodna analityka przed soft launchem (lejek poziomów i FTUE), brakujące elementy MVP z GDD (LevelComplete, konfetti), odporność zapisu. Bez workflowów, binarek z Releases, kont i SDK. Kolejność = zależności (T-093 → T-094 → T-095 dotykają `level.gd`). -->
 
-- [ ] T-093 `review` Analityka: pauza z wznawialną rundą jako `level:pause` zamiast `level:fail:quit`; porzucony snapshot jako `level:fail:abandon` (przeniesione z Inbox T-091) → PR #78
-  KA: `Level.quit_level()` dla nieukończonej rundy rejestruje tylko `track_design("level:pause", moves)` — bez `track_progression("Fail", …)`; `App` w jednym helperze (np. `_discard_snapshot()`) przy każdym odrzuceniu lub nadpisaniu niepustego `round_in_progress` (daily z innego dnia UTC, kampania z innym poziomem, `Level.resume` → false, start rundy innego trybu nadpisujący snapshot) rejestruje dokładnie raz `track_progression("Fail", <mode snapshotu>, <level_id snapshotu>)` + `track_design("level:fail:abandon")` i czyści pole. Testy gdUnit4 z `FakeAnalyticsProvider` ≥ 4: (a) pauza → 0 `Fail`, 1 `level:pause`; (b) pauza → „Graj” (wznowienie) → wygrana → w sekwencji progression dokładnie 1 `Start`, 0 `Fail`, 1 `Complete`; (c) daily z wczoraj + karta Poziomu dnia → 1 `level:fail:abandon`, `round_in_progress` pusty po zapisie; (d) restart nadal loguje `level:fail:restart`. grep `level:fail:quit` w `game/src` = 0; wpisy `level_fail`/`level_pause` zgodne z GDD → Analityka (refill #5). `make check` zielone. ≤ ~80 linii.
-  Skill: `godot-dev` + `analytics-review`
-
-- [ ] T-094 `review` Analityka: parametry `level_complete` z GDD — czas rundy, cofnięcia, boostery, „idealnie” (zależy od T-093, ten sam `level.gd`) → PR #79
-  KA: `GameRound` ma pole `elapsed_s: float` (serializowane w `to_dict/from_dict`; brak pola w starym snapshocie → 0, bez zmiany schema GameState); `Level` dolicza czas z wstrzykniętego `clock` od `_bind_round` do snapshotu/wygranej (wznowienie nie zeruje); `GameRound.result()` zwraca `undos_used`, `boosters_used`, `elapsed_s`. Przy wygranej (kampania i daily) `Level` rejestruje oprócz `Complete`: `level:complete:perfect` albo `level:complete:normal` (value = sekundy rundy), `level:complete:undos` (value = `undos_used`), `level:complete:boosters` (value = `boosters_used`). Testy gdUnit4 ≥ 4: ścieżka solvera bez boosterów → `perfect`, undos 0, boosters 0; 2× undo + 1 hint → 2 / 1; zegar +37 s → value 37 (±1); snapshot po 20 s → `resume` → wygrana po kolejnych 10 s → 30 (±1). Nazwy zgodne z GDD → Analityka (refill #5). `make check` zielone. ≤ ~120 linii.
-  Skill: `godot-dev` + `analytics-review`
-
-- [ ] T-095 `review` Analityka: lejek FTUE — `tutorial:step:<n>` przy pierwszym wejściu w krok `TutorialFlow` i `tutorial:reset` przy cofnięciu (zależy od T-094, ten sam `level.gd`) → PR #80
-  KA: `Level` rejestruje `tutorial:step:1` (start tutorialu), `tutorial:step:2` (wejście w `PICK_TARGET`), `tutorial:step:3` (wejście w `FINISH`) — każdy tylko przy pierwszym osiągnięciu w rundzie (pole `_tutorial_max_step`; powtórne `PICK_SOURCE` przy kolejnych przelewach poziomu 1 nie generuje eventów); `tutorial:reset` (value = krok, z którego cofnięto) w `_on_tutorial_deselected`; istniejące `tutorial:done` bez zmian. Testy gdUnit4 z `FakeAnalyticsProvider` ≥ 3: poprawne przejście poziomu 1 → `step:1`, `step:2`, `step:3`, `done` dokładnie po 1× w tej kolejności; odznaczenie w kroku 2 → 1× `tutorial:reset`, bez ponownego `step:1`; poziom 1 przy `tutorial_done == true` → 0 eventów `tutorial:*`. Zgodne z GDD → Analityka `tutorial_step` (refill #5). `make check` zielone. ≤ ~50 linii.
-  Skill: `godot-dev` + `analytics-review`
-
-- [ ] T-096 `review` LevelComplete: komunikat „Następny poziom: +1 kolor” albo postęp do następnego motywu (GDD → Ekrany `LevelComplete`, Sesja hook 4) → PR #81
-  KA: czysta funkcja statyczna (np. `LevelComplete.progress_message(level_no: int, mode: String, state: GameState) -> Dictionary {key, args}`, bez `Node`): kampania i `ContentGenerator.new().level_params(level_no + 1)["colors"] > level_params(level_no)["colors"]` → klucz `lc_new_color` (EN „Next level: +1 color”, PL „Następny poziom: +1 kolor”, DE „Nächstes Level: +1 Farbe”); w przeciwnym razie `lc_theme_progress` z `[state.coins, ThemeCatalog.next_theme_cost(state)]` (format jak `home_theme_progress`); wszystkie motywy kupione albo tryb daily → `{}` i etykieta ukryta. `LevelComplete.show_result` pokazuje etykietę pod monetami (po ×2 odświeżona). Testy gdUnit4 ≥ 5: poziom 7 → `lc_new_color` (asercja wyliczona z `level_params`, nie z literału); poziom 8 → `lc_theme_progress`; wszystkie motywy kupione → `{}`; daily → `{}`; po `watch_double_coins` monety w etykiecie zaktualizowane. Nowe klucze objęte testem kompletności EN/PL/DE (T-023) i testem „PL/DE ≠ EN” (T-076). Kadr 02 (`make screenshots`, EN/PL/DE) odświeżony i obejrzany (tekst nie nachodzi na przyciski). `make check` zielone. ≤ ~100 linii + PNG.
-  Skill: `godot-dev`
-
-- [ ] T-097 `todo` Konfetti na wygranej: `CPUParticles2D` z prostokątów w kolorach aktywnego motywu (GDD → Styl graficzny; zależy od T-096 — wspólny kadr 02)
+- [ ] T-097 `in_progress` Konfetti na wygranej: `CPUParticles2D` z prostokątów w kolorach aktywnego motywu (GDD → Styl graficzny; zależy od T-096 — wspólny kadr 02)
   KA: węzeł `CPUParticles2D` (`one_shot = true`) w scenie Level nad planszą, pod panelem `LevelComplete`, startowany w `Level._on_round_won` (kampania i daily); liczba cząstek z nazwanej `const CONFETTI_AMOUNT`, czas życia z klucza `confetti_seconds` w `GameConfig` (PROPOZYCJA 1.2, GDD → tabela kluczy), kolory = pierwsze 6 kolorów palety aktywnego motywu (Gradient w `color_initial_ramp`); restart/następny poziom/`resume` zatrzymują emisję; w trybie `--screenshot` konfetti nie startuje (deterministyczne kadry). Testy gdUnit4 ≥ 3: wygrana → `emitting == true` i `lifetime == confetti_seconds`; `load_level` po wygranej → `emitting == false`; tryb screenshot → `emitting == false`. `make screenshots` → kadr 02 bez cząstek (identyczny jak po T-096). `make check` zielone. ≤ ~70 linii.
-  Skill: `godot-dev`
-
-- [ ] T-098 `review` Odporność zapisu: zły typ `schema_version` w `GameState.migrate` i nie-liczbowe `payload.min_moves` w `GameRound.from_dict` (przeniesione z Inbox T-086 i części T-089) → PR #82
-  KA: w `GameState.migrate` (`int(out.get("schema_version", 1))`) i `from_dict` `schema_version` jako Dictionary / Array / String / bool / brak → traktowany jak v1 i migrowany do bieżącej schemy bez błędu skryptu, pozostałe poprawne pola (`level`, `coins`) zachowane; liczba z JSON (`3.0` float) nadal = v3 bez migracji (regresja); `GameRound.from_dict` z `payload.min_moves` jako Array / Dictionary / String → `null` (runda od nowa) bez wywołania `int()` na złym typie. Testy gdUnit4 ≥ 8 przypadków (5 złych wariantów `schema_version` + float `3.0` + 2 typy `min_moves`; wzorzec parametryzowany z Inbox T-089 albo osobne funkcje). `make test 2>&1 | grep -c "SCRIPT ERROR"` = 0. `make check` zielone. ≤ ~50 linii.
   Skill: `godot-dev`
 
 ## P2 — monetyzacja i meta (z GDD v1.0, R-003)
@@ -63,10 +43,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   Skill: `godot-build` + `godot-test`
 
 <!-- Refill 2026-10-24 (continuous-dev #6, refill #4): poprawność ekonomii i raportów bota (wiarygodność make sim/playtest przed soft launchem), consent bez SDK. -->
-
-- [ ] T-085 `review` ConsentFlow: błąd `request_consent_info_update` (`ok=false`) → event `consent:ump:error` i ścieżka niespersonalizowana; `FakeConsentProvider` umie zwrócić `ok=false` (przeniesione z Inbox T-069) → PR #76
-  KA: `FakeConsentProvider` ma skryptowane `info_update_ok: bool`; przy `false` flow kończy `finished` z `can_request_ads=true`, `personalized=false`, bez pokazania formularza, i rejestruje dokładnie jeden event błędu w `FakeAnalyticsProvider` (nazwa zgodna z konwencją z GDD → Analityka; jeśli brak — dopisać wiersz w GDD). Test gdUnit4 ≥ 2 przypadki (EEA + błąd, poza EEA + błąd). `make check` zielone. ≤ ~60 linii.
-  Skill: `ads-iap`
 
 <!-- Refill 2026-10-24 (continuous-dev #8, refill #5, P2): reklamy/consent bez SDK — odporność na zawieszony provider i zmianę zgody; refaktor Level po paczce analityki P1; spójność PL. Kolejność = zależności. -->
 
@@ -174,3 +150,9 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-082 `done` Wznowienie rundy cz. 2: zapis przy FOCUS_OUT/WM_CLOSE/przed reklamą + wznowienie (G-014) → PR #73 (zmergowany 2026-10-24)
 - [x] T-083 `done` Economy: `rewarded_bonus` ≥ 0, testy `can_afford`, 2 eventy w `apply_win` → PR #74 (zmergowany 2026-10-24)
 - [x] T-084 `done` PlaytestBot: interstitial raz na rundę + bez fallbacku `win_reward_coins` → PR #75 (zmergowany 2026-10-24)
+- [x] T-085 `done` ConsentFlow: błąd `request_consent_info_update` → PR #76 (zmergowany 2026-10-24)
+- [x] T-093 `done` Analityka: pauza z wznawialną rundą jako `level:pause` zamiast `level:fail:quit`; porzucony snapshot jako `level:fail:abandon` → PR #78 (zmergowany 2026-10-24)
+- [x] T-094 `done` Analityka: parametry `level_complete` z GDD → PR #79 (zmergowany 2026-10-24)
+- [x] T-095 `done` Analityka: lejek FTUE → PR #80 (zmergowany 2026-10-24)
+- [x] T-096 `done` LevelComplete: komunikat „Następny poziom: +1 kolor” albo postęp do następnego motywu → PR #81 (zmergowany 2026-10-24)
+- [x] T-098 `done` Odporność zapisu: zły typ `schema_version` w `GameState.migrate` i nie-liczbowe `payload.min_moves` w `GameRound.from_dict` → PR #82 (zmergowany 2026-10-24)
