@@ -68,7 +68,7 @@ static func apply_win(state: GameState, result: Dictionary) -> int:
 ## Extra coins granted by a rewarded ad on top of base.
 static func rewarded_bonus(base: int) -> int:
 	var multiplier: float = float(GameConfig.get_value("rewarded_multiplier"))
-	return int(round(base * multiplier)) - base
+	return maxi(0, int(round(base * multiplier)) - base)
 
 
 static func hint_cost() -> int:
