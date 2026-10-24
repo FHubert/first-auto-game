@@ -34,7 +34,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `strings.csv`: `home_streak` PL „Seria: %d” (DE „Serie: %d” już jest); test gdUnit4 w teście lokalizacji: dla każdego klucza wartość PL i DE ≠ EN, z jawną listą wyjątków `SAME_AS_EN` w teście (≤ 5 pozycji, np. nazwa gry, „OK”). Popup nagrody dziennej na Home (kadr 04): karta Poziomu dnia ukryta na czas popupu — test gdUnit4 (`visible == false` przy otwartym popupie, `true` po zamknięciu). `make screenshots` → kadry 03/04 PL/DE odświeżone. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `aso`
 
-- [ ] T-077 `in_progress` BoardView: sygnał `tube_deselected` zamiast pollingu w `Level._process` + test „zły ruch w tutorialu restartuje krok” (przeniesione z Inbox T-039)
+- [ ] T-077 `review` BoardView: sygnał `tube_deselected` zamiast pollingu w `Level._process` + test „zły ruch w tutorialu restartuje krok” (przeniesione z Inbox T-039) → PR #__N__
   KA: `BoardView` emituje `tube_deselected` (tap w tę samą probówkę / nielegalny cel); `Level._process` nie odpytuje zaznaczenia na potrzeby tutorialu; `TEXT_HEIGHT` w `tutorial_overlay.gd` jako `const`. Testy gdUnit4: (a) zaznaczenie + odznaczenie → 1 emisja; (b) w tutorialu krok 2 → nielegalny ruch → `TutorialFlow` wraca do kroku 1, overlay wskazuje źródło; (c) poprawna sekwencja → flaga ukończenia w `GameState.settings`. `make check` zielone. ≤ ~90 linii.
   Skill: `godot-dev`
 

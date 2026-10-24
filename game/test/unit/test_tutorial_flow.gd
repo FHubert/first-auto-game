@@ -88,6 +88,24 @@ func test_scene_runs_tutorial_to_completion() -> void:
 	assert_bool(bool(SaveSystem.load().settings["tutorial_done"])).is_true()
 
 
+func test_scene_illegal_target_restarts_step() -> void:
+	_make_level(false)
+	var m: Vector2i = _level.tutorial.expected
+	_level.board.tap(m.x)
+	assert_int(_level.tutorial.step).is_equal(TutorialFlow.Step.PICK_TARGET)
+	var bad: int = m.x
+	for i: int in _level.round.board().tube_count():
+		if i != m.x and not _level.round.board().can_pour(m.x, i):
+			bad = i
+			break
+	_level.board.tap(bad)
+	assert_int(_level.board.selected_index()).is_equal(-1)
+	assert_int(_level.tutorial.step).is_equal(TutorialFlow.Step.PICK_SOURCE)
+	assert_int(_level.tutorial.highlight()).is_equal(m.x)
+	assert_bool(_level.tutorial_overlay.visible).is_true()
+	assert_str(_level.tutorial_overlay.label.text).is_equal(tr("tut_pick_source"))
+
+
 func test_scene_skips_tutorial_when_done() -> void:
 	_make_level(true)
 	assert_object(_level.tutorial).is_null()
