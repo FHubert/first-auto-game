@@ -30,7 +30,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #9, refill #6): Faza 5 prep IV — wiarygodne CI i kadry, powrót z tła, widoczna meta — przed soft launchem bramka `make check` nie może dawać fałszywych czerwonych (próg 500 ms), PR-y nie mogą nieść przypadkowych PNG, a powrót z tła (najczęstsza ścieżka wejścia na mobile) musi liczyć czas rundy i pokazywać nagrodę dzienną, bo to dźwignie D1/D7 z KPI.md. Kolejność = zależności (T-108 przed zadaniami regenerującymi kadry: T-110, T-111). -->
 
-- [ ] T-108 `todo` Screenshoty deterministyczne: stały zegar w trybie `--screenshot` + źródło zmian `05_themes.png` (przeniesione z Inbox T-106)
+- [ ] T-108 `in_progress` Screenshoty deterministyczne: stały zegar w trybie `--screenshot` + źródło zmian `05_themes.png` (przeniesione z Inbox T-106)
   KA: `ScreenshotArgs.parse` przyjmuje opcjonalne `--now=<unix>` (domyślnie nowa `const SCREENSHOT_NOW_UNIX: int = 1792843200` = 2026-10-24 12:00 UTC, dzień UTC 20750); `main.gd._run_screenshot` liczy `today` z tej wartości zamiast `Time.get_unix_time_from_system()` i ustawia `app.clock` na stały `Callable` przed `add_child` (licznik „do północy” na kadrze 03 i Poziom dnia stałe). Źródło niedeterminizmu `05_themes.png` (PL/DE) ustalone i usunięte (opis przyczyny w PR). Testy gdUnit4 ≥ 2 (`--now` sparsowane; brak `--now` → `SCREENSHOT_NOW_UNIX`). Weryfikacja: `make screenshots` 2× z rzędu → `sha256sum` wszystkich PNG w `fastlane/metadata/android/*/images/phoneScreenshots/` identyczne (wynik w PR); PNG zregenerowane jednorazowo. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `aso`
 
