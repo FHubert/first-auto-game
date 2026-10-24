@@ -156,7 +156,7 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
 | `tube_full_pulse_seconds` | 0.25 | UI, nie balans |
 | `confetti_seconds` | 1.2 | UI, nie balans; czas życia konfetti na wygranej (T-097) |
 | `ad_unmute_timeout_seconds` | 90 | watchdog: po tylu sekundach bez zamknięcia reklamy dźwięk wraca, a przerwa reklamowa się kończy (T-099); > najdłuższej reklamy rewarded (~30 s + karta końcowa) |
-| `gen_quick_state_budget` / `gen_exact_state_budget` / `gen_exact_max_colors` | 250 / 1000 / 6 (bez zmian) | etapy generatora (Generator contentu, krok 5); klucze `GameConfig` (T-116). T-129: bramka niespełniona — żadna konfiguracja siatki {6, 7, 8} × {1000, 3000} nie daje exact dla poziomów 26–37 (0/12 wszędzie), bo dokładny A* w szybkim przebiegu dostaje tylko `gen_quick_state_budget` = 250 stanów; tabela pomiaru w sekcji Generator contentu. Dźwignią byłby `gen_quick_state_budget`, nie `gen_exact_*` (nie zmieniane w T-129) |
+| `gen_quick_state_budget` / `gen_exact_state_budget` / `gen_exact_max_colors` | 250 / 1000 / 6 (bez zmian) | etapy generatora (Generator contentu, krok 5); klucze `GameConfig` (T-116). T-129: bramka niespełniona — żadna konfiguracja siatki {6, 7, 8} × {1000, 3000} nie daje exact dla poziomów 26–37 (0/12 wszędzie), bo dokładny A* w szybkim przebiegu dostaje tylko `gen_quick_state_budget` = 250 stanów; tabela pomiaru w sekcji Generator contentu. Dźwignią byłby `gen_quick_state_budget`, nie `gen_exact_*` (nie zmieniane w T-129); T-166: większy `gen_quick_state_budget` (500–2000) i pełny exact w szybkim przebiegu też nie spełniają bramki — tabela w Generatorze contentu |
 | `daily_month_goal` / `daily_month_goal_coins` | **20** / **300** | zaimplementowane (T-137/T-138): cel miesiąca Poziomów dnia — jednorazowa premia przy 20. ukończeniu w miesiącu kalendarzowym UTC; 300 = nagroda D7 streaka ≈ 1 dzień dochodu zaangażowanego gracza (250–300/dzień), czyli ~5 % miesięcznego dochodu gracza, który i tak gra ≥ 20 dni — `make sim`: mediana d30/d1 rośnie ≤ 5 % |
 | `remote_config_variant` | `"default"` | PROPOZYCJA refill #8 (T-142): etykieta wariantu remote configu (A/B H1–H3, `docs/MONETIZATION.md`), wysyłana jako `config:variant:<v>`; format `^[a-z0-9_]{1,24}$` |
 | `notif_local_hour` / `notif_streak_min_days` / `notif_comeback_days` | 19 / 2 / 3 | PROPOZYCJA refill #9 (T-150): lokalne notyfikacje (Mechaniki) — godzina czasu lokalnego (`RANGES` 0..23), minimalna seria dla tekstu „seria” (1..365), dzień przypomnienia „powrót” (2..14); 19:00 = wieczorne okno gry casualowej, przed ciszą nocną |
@@ -201,6 +201,21 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
   | 8 / 3000 | 10,4 / 40,7 | 20,4 / 29,8 | 17154 | 0/12 | 0/30 |
 
   Decyzja: nie warto — wartości bez zmian (6 / 1000). Budżet czasu jest w normie, ale exact = 0/12 i `expanded_total` identyczne we wszystkich konfiguracjach: w szybkim przebiegu dokładny A* ma `min(250, gen_exact_state_budget)` stanów i dla 7–8 kolorów nigdy nie kończy, więc `gen_exact_*` nie ma wpływu. Ewentualny następny krok to osobny eksperyment z `gen_quick_state_budget` (więcej niż 250), który zmieniłby poziomy 26–37 i `expanded_total` — zaplanowany w refillu #10 jako T-166 (po T-162, bo obie zmiany dotykają poziomów kampanii; ta sama bramka co T-129).
+
+  Pomiar T-166 (2026-10-24, `measure_gen_exact.gd`; ms z maszyny CI, nie urządzenia; bramka jak T-129: exact ≥ 6/12 dla 26–37, mediana ≤ 25 ms, p95 ≤ 250 ms kampania i daily). Wariant A — większy `gen_quick_state_budget` (dzisiejszy kod); wariant B — eksperymentalna flaga `exact_full_budget_in_quick` (dokładny A* w szybkim przebiegu z pełnym `gen_exact_state_budget`), zmierzona jednorazowo i usunięta z kodu:
+
+  | Wariant / konfiguracja | mediana / p95 ms kampania | mediana / p95 ms daily | `expanded_total` | exact 26–37 | exact daily | golden 1/2/10/50 |
+  |---|---|---|---|---|---|---|
+  | baza 250 / 6 / 1000 | 8,9 / 34,1 | 2,4 / 14,2 | 17154 | 0/12 | 0/30 | bez zmian |
+  | A: `gen_quick_state_budget` 500 | 9,3 / 51,2 | 2,5 / 12,1 | 24887 | 0/12 | 0/30 | bez zmian |
+  | A: `gen_quick_state_budget` 1000 | 9,1 / 79,3 | 3,0 / 12,5 | 33163 | 0/12 | 0/30 | bez zmian |
+  | A: `gen_quick_state_budget` 2000 | 9,1 / 97,5 | 2,5 / 12,6 | 41454 | 0/12 | 0/30 | bez zmian |
+  | B: pełny exact w quick, 6 / 1000 | 8,5 / 57,1 | 2,6 / 16,7 | 21502 | 0/12 | 0/30 | bez zmian |
+  | B: pełny exact w quick, 8 / 1000 | 10,1 / 65,0 | 67,7 / 96,6 | 21502 | 0/12 | 0/30 | bez zmian |
+  | B: pełny exact w quick, 6 / 3000 | 7,1 / 53,1 | 2,0 / 9,3 | 35828 | 0/12 | 0/30 | bez zmian |
+  | B: pełny exact w quick, 8 / 3000 | 9,8 / 194,3 | **209,1 / 252,7** | 42449 | 3/12 | 1/30 | bez zmian |
+
+  Decyzja T-166: nie warto — wartości bez zmian (250 / 6 / 1000), flaga B usunięta. Sam większy budżet szybkiego przebiegu nie daje ani jednego `min_moves_exact` dla 26–37 (0/12), a podnosi p95 kampanii do 97,5 ms; jedyna konfiguracja z jakimkolwiek exact (B 8/3000: 3/12 — poziomy 26, 29, 35) łamie bramkę czasu Poziomu dnia (mediana 209 ms, p95 253 ms; 8 kolorów w daily). Poziomy 26–37 mają 7–8 kolorów i dokładny A* przy ≤ 3000 stanach rozstrzyga je rzadko — dokładna premia „idealnie” w tym przedziale wymagałaby lepszej heurystyki solvera, nie budżetu (Inbox). Golden hashe 1/2/10/50 identyczne we wszystkich konfiguracjach (zmiany budżetu dotykają tylko poziomów, których szybki przebieg nie rozstrzyga).
 - Co dzieje się z poziomem, który nie przechodzi testu: generator sam regeneruje z `seed + attempt` (attempt = 1..`gen_max_attempts`-1) — opisane w kroku 6; poziom nigdy nie trafia do gracza nierozwiązywalny. Jeśli w zakresie testowym wystąpi poziom bez rozwiązywalnej próby → test czerwony i zadanie na strojenie (`empty_tubes`, `gen_max_attempts`), nie wyłączenie testu.
 
 ## Ekrany
