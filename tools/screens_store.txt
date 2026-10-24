@@ -1,0 +1,6 @@
+# Store screenshots (docs/ASO.md "Screenshoty (5)"): <scene>|<fixture>|<caption_key>
+res://src/levels/level.tscn|aso_level|pour
+res://src/ui/level_complete.tscn|aso_win|relax
+res://src/ui/home.tscn|aso_home|daily
+res://src/ui/daily_reward_popup.tscn|aso_daily|streak
+res://src/ui/themes_screen.tscn|aso_themes|themes

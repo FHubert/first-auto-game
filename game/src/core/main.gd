@@ -35,12 +35,12 @@ func _run_screenshot(args: PackedStringArray) -> void:
 		get_tree().quit(2)
 		return
 	SaveSystem.read_only = true
-	var state: GameState = ScreenshotFixtures.make(str(parsed["fixture"]))
+	var today: int = DailyRewards.utc_day_from_unix(int(Time.get_unix_time_from_system()))
+	var state: GameState = ScreenshotFixtures.make(str(parsed["fixture"]), today)
 	if str(parsed["lang"]) != "":
 		state.settings["locale"] = parsed["lang"]
 	var action: String = ScreenshotArgs.action_for(str(parsed["scene"]))
 	if action != "daily_popup":  # popup only on its own shot; keep Home clean otherwise
-		var today: int = DailyRewards.utc_day_from_unix(int(Time.get_unix_time_from_system()))
 		state.daily_reward_last_claim_day = today
 	var app := App.new()
 	app.state = state
@@ -68,7 +68,11 @@ func _show_screenshot_screen(app: App, action: String) -> void:
 			app.show_shop()
 		"level_complete":
 			app.show_level()
-			(app.current_screen() as Level)._on_round_won()
+			var won := app.current_screen() as Level
+			var coins: int = int(GameConfig.get_value("win_reward_coins"))
+			coins += int(GameConfig.get_value("par_bonus_coins"))
+			won.level_complete.show_result(coins, true, won.level_no, "")
+			won.level_complete.set_double_offer(Economy.rewarded_bonus(coins), true)
 		"stuck_panel":
 			app.show_level()
 			var level := app.current_screen() as Level

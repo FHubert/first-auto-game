@@ -221,5 +221,41 @@ class VersionCodeTest(unittest.TestCase):
         self.assertEqual(self.vc(sde=self.EPOCH - 1).returncode, 1)
 
 
+class StoreScreenshotsTest(unittest.TestCase):
+    LOCALES = ("en-US", "pl-PL", "de-DE")
+
+    def test_store_pngs_are_1080x1920(self):
+        from PIL import Image
+
+        for loc in self.LOCALES:
+            d = ROOT / "fastlane/metadata/android" / loc / "images/phoneScreenshots"
+            files = sorted(d.glob("*.png"))
+            self.assertEqual(len(files), 5, loc)
+            for f in files:
+                with Image.open(f) as im:
+                    self.assertEqual(im.size, (1080, 1920), f)
+                    self.assertLessEqual(max(im.size) / min(im.size), 2.0)
+
+    def test_captions_cover_all_languages(self):
+        caps = json.loads((TOOLS / "captions.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(caps), 5)
+        for key, langs in caps.items():
+            for lang in ("en", "pl", "de"):
+                self.assertTrue(langs.get(lang, "").strip(), f"{key}/{lang}")
+
+    def test_frame_size_option(self):
+        from PIL import Image
+
+        with tempfile.TemporaryDirectory() as tmp:
+            src, out = Path(tmp) / "in", Path(tmp) / "out"
+            src.mkdir()
+            Image.new("RGB", (540, 960), "#3A86FF").save(src / "01_pour.png")
+            r = run(TOOLS / "frame_screenshots.py", "--in", src, "--out", out, "--lang", "pl",
+                    "--captions", TOOLS / "captions.json", "--size", "1080x1920")
+            self.assertEqual(r.returncode, 0, r.stderr)
+            with Image.open(out / "01_pour.png") as im:
+                self.assertEqual(im.size, (1080, 1920))
+
+
 if __name__ == "__main__":
     unittest.main()
