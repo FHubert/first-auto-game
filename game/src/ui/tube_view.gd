@@ -4,9 +4,15 @@ extends Control
 
 signal tapped(index: int)
 
-const LIQUID_MARGIN_X: float = 10.0
-const LIQUID_MARGIN_BOTTOM: float = 14.0
+## Wnetrze szkla wg tools/gen_assets.py::tube_image (sprite 128x384, 9-slice 24/48):
+## maska wewn. (12, 12, 115, 371), promien dolnych rogow 36 => lewy margines 12,
+## prawy 128-115 = 13, dol 13. Narozniki 9-slice nie sa skalowane.
+const LIQUID_MARGIN_X: float = 12.0
+const LIQUID_MARGIN_RIGHT: float = 13.0
+const LIQUID_MARGIN_BOTTOM: float = 13.0
 const LIQUID_MARGIN_TOP: float = 40.0
+const BOTTOM_RADIUS: float = 36.0
+const ARC_SEGMENTS: int = 8
 
 var index: int = 0
 var capacity: int = 4
@@ -56,11 +62,45 @@ func _gui_input(event: InputEvent) -> void:
 		tapped.emit(index)
 
 
+static func inner_rect(view_size: Vector2) -> Rect2:
+	return Rect2(
+		LIQUID_MARGIN_X,
+		LIQUID_MARGIN_TOP,
+		view_size.x - LIQUID_MARGIN_X - LIQUID_MARGIN_RIGHT,
+		view_size.y - LIQUID_MARGIN_TOP - LIQUID_MARGIN_BOTTOM
+	)
+
+
+static func layer_rect(view_size: Vector2, capacity_in: int, i: int) -> Rect2:
+	var inner: Rect2 = inner_rect(view_size)
+	var layer_h: float = inner.size.y / float(maxi(capacity_in, 1))
+	return Rect2(inner.position.x, inner.end.y - layer_h * float(i + 1), inner.size.x, layer_h)
+
+
+static func layer_polygon(rect: Rect2, rounded_bottom: bool, radius: float) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	pts.append(rect.position)
+	pts.append(Vector2(rect.end.x, rect.position.y))
+	if not rounded_bottom:
+		pts.append(rect.end)
+		pts.append(Vector2(rect.position.x, rect.end.y))
+		return pts
+	var r: float = minf(radius, minf(rect.size.y, rect.size.x * 0.5))
+	var right_c := Vector2(rect.end.x - r, rect.end.y - r)
+	var left_c := Vector2(rect.position.x + r, rect.end.y - r)
+	for k: int in ARC_SEGMENTS:
+		var a: float = (PI * 0.5) * float(k) / float(ARC_SEGMENTS - 1)
+		pts.append(right_c + Vector2(cos(a), sin(a)) * r)
+	for k: int in ARC_SEGMENTS:
+		var a: float = PI * 0.5 + (PI * 0.5) * float(k) / float(ARC_SEGMENTS - 1)
+		pts.append(left_c + Vector2(cos(a), sin(a)) * r)
+	return pts
+
+
 func _draw() -> void:
-	var inner_h: float = size.y - LIQUID_MARGIN_TOP - LIQUID_MARGIN_BOTTOM
-	var layer_h: float = inner_h / float(maxi(capacity, 1))
-	var w: float = size.x - 2.0 * LIQUID_MARGIN_X
+	if liquids.is_empty():
+		return
 	for i: int in layers.size():
 		var c: int = int(layers[i]) % liquids.size()
-		var y: float = size.y - LIQUID_MARGIN_BOTTOM - layer_h * float(i + 1)
-		draw_rect(Rect2(LIQUID_MARGIN_X, y, w, layer_h), liquids[c])
+		var rect: Rect2 = layer_rect(size, capacity, i)
+		draw_colored_polygon(layer_polygon(rect, i == 0, BOTTOM_RADIUS), liquids[c])
