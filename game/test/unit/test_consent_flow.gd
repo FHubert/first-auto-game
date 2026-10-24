@@ -22,6 +22,10 @@ func before_test() -> void:
 
 
 func after_test() -> void:
+	# Break flow <-> provider reference cycles (held callbacks) so RefCounted objects are freed.
+	_provider.pending_info_callback = Callable()
+	_provider.pending_form_callback = Callable()
+	_flow.provider = null
 	Analytics.provider = _prev_analytics
 	GameConfig.reset()
 
