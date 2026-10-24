@@ -132,6 +132,9 @@ Sesja scheduled (auto-mode) odrzuca edycję `.github/workflows/**` i nie ma dost
 - [ ] **(3) Polityka prywatności: publikacja** — [T-071](../BACKLOG.md) (manifest iOS) oraz `docs/privacy/`.
   Podmień w `docs/privacy/index.md` placeholdery `__PRIVACY_CONTACT__` (3 wystąpienia) i `__CONTROLLER_ADDRESS__`. Zdecyduj hosting (Pytania do Huberta: GitHub Pages z `docs/privacy/` vs strona All In IT). Zleć przegląd prawny (RODO, Data Safety, Privacy Labels). Wpisz publiczny URL w konsolach sklepów.
   Zrobione: brak `__` placeholderów w `docs/privacy/`, URL publiczny zwraca 200, przegląd prawny potwierdzony w `docs/RELEASE_CHECKLIST.md`.
+- [ ] **(5) Skille w `.claude/skills/`: T-143** — [T-143](../BACKLOG.md) (plus Inbox T-148).
+  Sesja scheduled ma deny `Edit(.claude/**)` (`.claude/settings.json`, docs/AUTOMATION.md), więc aktualizację `godot-test/SKILL.md` (zegar `TestClock`, `.uid` po `--import`, testy parametryzowane, pełna lista kluczy `playtest.json` z `max_restarts_seen`, `reset_interstitial_cooldown()`) i `game-economy/SKILL.md` §6 (wyjście `make sim`, premia celu miesiąca) wykonaj z sesji interaktywnej wg KA w BACKLOG.md.
+  Zrobione: oba SKILL.md zaktualizowane, każda nazwa pola/flagi potwierdzona grepem, T-143 i T-148 `done`.
 - [ ] **(4) Przegląd znaczników `ZWERYFIKUJ`** — stan na 2026-10-24: 85 (`grep -ro "ZWERYFIKUJ" docs/ | wc -l`); lista: `grep -rn "ZWERYFIKUJ" docs/`.
   Kolejność: `docs/privacy/` i `docs/RELEASE_CHECKLIST.md` przed publikacją (3); `docs/ASO.md` przed wypełnieniem sklepów; `docs/RESEARCH.md` informacyjnie.
   Zrobione: każdy znacznik zweryfikowany ze źródłem i usunięty (albo świadomie zostawiony z uzasadnieniem w `docs/LOG.md`); liczba z `grep` spada do 0 dla privacy, RELEASE_CHECKLIST i ASO.
