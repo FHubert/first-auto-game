@@ -16,6 +16,7 @@ var state: GameState
 var music_toggle: CheckButton
 var sfx_toggle: CheckButton
 var haptics_toggle: CheckButton
+var language_label: Label
 var locale_option: OptionButton
 var version_label: Label
 var restore_button: Button
@@ -71,6 +72,10 @@ func _build() -> void:
 	music_toggle = _toggle(box, tr("set_music"), "music_on")
 	sfx_toggle = _toggle(box, tr("set_sfx"), "sfx_on")
 	haptics_toggle = _toggle(box, tr("set_haptics"), "haptics_on")
+	language_label = Label.new()
+	language_label.text = tr("set_language")
+	language_label.add_theme_font_size_override("font_size", FONT_SIZE)
+	box.add_child(language_label)
 	locale_option = OptionButton.new()
 	locale_option.add_theme_font_size_override("font_size", FONT_SIZE)
 	for entry: Array in LOCALES:

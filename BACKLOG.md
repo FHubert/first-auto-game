@@ -33,7 +33,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: workflow tylko `workflow_dispatch` + `pull_request` z filtrem ścieżek (`game/export_presets.cfg`, `game/ios/**`) — minuty macOS są drogie; `--export-release iOS` tworzy projekt Xcode, `xcodebuild … -sdk iphoneos CODE_SIGNING_ALLOWED=NO build` kończy się exit 0. Preset iOS ma uzupełnione opcje privacy manifestu (tracking, tracking domains, collected data types zgodne z listą w `docs/RELEASE_CHECKLIST.md`, required-reason APIs) — nazwy kluczy zweryfikowane w źródle Godot 4.7.2 (link w PR); krok joba sprawdza, że wygenerowany `PrivacyInfo.xcprivacy` istnieje i zawiera `NSPrivacyTracking` i `NSPrivacyCollectedDataTypes`. ≤ ~150 linii.
   Skill: `godot-build`
 
-- [ ] T-040 `todo` UI: font OFL z diakrytykami (ą ć ę ł ń ó ś ź ż ä ö ü ß) jako domyślny font UI + etykieta `set_language` nad wyborem języka w Settings
+- [ ] T-040 `in_progress` UI: font OFL z diakrytykami (ą ć ę ł ń ó ś ź ż ä ö ü ß) jako domyślny font UI + etykieta `set_language` nad wyborem języka w Settings
   KA: plik `.ttf` z Google Fonts (OFL 1.1) w `game/assets/fonts/` + `OFL.txt` + wiersz w `docs/LICENSES.md`; font ustawiony przez zasób `Theme` w scenach UI (bez zmian w `project.godot` poza dozwolonymi sekcjami). Test gdUnit4: każdy znak każdego tekstu z `strings.csv` (EN/PL/DE) przechodzi `font.has_char()`. Etykieta nad wyborem języka w `SettingsScreen` z kluczem w CSV (EN/PL/DE). `make check` zielone. ≤ ~120 linii.
   Skill: `asset-gen`
 

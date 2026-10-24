@@ -43,7 +43,7 @@ btn_claim_x2,Claim ×2 (+%d),Odbierz ×2 (+%d),Abholen ×2 (+%d)
 btn_save_streak,Save streak,Uratuj streak,Streak retten
 daily_challenge_title,Daily level,Poziom dnia,Tagesrätsel
 daily_locked,From level %d,Od poziomu %d,Ab Level %d
-daily_done,Done today ✓,Ukończono dziś ✓,Heute geschafft ✓
+daily_done,Done today,Ukończono dziś,Heute geschafft
 daily_available,+%d coins,+%d monet,+%d Münzen
 daily_next_in,Next in %s,Następny za %s,Nächstes in %s
 btn_play_daily,Play,Graj,Spielen
