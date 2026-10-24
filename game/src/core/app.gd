@@ -28,6 +28,8 @@ var _session_open: bool = false
 func _ready() -> void:
 	track_session_start()
 	Ads.begin_consent()
+	if not Ads.ad_about_to_show.is_connected(_on_ad_about_to_show):
+		Ads.ad_about_to_show.connect(_on_ad_about_to_show)
 	if state == null:
 		state = SaveSystem.load()
 	Purchases.bind_state(state)
@@ -41,11 +43,33 @@ func _ready() -> void:
 		show_level()
 
 
+func _exit_tree() -> void:
+	if Ads.ad_about_to_show.is_connected(_on_ad_about_to_show):
+		Ads.ad_about_to_show.disconnect(_on_ad_about_to_show)
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_save_round()
 		track_session_end()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
 		track_session_start()
+
+
+func _on_ad_about_to_show(_kind: String) -> void:
+	_save_round()
+
+
+## Zapisuje biezaca runde (jesli ekran to Level) do round_in_progress.
+func _save_round() -> void:
+	if state == null or not _screen is Level:
+		return
+	state.round_in_progress = (_screen as Level).snapshot()
+	SaveSystem.save(state)
+
+
+func _today() -> int:
+	return DailyRewards.utc_day_from_unix(int(clock.call()))
 
 
 ## Starts a focus session once (no duplicate after _ready + FOCUS_IN).
@@ -92,7 +116,7 @@ func popup_visible() -> bool:
 
 
 func _maybe_show_daily_popup(home: Home) -> void:
-	var day: int = DailyRewards.utc_day_from_unix(int(clock.call()))
+	var day: int = _today()
 	if not DailyRewards.can_claim(state, day) or _popup_shown_day == day:
 		return
 	_popup_shown_day = day
@@ -122,6 +146,14 @@ func show_level() -> void:
 	level.pause_requested.connect(show_home)
 	level.home_requested.connect(show_home)
 	level.shop_requested.connect(func(r: String) -> void: show_shop(r, true))
+	var snap: Dictionary = state.round_in_progress
+	if str(snap.get("mode", "")) == Level.MODE_CAMPAIGN:
+		level.round = GameRound.new()  # pomija autoload w _ready; resume/load_level ustawi
+		add_child(level)
+		if not level.resume(snap, _today()):
+			state.round_in_progress = {}
+			level.load_level(state.level, state.theme_active)
+		return
 	add_child(level)
 
 
@@ -133,7 +165,11 @@ func show_daily_level() -> void:
 	level.shop_requested.connect(func(r: String) -> void: show_shop(r, true))
 	level.round = GameRound.new()  # pomija load_level w _ready; start_daily ustawi runde
 	add_child(level)
-	level.start_daily(DailyRewards.utc_day_from_unix(int(clock.call())))
+	if str(state.round_in_progress.get("mode", "")) == Level.MODE_DAILY:
+		if level.resume(state.round_in_progress, _today()):
+			return
+		state.round_in_progress = {}
+	level.start_daily(_today())
 
 
 func show_settings() -> void:
@@ -209,6 +245,7 @@ func _swap(path: String, screen_name: String) -> Node:
 		shop_overlay.queue_free()
 	shop_overlay = null
 	if _screen != null:
+		_save_round()
 		remove_child(_screen)
 		_screen.queue_free()
 	_screen = (load(path) as PackedScene).instantiate()

@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name Level
 extends Control
 ## Scena poziomu: generuje poziom, uruchamia GameRound, HUD, wygrana i zapis.
@@ -107,6 +108,11 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 	round.start(level_data)
 	Analytics.track_progression("Start", mode, _level_id())
 	Analytics.track_design("level:start", float(round.min_moves()))
+	_bind_round(theme_id)
+
+
+## Podpina biezaca runde do widokow (plansza, HUD, tutorial, oferty).
+func _bind_round(theme_id: String) -> void:
 	board.setup(round, theme_id)
 	hud.bind(round, level_no)
 	stuck_panel.visible = false
@@ -116,6 +122,40 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 		tutorial.start(_solver_first_move())
 	_update_tutorial_overlay()
 	_refresh_offers()
+
+
+## Snapshot biezacej rundy do round_in_progress; {} gdy brak rundy lub ukonczona.
+func snapshot() -> Dictionary:
+	if round == null or round.is_done():
+		return {}
+	return GameState.round_snapshot(mode, level_no, utc_day, round)
+
+
+## Wznawia runde ze snapshotu (bez level:start); false = snapshot niezgodny.
+func resume(snap: Dictionary, today: int) -> bool:
+	var mode_in: String = str(snap.get("mode", ""))
+	if mode_in != MODE_CAMPAIGN and mode_in != MODE_DAILY:
+		return false
+	var lvl: Variant = GameState._as_int(snap.get("level_no"))
+	var day: Variant = GameState._as_int(snap.get("utc_day"))
+	if lvl == null or day == null or typeof(snap.get("round")) != TYPE_DICTIONARY:
+		return false
+	if mode_in == MODE_DAILY and int(day) != today:
+		return false
+	if mode_in == MODE_CAMPAIGN and int(lvl) != state.level:
+		return false
+	var r: GameRound = GameRound.from_dict(snap["round"])
+	if r == null or r.is_done():
+		return false
+	mode = mode_in
+	level_no = int(lvl)
+	utc_day = int(day)
+	round = r
+	rewarded.reset()
+	_bind_round(state.theme_active)
+	hud.set_title(tr("hud_daily") if mode == MODE_DAILY else "")
+	Analytics.track_design("level:resume", float(round.moves()))
+	return true
 
 
 func on_next_pressed() -> void:

@@ -54,7 +54,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `GameRound.to_dict()/from_dict()` (czysta klasa) — round-trip: plansza, `moves`, stos undo, pozostałe ładunki undo/extra tube, `mode` (`campaign`/`daily`), numer poziomu / dzień UTC; `from_dict` z niespójnych danych (zła pojemność probówki, kolor poza paletą) → `null` (start od nowa, bez crasha). `GameState.SCHEMA_VERSION = 3`, pole `round_in_progress` (Dictionary, domyślnie pusty), migracja v2→v3 w istniejącym wzorcu. Testy gdUnit4 ≥ 5: round-trip po 3 ruchach i 1 undo; daily vs campaign; uszkodzony dict → null; migracja v2→v3; wygrana czyści `round_in_progress`. `make check` zielone. ≤ ~150 linii.
   Skill: `godot-dev`
 
-- [ ] T-082 `todo` Wznowienie rundy cz. 2: zapis `round_in_progress` przy `FOCUS_OUT`/`WM_CLOSE_REQUEST` i przed pokazem reklamy, odtworzenie przy starcie (zależy od T-081)
+- [ ] T-082 `review` Wznowienie rundy cz. 2: zapis `round_in_progress` przy `FOCUS_OUT`/`WM_CLOSE_REQUEST` i przed pokazem reklamy, odtworzenie przy starcie (zależy od T-081) → PR #73
   KA: `App._notification` (istniejące `FOCUS_OUT`/`WM_CLOSE_REQUEST`) i `AdService` przed pokazem zapisują bieżącą rundę; przy starcie, jeśli `round_in_progress` niepusty i zgodny (Poziom dnia z innego dnia UTC → odrzucony), „Graj” na Home wznawia tę rundę. Testy gdUnit4 z wstrzykniętym zegarem: (a) 3 ruchy → symulowany `FOCUS_OUT` → nowy `App` → Level ma te same `moves` i planszę; (b) daily z wczoraj → nowa runda; (c) wygrana → `round_in_progress` pusty; (d) wznowienie nie emituje nowego `level_start` (`FakeAnalyticsProvider`). `make check` zielone. ≤ ~120 linii.
   Skill: `godot-dev`
 
@@ -89,6 +89,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 ## P3 — polish / later
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
+- [ ] T-090 `todo` Level ma > 20 metod publicznych (`# gdlint: disable=max-public-methods` dodane w T-082) — wydzielić logikę rewarded/boosterów (`watch_*`, `buy_*`) do osobnej klasy `LevelOffers`/`BoosterFlow` bez zmiany zachowania; usunąć wyłączenie lintu (odkryte w T-082). Skill: godot-dev
+- [ ] T-091 `todo` Analityka: `Level.quit_level()` (pauza → Home) loguje `level:fail:quit`, a runda jest teraz wznawiana z `round_in_progress` — nie liczyć quit jako fail (albo osobny event `level:pause`), żeby nie zaniżać fail-rate w GA (odkryte w T-082). Skill: analytics-review
 - [ ] T-089 `todo` Skill godot-test: wzorzec testów parametryzowanych (gdlint `unused-argument` dla `test_parameters`, gdUnit opróżnia tablicę w trakcie — działa `assert_that(test_parameters).is_not_null()`); `GameRound.start` przy `payload.min_moves` jako Array/Dictionary rzuca błąd `int()` — osłonić w `from_dict` (odkryte w T-081). Skill: godot-test
 - [ ] T-088 `todo` Lokalizacja PL: `btn_save_streak` „Uratuj streak” → „Uratuj serię” (spójnie z `home_streak`/`daily_streak` „Seria”); sprawdzić `MAX_BTN_LEN` i inne wystąpienia anglicyzmu „streak” w PL (odkryte w T-076). Skill: aso
 - [ ] T-087 `todo` `make test`: po zakończeniu runnera `WARNING: 4 ObjectDB instances were leaked at exit` i `ERROR: 2 resources still in use at exit` (także przy zielonym przebiegu) — znaleźć źródło (`--verbose`), posprzątać w `after()`/`auto_free` (odkryte w T-075). Skill: godot-test
