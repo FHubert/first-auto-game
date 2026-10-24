@@ -66,7 +66,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #9, refill #6, P2): Faza 5 prep IV — higiena testów i kodu Level/App po refaktorze, dostępność, generator w GameConfig — czysty log runnera i testy brzegowe ekonomii zmniejszają ryzyko crashy (crash-free ≥ 99,5 %) przed SDK, symbole kolorów zdejmują barierę 12 kolorów (D1/D7), a budżety generatora w GameConfig pozwalają stroić czas generacji remote configiem. Kolejność = zależności (T-113 po T-101, T-114 po T-109, T-116 po T-107). -->
 
-- [ ] T-112 `todo` `make test`: usunąć wycieki `ObjectDB instances were leaked` / `resources still in use at exit` po zakończeniu runnera (przeniesione z Inbox T-087)
+- [ ] T-112 `in_progress` `make test`: usunąć wycieki `ObjectDB instances were leaked` / `resources still in use at exit` po zakończeniu runnera (przeniesione z Inbox T-087)
   KA: źródło ustalone przez `--verbose` (lista klas/zasobów w PR); poprawki w testach (`after()`/`after_test()`, `auto_free`, `queue_free` + `await`) albo w kodzie (np. autoload trzymający referencję); log `make test` zawiera 0 wystąpień `ObjectDB instances were leaked` i 0 `resources still in use at exit`. Jeśli część wycieku pochodzi z samego addonu gdUnit4 (dowód: ta sama liczba przy uruchomieniu jednej pustej suity) — opis w PR, wpis do Inbox, a wycieki z naszego kodu = 0. Liczba testów gdUnit4 nie maleje, żadna asercja nie osłabiona. `make check` zielone. ≤ ~60 linii.
   Skill: `godot-test`
 
