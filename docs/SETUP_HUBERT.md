@@ -141,3 +141,4 @@ Sesja scheduled (auto-mode) odrzuca edycję `.github/workflows/**` i nie ma dost
 - [ ] **(6) Opcjonalnie: odblokowanie T-054** — [T-054](../BACKLOG.md).
   Po (1)–(2) i krokach 1–6 (konta, keystore) odblokuj QA na urządzeniu. To kryterium wyjścia z Fazy 4.
   Zrobione: T-054 zmieniony z `blocked` na `todo`.
+- [ ] **(7) backlog-sync.yml nie może commitować do `main`** (GH006: branch protection wymaga PR + check `test`) — nightly-sanity utworzył issue #83, ale wpis GH-83 nie trafił do BACKLOG. Do decyzji: bypass branch protection dla `github-actions[bot]` (Settings → Branches → allow specified actors to bypass) albo przepisanie backlog-sync na PR (edycja workflow = sesja interaktywna).
