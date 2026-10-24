@@ -29,14 +29,14 @@ static func solve(board: SortBoard, max_states: int, weight: float = EXACT_WEIGH
 	var heap: Array = []
 	var best_g: Dictionary = {}
 	var start_h: int = heuristic(board)
-	var start_key: String = board.canonical_key()
+	var start_key: PackedInt32Array = board.fast_key()
 	best_g[start_key] = 0
 	_push(heap, _node(0, start_h, board, null, Vector2i.ZERO, start_key, weight))
 	var expanded: int = 0
 
 	while not heap.is_empty():
 		var node: Array = _pop(heap)
-		var key: String = node[N_KEY]
+		var key: PackedInt32Array = node[N_KEY]
 		var g: int = node[N_G]
 		if g > int(best_g.get(key, g)):
 			continue  # nieaktualny wpis (znaleziono lepsze g)
@@ -48,9 +48,8 @@ static func solve(board: SortBoard, max_states: int, weight: float = EXACT_WEIGH
 			return _result(NO_SOLUTION, empty, false, expanded)
 		expanded += 1
 		for m in cur.legal_moves():
-			var nb: SortBoard = cur.clone()
-			nb.pour(m.x, m.y)
-			var nk: String = nb.canonical_key()
+			var nb: SortBoard = cur.clone_poured(m.x, m.y)
+			var nk: PackedInt32Array = nb.fast_key()
 			var ng: int = g + 1
 			if best_g.has(nk) and int(best_g[nk]) <= ng:
 				continue
@@ -91,7 +90,13 @@ static func _result(moves: int, path: Array[Vector2i], exact: bool, expanded: in
 
 
 static func _node(
-	g: int, h: int, b: SortBoard, parent: Variant, move: Vector2i, key: String, weight: float
+	g: int,
+	h: int,
+	b: SortBoard,
+	parent: Variant,
+	move: Vector2i,
+	key: PackedInt32Array,
+	weight: float
 ) -> Array:
 	return [float(g) + weight * float(h), h, g, b, parent, key, move]
 

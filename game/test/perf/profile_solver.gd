@@ -73,9 +73,10 @@ func _solve(
 	var t_all: int = Time.get_ticks_usec()
 	var n_ops: int = 0
 	var t: int = 0
+	var fast: bool = b0.has_method("clone_poured")
 	var heap: Array = []
 	var best_g: Dictionary = {}
-	var start_key: Variant = b0.canonical_key()
+	var start_key: Variant = _key(b0)
 	best_g[start_key] = 0
 	SortSolver._push(
 		heap,
@@ -105,13 +106,14 @@ func _solve(
 		_add(acc, "legal_moves", t)
 		for m in moves:
 			t = Time.get_ticks_usec()
-			var nb: SortBoard = cur.clone()
+			var nb: SortBoard = cur.clone_poured(m.x, m.y) if fast else cur.clone()
 			_add(acc, "clone", t)
 			t = Time.get_ticks_usec()
-			nb.pour(m.x, m.y)
+			if not fast:
+				nb.pour(m.x, m.y)
 			_add(acc, "pour", t)
 			t = Time.get_ticks_usec()
-			var nk: Variant = nb.canonical_key()
+			var nk: Variant = _key(nb)
 			_add(acc, "key", t)
 			var ng: int = g + 1
 			t = Time.get_ticks_usec()
@@ -138,3 +140,8 @@ func _add(acc: Dictionary, op: String, t_start: int) -> void:
 
 func _cfg(key: String) -> Variant:
 	return root.get_node("GameConfig").get_value(key)
+
+
+## Klucz uzywany przez biezacy solver (fast_key po T-134, wczesniej canonical_key).
+func _key(b: SortBoard) -> Variant:
+	return b.fast_key() if b.has_method("fast_key") else b.canonical_key()
