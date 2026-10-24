@@ -99,3 +99,4 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 
 - Start: brak otwartych PR task/*; #45–#52 i #54 zmergowane → 9 zadań `review` przeniesione do Done (w PR T-062).
 - P1: T-062 ConsentProvider (interfejs + stałe statusów) + FakeConsentProvider (skryptowane odpowiedzi, `respond`, `hold_form`) + ConsentFlow (RefCounted, zegar wstrzykiwany, timeout przez `poll()` tylko podczas czekania na SDK, dokładnie jedno `report_consent` na rodzaj) + `consent_timeout_seconds=8`; 11 testów, 264 gdUnit4; QA OK z uwagami (uwaga o timeoucie podczas formularza naprawiona) → PR #55 (auto-merge). Inbox: T-068, T-069.
+- P1: T-064 `game/ios/PrivacyInfo.xcprivacy` (tracking=true, domeny [] ZWERYFIKUJ, 6 typów danych 1:1 z tabelą Privacy Labels, 3 kategorie required-reason API) + `PrivacyManifestTest` (4 testy, 29 tools) + punkt w RELEASE_CHECKLIST → PR #57 (auto-merge). Inbox: T-071.
