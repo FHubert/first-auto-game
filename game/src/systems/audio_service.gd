@@ -58,9 +58,9 @@ func _ready() -> void:
 
 
 func apply_settings(settings: Dictionary) -> void:
-	music_on = bool(settings.get("music_on", true))
-	sfx_on = bool(settings.get("sfx_on", true))
-	haptics_on = bool(settings.get("haptics_on", true))
+	music_on = bool(settings.get(GameState.SETTING_MUSIC_ON, true))
+	sfx_on = bool(settings.get(GameState.SETTING_SFX_ON, true))
+	haptics_on = bool(settings.get(GameState.SETTING_HAPTICS_ON, true))
 	_update_music()
 
 

@@ -4,7 +4,7 @@ extends RefCounted
 
 const SHAPES: int = 12
 const SYMBOL_SCALE: float = 0.45
-const SETTING_KEY: String = "colorblind_symbols"
+const SETTING_KEY: String = GameState.SETTING_COLORBLIND_SYMBOLS
 const CIRCLE_POINTS: int = 16
 const ARC_POINTS: int = 9
 const STAR_INNER: float = 0.45

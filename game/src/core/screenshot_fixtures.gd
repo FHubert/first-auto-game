@@ -38,7 +38,7 @@ static func apply_win(level: Level) -> void:
 ## `utc_day` (today) is only used by fixtures that depend on the calendar (aso_daily).
 static func make(fixture: String, utc_day: int = 0) -> GameState:
 	var state := GameState.new()
-	state.settings["tutorial_done"] = true
+	state.settings[GameState.SETTING_TUTORIAL_DONE] = true
 	match fixture:
 		"default":
 			pass

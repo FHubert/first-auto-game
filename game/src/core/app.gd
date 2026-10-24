@@ -45,7 +45,7 @@ func _ready() -> void:
 	Locale.apply_setting(str(state.settings.get("locale", "")))
 	Audio.apply_settings(state.settings)
 	Audio.play_music()
-	if bool(state.settings.get("tutorial_done", false)):
+	if bool(state.settings.get(GameState.SETTING_TUTORIAL_DONE, false)):
 		show_home()
 	else:
 		show_level()
@@ -306,7 +306,7 @@ func _close_shop_overlay() -> void:
 
 func _on_setting_changed(key: String) -> void:
 	Audio.apply_settings(state.settings)
-	if key == "notifications_on" and not bool(state.settings.get(key, true)):
+	if key == GameState.SETTING_NOTIFICATIONS_ON and not bool(state.settings.get(key, true)):
 		_cancel_notifications()
 	if key == "locale":
 		Locale.apply_setting(str(state.settings.get("locale", "")))

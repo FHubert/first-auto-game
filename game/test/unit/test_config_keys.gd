@@ -4,6 +4,10 @@ extends GdUnitTestSuite
 
 const SRC_ROOT: String = "res://src"
 const MIN_KEYS: int = 40
+const SETTING_KEYS_RE: String = (
+	'"(notifications_on|tutorial_done|colorblind_symbols|daily_intro_seen'
+	+ '|music_on|sfx_on|haptics_on)"'
+)
 
 
 func _gd_files(dir_path: String) -> Array[String]:
@@ -52,3 +56,29 @@ func test_all_read_keys_exist_in_defaults() -> void:
 func test_no_literal_fallbacks() -> void:
 	var found: Dictionary = _scan('get_value\\("[a-z0-9_]+",')
 	assert_dict(found).override_failure_message("Literal fallbacks: %s" % str(found)).is_empty()
+
+
+func test_no_literal_setting_keys() -> void:
+	var found: Dictionary = _scan(SETTING_KEYS_RE)
+	for key: String in found.keys():
+		var files: Array = (found[key] as Array).filter(
+			func(p: String) -> bool: return not p.ends_with("/core/game_state.gd")
+		)
+		if files.is_empty():
+			found.erase(key)
+		else:
+			found[key] = files
+	assert_dict(found).override_failure_message("Literal setting keys: %s" % str(found)).is_empty()
+
+
+func test_no_set_for_test_in_src() -> void:
+	var found: Dictionary = _scan("set_for_test\\(")
+	for key: String in found.keys():
+		var files: Array = (found[key] as Array).filter(
+			func(p: String) -> bool: return not p.ends_with("/systems/config.gd")
+		)
+		if files.is_empty():
+			found.erase(key)
+		else:
+			found[key] = files
+	assert_dict(found).override_failure_message("set_for_test in src: %s" % str(found)).is_empty()
