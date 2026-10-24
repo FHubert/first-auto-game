@@ -50,7 +50,7 @@ func _run_screenshot(args: PackedStringArray) -> void:
 	app.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(app)
 	_label.visible = false
-	_show_screenshot_screen(app, action)
+	_show_screenshot_screen(app, action, str(parsed["fixture"]))
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	var out: String = str(parsed["out"])
@@ -59,10 +59,13 @@ func _run_screenshot(args: PackedStringArray) -> void:
 	get_tree().quit(0 if err == OK else 1)
 
 
-func _show_screenshot_screen(app: App, action: String) -> void:
+func _show_screenshot_screen(app: App, action: String, fixture: String = "default") -> void:
 	match action:
 		"level":
 			app.show_level()
+			if fixture == "plateau_assist":
+				for _i in ScreenshotFixtures.PLATEAU_RESTARTS:
+					(app.current_screen() as Level).restart()
 		"settings":
 			app.show_settings()
 		"themes":

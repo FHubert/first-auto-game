@@ -14,6 +14,9 @@ const ASO_HOME_DAILY_TOTAL: int = 23
 const ASO_HOME_STREAK_BEST: int = 12
 const ASO_HOME_STREAK_DAYS: int = 5
 const SYMBOLS_LEVEL: int = 32  # 8 colors with the default curve
+const PLATEAU_LEVEL: int = 56
+## Restarts played by the screenshot driver before the capture (attempt 3 shows the bar).
+const PLATEAU_RESTARTS: int = 2
 const ASO_THEMES: Array = ["classic", "pastel", "neon", "ocean"]
 
 
@@ -73,6 +76,10 @@ static func make(fixture: String, utc_day: int = 0) -> GameState:
 			if fixture == "symbols_neon":
 				state.themes_owned = [GameState.DEFAULT_THEME, MIDGAME_EXTRA_THEME]
 				state.theme_active = MIDGAME_EXTRA_THEME
+		"plateau_assist":
+			state.level = PLATEAU_LEVEL
+			state.levels_completed = PLATEAU_LEVEL - 1
+			state.coins = ASO_COINS
 		"aso_themes":
 			state.level = ASO_LEVEL
 			state.coins = ASO_COINS
