@@ -211,3 +211,25 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 - Zmiana wersji BL przy kolejnych terminach Google (BL 8 wycofana 31.08.2027) = podbicie pluginu, bez zmian w logice gry.
 - Plugin iOS ma jednego autora (bus factor 1) → przy braku wydania pod przyszłą wersję Godota przejście na Plan B.
 
+---
+
+## ADR-011: Generacja następnego poziomu w tle (`WorkerThreadPool`, prefetch N+1)
+
+**Data:** 2026-10-24
+**Status:** Proposed (Accepted po merge T-136; nie zmienia ADR-009)
+
+**Kontekst:**
+- Poziom powstaje w runtime z seeda (ADR-009) synchronicznie w `Level.load_level` — wątek główny stoi na czas `ContentGenerator.generate`. Pomiar CI: mediana ~57–60 ms/poziom, p95 159–189 ms (T-107, T-124); słabsze telefony są kilkukrotnie wolniejsze (współczynnik ZWERYFIKUJ na urządzeniu w T-054), więc przy starcie trudnego poziomu grozi widoczne przycięcie (> 100 ms, 6+ klatek przy 60 FPS).
+- Optymalizacja solvera (T-124) dała szum ±6 %; T-134 mierzy hot-spoty przed kolejną próbą. Niezależnie od wyniku, przeniesienie generacji z wątku głównego usuwa przycięcie dla typowej ścieżki „Dalej” po wygranej.
+- Alternatywa z ADR-009 (paczka poziomów generowana w buildzie) zwiększa rozmiar i czas builda, a Poziom dnia i zmiany remote configu i tak wymagają generacji w runtime.
+
+**Decyzja:**
+- Czysta klasa `LevelPrefetch` (RefCounted, bez `Node`) zleca `ContentGenerator.generate(seed, level + 1)` na `WorkerThreadPool` (wbudowane w Godot 4 — bez nowej zależności, ADR-007 bez zmian) w chwili wygranej; `Level.load_level` odbiera wynik (`take`), a gdy zadanie trwa — czeka na nie (`wait_for_task_completion`); brak żądania → generacja synchroniczna jak dotąd.
+- Generator w wątku wyłącznie czyta `GameConfig`; `apply_remote` nie jest wołany w trakcie rundy (remote config stosowany przy starcie aplikacji, Faza 6). Cache = 1 wpis, `cancel_all()` w `Level._exit_tree` (brak wiszących zadań przy zmianie sceny i w testach).
+- Kod generatora i solvera bez zmian → poziomy graczy i golden hashe bez zmian.
+
+**Konsekwencje:**
+- Testy muszą czekać na zadania (inaczej wycieki / „still in use” jak w T-112); test `take` po `request` == wynik synchroniczny pilnuje determinizmu.
+- Jeżeli w przyszłości `GameConfig` będzie zmieniany w trakcie gry (np. A/B w locie), prefetch musi brać snapshot wartości — wtedy nowy ADR.
+- Poziom dnia i pierwszy poziom po starcie aplikacji nadal synchroniczne (later: prefetch Poziomu dnia przy wejściu na `Home`).
+
