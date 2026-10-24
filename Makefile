@@ -16,7 +16,7 @@ endif
 
 export GODOT_VERSION GDUNIT_REF
 
-.PHONY: setup test lint playtest sim export-check check screenshots screenshots-smoke
+.PHONY: setup test test-tools lint playtest sim export-check check screenshots screenshots-smoke
 
 setup:
 	bash tools/setup_env.sh
@@ -25,6 +25,9 @@ test:
 	mkdir -p $(PROJECT)/test/reports
 	$(GODOT_BIN) --headless --path $(PROJECT) -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
 		--ignoreHeadlessMode -a res://test/unit -rd res://test/reports -c
+
+test-tools:
+	python3 -m unittest discover -s tools -p "test_*.py"
 
 lint:
 	gdlint $(PROJECT)/src $(PROJECT)/test && gdformat --check $(PROJECT)/src $(PROJECT)/test
@@ -49,7 +52,7 @@ export-check:
 		$(GODOT_BIN) --headless --path $(PROJECT) --export-debug Android /tmp/export-check/game.apk || true; \
 	fi
 
-check: lint test export-check
+check: lint test test-tools export-check
 
 screenshots:
 	bash tools/gen_screenshots.sh --store
