@@ -100,6 +100,23 @@ func test_home_daily_card() -> void:
 	assert_str(home.daily_status_label.text).is_equal(tr("daily_done"))
 
 
+func test_home_daily_card_spacing() -> void:
+	var app := _app()
+	app._close_popup()
+	var home := app.current_screen() as Home
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var btn_y: float = home.daily_button.global_position.y
+	var timer_bottom: float = (
+		home.daily_timer_label.global_position.y + home.daily_timer_label.size.y
+	)
+	var status_bottom: float = (
+		home.daily_status_label.global_position.y + home.daily_status_label.size.y
+	)
+	assert_float(btn_y - timer_bottom).is_greater_equal(float(Home.CARD_SEPARATION))
+	assert_float(btn_y - status_bottom).is_greater_equal(float(Home.CARD_SEPARATION))
+
+
 func test_daily_level_flow() -> void:
 	var state := GameState.new()
 	state.level = 5
