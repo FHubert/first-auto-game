@@ -255,6 +255,9 @@ func test_from_dict_corrupt_returns_null(
 		["moves", 5],
 		["history", "x"],
 		["undo_charges", -1],
+		["payload.min_moves", [1]],
+		["payload.min_moves", {"a": 1}],
+		["payload.min_moves", "12"],
 	]
 ) -> void:
 	var d: Dictionary = _three_moves_one_undo().to_dict()
