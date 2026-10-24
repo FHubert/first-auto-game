@@ -81,3 +81,5 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 
 - Start: brak otwartych PR task/*; #35–#44 zmergowane → 9 zadań `review` przeniesione do Done.
 - P1: T-004 `Gemfile.lock` (fastlane 2.241.1, bundler 2.5.22, platformy x86_64-linux + arm64-darwin; `bundle exec fastlane lanes` exit 0; w CCR `bundle` z PATH to bundler 4.x — lock generować przez `bundle _2.5.22_` z `/opt/rbenv/versions/3.3.6/bin` w PATH), `make check` zielone (231 testów) → PR #45 (auto-merge).
+- P1: T-002 — tylko część 1: `tools/version_code.sh` (minuty od 2026-01-01 UTC, `SOURCE_DATE_EPOCH`, `--check`) + 5 testów tools (17 łącznie), `make check` zielone → PR #46 (auto-merge). Podpięcie w 3 workflowach było gotowe, ale auto-mode odrzuca KAŻDĄ edycję `.github/workflows/**` (Edit, python, sed, także przez subagenta) — workflowy przywrócone do stanu z main, wiring → T-002b `blocked`; z tego powodu T-005, T-053, T-055 → `blocked`. Pytanie do Huberta dopisane. Hubert powiadomiony push-em.
+- Lekcja: zadania „CI:” dotykające `.github/workflows/` nie są wykonalne w sesji scheduled — przy refillu backlogu nie planować ich jako `todo` dla pętli.
