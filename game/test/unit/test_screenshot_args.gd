@@ -58,3 +58,25 @@ func test_action_for_every_known_scene() -> void:
 	for scene in ScreenshotArgs.KNOWN_SCENES:
 		assert_str(ScreenshotArgs.action_for(scene)).is_not_empty()
 	assert_str(ScreenshotArgs.action_for("res://nope.tscn")).is_empty()
+
+
+func test_now_flag_parsed() -> void:
+	var r: Dictionary = ScreenshotArgs.parse(
+		_args(["--screenshot=" + SCENE, "--out=a.png", "--now=1700000000"])
+	)
+	assert_bool(r["ok"]).is_true()
+	assert_int(r["now"]).is_equal(1700000000)
+
+
+func test_now_defaults_to_constant() -> void:
+	var r: Dictionary = ScreenshotArgs.parse(_args(["--screenshot=" + SCENE, "--out=a.png"]))
+	assert_int(r["now"]).is_equal(ScreenshotArgs.SCREENSHOT_NOW_UNIX)
+
+
+func test_now_invalid_fails() -> void:
+	for bad in ["abc", "-5"]:
+		var r: Dictionary = ScreenshotArgs.parse(
+			_args(["--screenshot=" + SCENE, "--out=a.png", "--now=" + bad])
+		)
+		assert_bool(r["ok"]).is_false()
+		assert_str(r["error"]).is_equal("--now must be a non-negative integer")

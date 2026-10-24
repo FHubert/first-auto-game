@@ -1,7 +1,10 @@
 class_name ScreenshotArgs
 extends RefCounted
-## Czysty parser argumentow trybu `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]`.
+## Czysty parser argumentow trybu `--screenshot=<scene> --out=<png>`
+## z opcjami `[--lang=xx] [--fixture=<name>] [--now=<unix>]`.
 
+## Fixed clock for deterministic screenshots: 2026-10-24 12:00 UTC (UTC day 20750).
+const SCREENSHOT_NOW_UNIX: int = 1792843200
 const KNOWN_SCENES: Array[String] = [
 	"res://src/core/main.tscn",
 	"res://src/levels/level.tscn",
@@ -36,15 +39,26 @@ static func has_flag(args: PackedStringArray, key: String) -> bool:
 	return false
 
 
-## Returns {ok, error, scene, out, lang, fixture}; first error wins.
+## Returns {ok, error, scene, out, lang, fixture, now}; first error wins.
+## `now` = --now (non-negative int) or SCREENSHOT_NOW_UNIX.
 static func parse(args: PackedStringArray) -> Dictionary:
 	var res: Dictionary = {
-		"ok": false, "error": "", "scene": "", "out": "", "lang": "", "fixture": "default"
+		"ok": false,
+		"error": "",
+		"scene": "",
+		"out": "",
+		"lang": "",
+		"fixture": "default",
+		"now": SCREENSHOT_NOW_UNIX
 	}
 	res["scene"] = _value(args, "--screenshot", "")
 	res["out"] = _value(args, "--out", "")
 	res["lang"] = _value(args, "--lang", "")
 	res["fixture"] = _value(args, "--fixture", "default")
+	var now_raw: String = _value(args, "--now", "")
+	var now_valid: bool = now_raw.is_empty() or now_raw.is_valid_int()
+	if now_valid and not now_raw.is_empty():
+		res["now"] = now_raw.to_int()
 	if not (res["scene"] in KNOWN_SCENES):
 		res["error"] = "unknown scene: '%s'" % res["scene"]
 	elif str(res["out"]).is_empty() or not str(res["out"]).ends_with(".png"):
@@ -53,6 +67,8 @@ static func parse(args: PackedStringArray) -> Dictionary:
 		res["error"] = "unknown lang: '%s'" % res["lang"]
 	elif not (res["fixture"] in KNOWN_FIXTURES):
 		res["error"] = "unknown fixture: '%s'" % res["fixture"]
+	elif not now_valid or int(res["now"]) < 0:
+		res["error"] = "--now must be a non-negative integer"
 	res["ok"] = str(res["error"]).is_empty()
 	return res
 
