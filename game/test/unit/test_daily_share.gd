@@ -23,9 +23,7 @@ func after_test() -> void:
 	Analytics.provider = _prev_analytics
 	SaveSystem.save_path = _old_path
 	GameConfig.reset()
-	for p in [SAVE_PATH, SAVE_PATH + ".tmp"]:
-		if FileAccess.file_exists(p):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+	TestSaveCleanup.remove(SAVE_PATH)
 
 
 func _lc() -> LevelComplete:

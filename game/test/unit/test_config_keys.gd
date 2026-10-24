@@ -82,3 +82,25 @@ func test_no_set_for_test_in_src() -> void:
 		else:
 			found[key] = files
 	assert_dict(found).override_failure_message("set_for_test in src: %s" % str(found)).is_empty()
+
+
+func _test_files(dir_path: String) -> Array[String]:
+	var out: Array[String] = []
+	for sub: String in DirAccess.get_directories_at(dir_path):
+		out.append_array(_test_files(dir_path.path_join(sub)))
+	for f: String in DirAccess.get_files_at(dir_path):
+		if f.ends_with(".gd"):
+			out.append(dir_path.path_join(f))
+	return out
+
+
+func test_save_suites_use_save_cleanup() -> void:
+	var setter: String = "SaveSystem." + "save_path ="
+	var cleanup: String = "TestSaveCleanup." + "remove("
+	var missing: Array[String] = []
+	for path: String in _test_files("res://test"):
+		var text: String = FileAccess.get_file_as_string(path)
+		if text.contains(setter) and not text.contains(cleanup):
+			missing.append(path)
+	var msg: String = "Missing save cleanup: %s" % str(missing)
+	assert_array(missing).override_failure_message(msg).is_empty()

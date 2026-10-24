@@ -19,9 +19,7 @@ func before_test() -> void:
 func after_test() -> void:
 	if is_instance_valid(_level):
 		_level.free()
-	for p in [SAVE_PATH, SAVE_PATH + ".tmp"]:
-		if FileAccess.file_exists(p):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+	TestSaveCleanup.remove(SAVE_PATH)
 	SaveSystem.save_path = _old_path
 	GameConfig.reset()
 

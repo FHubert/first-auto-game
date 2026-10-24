@@ -13,6 +13,7 @@ func before_test() -> void:
 
 func after_test() -> void:
 	SaveSystem.save_path = _old_path
+	TestSaveCleanup.remove(SAVE_PATH)
 	GameConfig.reset()
 
 
