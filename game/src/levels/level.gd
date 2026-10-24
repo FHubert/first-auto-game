@@ -323,7 +323,11 @@ func watch_double_coins() -> bool:
 			Economy.earn(state, bonus, Economy.SOURCE_REWARDED)
 			SaveSystem.save(state)
 			level_complete.show_result(
-				_last_win_coins + bonus, _last_win_perfect, level_no, _last_win_title
+				_last_win_coins + bonus,
+				_last_win_perfect,
+				level_no,
+				_last_win_title,
+				LevelComplete.progress_message(level_no, mode, state)
 			)
 			level_complete.set_double_offer(0, false)
 			hud.refresh()
@@ -403,7 +407,13 @@ func _on_round_won() -> void:
 	Analytics.track_design("level:complete:undos", float(result.get("undos_used", 0)))
 	Analytics.track_design("level:complete:boosters", float(result.get("boosters_used", 0)))
 	hud.refresh()
-	level_complete.show_result(coins, _last_win_perfect, level_no, title)
+	level_complete.show_result(
+		coins,
+		_last_win_perfect,
+		level_no,
+		title,
+		LevelComplete.progress_message(level_no, mode, state)
+	)
 	level_complete.set_double_offer(double_coins_bonus(), can_double_coins())
 	level_won.emit(level_no, coins)
 
