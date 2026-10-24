@@ -65,6 +65,61 @@ func test_shop_navigation() -> void:
 	await get_tree().process_frame
 
 
+func _check_level_shop_overlay(app: App, expected_mode: String) -> void:
+	var level := app.current_screen() as Level
+	var from_to: Vector2i = level.round.hint()
+	assert_bool(level.round.try_move(from_to.x, from_to.y)).is_true()
+	var moves_before: int = level.round.moves()
+	level.shop_requested.emit("hint")
+	assert_bool(app.shop_overlay_visible()).is_true()
+	assert_object(app.current_screen()).is_same(level)
+	assert_str(app.current_screen_name()).is_equal("level")
+	app.shop_overlay.back_pressed.emit()
+	assert_bool(app.shop_overlay_visible()).is_false()
+	assert_bool(is_instance_valid(level)).is_true()
+	assert_object(app.current_screen()).is_same(level)
+	assert_str(level.mode).is_equal(expected_mode)
+	assert_int(level.round.moves()).is_equal(moves_before)
+
+
+func test_shop_overlay_daily() -> void:
+	var app := _app(true)
+	app.show_daily_level()
+	_check_level_shop_overlay(app, Level.MODE_DAILY)
+	await get_tree().process_frame
+
+
+func test_shop_overlay_campaign() -> void:
+	var app := _app(true)
+	app.show_level()
+	_check_level_shop_overlay(app, Level.MODE_CAMPAIGN)
+	await get_tree().process_frame
+
+
+func test_shop_from_home_is_full_screen() -> void:
+	var app := _app(true)
+	app.show_home()
+	app.show_shop()
+	assert_str(app.current_screen_name()).is_equal("shop")
+	assert_bool(app.shop_overlay_visible()).is_false()
+	(app.current_screen() as ShopScreen).back_pressed.emit()
+	assert_str(app.current_screen_name()).is_equal("home")
+	await get_tree().process_frame
+
+
+func test_shop_overlay_opens_once() -> void:
+	var app := _app(true)
+	app.show_level()
+	app.show_shop("hint", true)
+	app.show_shop("hint", true)
+	var count: int = 0
+	for c in app.get_children():
+		if c is ShopScreen:
+			count += 1
+	assert_int(count).is_equal(1)
+	await get_tree().process_frame
+
+
 func test_session_start_and_end_events() -> void:
 	var prev: AnalyticsProvider = Analytics.provider
 	var fake := FakeAnalyticsProvider.new()

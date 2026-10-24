@@ -16,6 +16,7 @@ const SCENE_SHOP: String = "res://src/ui/shop_screen.tscn"
 
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
+var shop_overlay: ShopScreen
 var _screen: Node
 var _screen_name: String = ""
 var _popup: DailyRewardPopup
@@ -144,11 +145,42 @@ func show_themes() -> void:
 	add_child(screen)
 
 
+func shop_overlay_visible() -> bool:
+	return shop_overlay != null and is_instance_valid(shop_overlay)
+
+
+## Z Level sklep otwiera sie jako overlay (runda i tryb zachowane); inaczej pelny ekran.
 func show_shop(reason: String = "", from_level: bool = false) -> void:
+	if _screen is Level:
+		_open_shop_overlay(reason)
+		return
 	var screen: ShopScreen = _swap(SCENE_SHOP, SCREEN_SHOP)
 	screen.reason = reason
 	screen.back_pressed.connect(show_level if from_level else show_home)
 	add_child(screen)
+
+
+func _open_shop_overlay(reason: String) -> void:
+	if shop_overlay_visible():
+		return
+	shop_overlay = (load(SCENE_SHOP) as PackedScene).instantiate()
+	shop_overlay.set("state", state)
+	shop_overlay.reason = reason
+	shop_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shop_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	shop_overlay.back_pressed.connect(_close_shop_overlay)
+	add_child(shop_overlay)
+
+
+func _close_shop_overlay() -> void:
+	if not shop_overlay_visible():
+		shop_overlay = null
+		return
+	remove_child(shop_overlay)
+	shop_overlay.queue_free()
+	shop_overlay = null
+	if _screen is Level:
+		(_screen as Level).refresh_after_shop()
 
 
 func _on_setting_changed(key: String) -> void:
@@ -161,6 +193,10 @@ func _on_setting_changed(key: String) -> void:
 ## Zwalnia biezacy ekran, tworzy nowy ze stanem (przed add_child).
 func _swap(path: String, screen_name: String) -> Node:
 	_close_popup()
+	if shop_overlay_visible():
+		remove_child(shop_overlay)
+		shop_overlay.queue_free()
+	shop_overlay = null
 	if _screen != null:
 		remove_child(_screen)
 		_screen.queue_free()
