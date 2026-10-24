@@ -111,6 +111,7 @@ func track_session_start() -> void:
 	_session_open = true
 	_session_start_s = float(clock.call())
 	Analytics.track_design("session:start")
+	Analytics.track_design("config:variant:%s" % str(GameConfig.get_value("remote_config_variant")))
 
 
 func track_session_end() -> void:
