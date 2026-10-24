@@ -39,7 +39,8 @@ func start(level_data: Dictionary) -> void:
 	var payload: Dictionary = level_data.get("payload", {})
 	_board = SortBoard.from_payload(payload)
 	_start_tubes = _board.to_tubes()
-	_min_moves = int(payload.get("min_moves", 0))
+	var mm: Variant = GameState._as_int(payload.get("min_moves"))
+	_min_moves = 0 if mm == null else int(mm)
 	_min_moves_exact = bool(payload.get("min_moves_exact", false))
 	_history = []
 	_moves = 0
@@ -131,6 +132,8 @@ static func _valid_payload(p: Variant) -> bool:
 			var v: Variant = GameState._as_int(c)
 			if v == null or int(v) < 0:
 				return false
+	if p.has("min_moves") and GameState._as_int(p["min_moves"]) == null:
+		return false
 	if p.has("capacity"):
 		var cap: Variant = GameState._as_int(p["capacity"])
 		return cap != null and int(cap) >= 1

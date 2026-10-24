@@ -55,7 +55,8 @@ var round_in_progress: Dictionary = {}
 ## Upgrades an older save dict to SCHEMA_VERSION. Returns a copy.
 static func migrate(d: Dictionary) -> Dictionary:
 	var out: Dictionary = d.duplicate(true)
-	var version: int = int(out.get("schema_version", 1))
+	var v_raw: Variant = _as_int(out.get("schema_version"))
+	var version: int = 1 if v_raw == null else maxi(int(v_raw), 1)
 	if version < 2:
 		var defaults: Dictionary = GameState.new().to_dict()
 		for key: String in defaults:
