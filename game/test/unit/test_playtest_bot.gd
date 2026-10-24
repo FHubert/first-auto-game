@@ -156,3 +156,48 @@ func test_first_session_random_player_has_no_losses() -> void:
 	var report: Dictionary = bot.run(7, 42, PlaytestBot.MODE_RANDOM)
 	assert_int(report["rounds_by_bracket"]["1-7"]).is_equal(7)
 	assert_int(report["losses_by_bracket"]["1-7"]).is_equal(0)
+
+
+func test_score_move_completes_tube() -> void:
+	var b := SortBoard.new([[1, 1, 1], [1], []], 4)
+	assert_int(PlaytestBot.score_move(b, Vector2i(1, 0))).is_equal(3)
+
+
+func test_score_move_same_color() -> void:
+	var b := SortBoard.new([[1], [2, 1], []], 4)
+	assert_int(PlaytestBot.score_move(b, Vector2i(1, 0))).is_equal(2)
+
+
+func test_score_move_uniform_to_empty_is_negative() -> void:
+	var b := SortBoard.new([[1, 1], [2, 1], []], 4)
+	assert_int(PlaytestBot.score_move(b, Vector2i(0, 2))).is_equal(-2)
+
+
+func test_score_move_neutral() -> void:
+	var b := SortBoard.new([[1, 2], [3], []], 4)
+	assert_int(PlaytestBot.score_move(b, Vector2i(0, 2))).is_equal(0)
+
+
+func test_pick_greedy_avoids_undo() -> void:
+	var b := SortBoard.new([[1, 2], [3, 2], []], 4)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	var moves: Array[Vector2i] = [Vector2i(0, 1), Vector2i(1, 0), Vector2i(0, 2)]
+	for _i in 20:
+		var m: Vector2i = PlaytestBot.pick_greedy(b, moves, Vector2i(1, 0), rng)
+		assert_bool(m == Vector2i(0, 1)).is_false()
+	var only: Array[Vector2i] = [Vector2i(0, 1)]
+	assert_bool(PlaytestBot.pick_greedy(b, only, Vector2i(1, 0), rng) == Vector2i(0, 1)).is_true()
+
+
+func test_greedy_not_worse_than_random_on_campaign() -> void:
+	var greedy := PlaytestBot.new()
+	greedy.use_campaign_seed = true
+	var rep_g: Dictionary = greedy.run(20, 42, PlaytestBot.MODE_GREEDY)
+	var rnd := PlaytestBot.new()
+	rnd.use_campaign_seed = true
+	var rep_r: Dictionary = rnd.run(20, 42, PlaytestBot.MODE_RANDOM)
+	assert_str(rep_g["mode"]).is_equal("greedy")
+	assert_int(rep_g["softlocks"]).is_equal(0)
+	assert_int(rep_g["wins"]).is_greater_equal(rep_r["wins"])
+	assert_int(rep_g["losses_by_bracket"]["1-7"]).is_equal(0)

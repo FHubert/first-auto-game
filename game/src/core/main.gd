@@ -87,7 +87,11 @@ func _run_playtest(args: PackedStringArray) -> int:
 		_arg_value(args, "--max-restarts", str(bot.max_restarts_per_round))
 	)
 	bot.use_campaign_seed = "--campaign" in args
-	var mode: String = PlaytestBot.MODE_RANDOM if "--random" in args else PlaytestBot.MODE_SOLVER
+	var mode: String = PlaytestBot.MODE_SOLVER
+	if "--greedy" in args:
+		mode = PlaytestBot.MODE_GREEDY
+	elif "--random" in args:
+		mode = PlaytestBot.MODE_RANDOM
 	var report: Dictionary = bot.run(rounds, run_seed, mode)
 	bot.write_report(report, report_path)
 	print("Playtest report: ", JSON.stringify(report))

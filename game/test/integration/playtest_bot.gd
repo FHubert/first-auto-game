@@ -5,6 +5,7 @@ extends RefCounted
 
 const MODE_SOLVER: String = "solver"
 const MODE_RANDOM: String = "random"
+const MODE_GREEDY: String = "greedy"
 const MAX_STEPS: int = 600
 ## Random walk may cycle forever without ever being stuck; restart after this many steps.
 const ATTEMPT_STEPS: int = 150
@@ -76,8 +77,11 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		game_round.start(level_data)
 		var steps: int = 0
 		var gave_up: bool = false
-		if mode == MODE_RANDOM:
-			var out: Dictionary = _play_random(game_round, rng, round_index, errors, report)
+		if mode == MODE_RANDOM or mode == MODE_GREEDY:
+			var pick: Callable = _pick_random if mode == MODE_RANDOM else pick_greedy
+			var out: Dictionary = _play_heuristic(
+				game_round, rng, round_index, errors, report, pick
+			)
 			steps = int(out["steps"])
 			gave_up = bool(out["gave_up"])
 		else:
@@ -161,15 +165,64 @@ func _play_solution(
 	return steps
 
 
-## Random legal moves; restart when stuck. Returns {steps, gave_up}.
+## Heuristic for a casual player: +3 move completes the target tube, +2 pour onto the same
+## colour, -2 pour of a whole uniform tube into an empty one (no progress), 0 otherwise.
+static func score_move(board: SortBoard, m: Vector2i) -> int:
+	var from: int = m.x
+	var to: int = m.y
+	if not board.is_empty(to) and board.top_color(to) == board.top_color(from):
+		var amount: int = mini(board.top_run(from), board.free_space(to))
+		var tube_to: Array = board.tubes[to]
+		var uniform_after: bool = board.is_uniform(to)
+		if uniform_after and tube_to.size() + amount == board.capacity:
+			return 3
+		return 2
+	if board.is_empty(to) and board.is_uniform(from):
+		return -2
+	return 0
+
+
+## Best-scored move (ties random via rng); avoids undoing `prev` unless it is the only move.
+static func pick_greedy(
+	board: SortBoard, moves: Array[Vector2i], prev: Vector2i, rng: RandomNumberGenerator
+) -> Vector2i:
+	var candidates: Array[Vector2i] = []
+	for m: Vector2i in moves:
+		if prev != Vector2i(-1, -1) and m == Vector2i(prev.y, prev.x):
+			continue
+		candidates.append(m)
+	if candidates.is_empty():
+		candidates = moves
+	var best: int = -1000
+	var top: Array[Vector2i] = []
+	for m: Vector2i in candidates:
+		var sc: int = score_move(board, m)
+		if sc > best:
+			best = sc
+			top.clear()
+		if sc == best:
+			top.append(m)
+	return top[rng.randi_range(0, top.size() - 1)]
+
+
+static func _pick_random(
+	_board: SortBoard, moves: Array[Vector2i], _prev: Vector2i, rng: RandomNumberGenerator
+) -> Vector2i:
+	return moves[rng.randi_range(0, moves.size() - 1)]
+
+
+## Plays with `pick` (board, moves, prev, rng -> move); restart when stuck.
+## Returns {steps, gave_up}.
 ## report["max_restarts_seen"] = max restarts actually performed in one round.
-func _play_random(
+func _play_heuristic(
 	game_round: GameRound,
 	rng: RandomNumberGenerator,
 	round_index: int,
 	errors: Array,
-	report: Dictionary
+	report: Dictionary,
+	pick: Callable
 ) -> Dictionary:
+	var prev: Vector2i = Vector2i(-1, -1)
 	var steps: int = 0
 	var restarts: int = 0
 	var attempt_steps: int = 0
@@ -188,10 +241,12 @@ func _play_random(
 			if restarts > max_restarts_per_round:
 				return {"steps": steps, "gave_up": true}
 			game_round.restart()
+			prev = Vector2i(-1, -1)
 			# Counted after the limit check: only restarts actually performed.
 			report["max_restarts_seen"] = maxi(int(report["max_restarts_seen"]), restarts)
 			continue
-		var m: Vector2i = moves[rng.randi_range(0, moves.size() - 1)]
+		var m: Vector2i = pick.call(game_round.board(), moves, prev, rng)
+		prev = m
 		if not game_round.try_move(m.x, m.y):
 			errors.append("round %d: legal move rejected (%d->%d)" % [round_index, m.x, m.y])
 			return {"steps": steps, "gave_up": true}
