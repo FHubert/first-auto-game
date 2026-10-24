@@ -28,6 +28,8 @@ var utc_day: int = 0
 var tutorial: TutorialFlow
 var rewarded: RewardedPlacements = RewardedPlacements.new()
 var offers: LevelOffers = LevelOffers.new()
+## Poziom N+1 generowany w tle podczas ekranu wygranej (ADR-011).
+var prefetch: LevelPrefetch = LevelPrefetch.new()
 var effects_enabled: bool = true
 ## `_ready` laduje poziom z `state.level` tylko gdy true; `App` ustawia false
 ## i sam woła resume/load_level/start_daily.
@@ -45,6 +47,10 @@ var _last_win_title: String = ""
 @onready var level_complete: LevelComplete = $LevelComplete
 @onready var stuck_panel: StuckPanel = $StuckPanel
 @onready var tutorial_overlay: TutorialOverlay = $TutorialOverlay
+
+
+func _exit_tree() -> void:
+	prefetch.cancel_all()
 
 
 func _ready() -> void:
@@ -112,7 +118,7 @@ func load_level(level_in: int, theme_id: String = "classic") -> void:
 	hud.set_title("")
 	level_no = level_in
 	var seed_value: int = int(GameConfig.get_value("campaign_seed"))
-	start_round(ContentGenerator.new().generate(seed_value, level_no), theme_id)
+	start_round(prefetch.take(seed_value, level_no), theme_id)
 
 
 ## Poziom dnia: bez "pomin", bez podnoszenia state.level.
@@ -327,6 +333,7 @@ func _on_round_won() -> void:
 		coins = Economy.apply_win(state, result)
 		state.level += 1
 		state.levels_completed += 1
+		prefetch.request(int(GameConfig.get_value("campaign_seed")), level_no + 1)
 		DailyRewards.register_play(state, DailyRewards.utc_day_from_unix(int(clock.call())))
 	state.round_in_progress = {}
 	SaveSystem.save(state)
