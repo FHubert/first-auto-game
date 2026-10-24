@@ -189,6 +189,14 @@ class ShellToolsTest(unittest.TestCase):
             self.assertIn('const BUILD_INFO: String = "1.2.3+142"', gd.read_text())
 
 
+class SetupEnvAndroidTemplate(unittest.TestCase):
+    def test_android_build_template_wired(self):
+        script = (TOOLS / "setup_env.sh").read_text(encoding="utf-8")
+        for needle in ("android_source.zip", ".build_version", ".gdignore"):
+            self.assertIn(needle, script)
+        self.assertIn("game/android/build/", (ROOT / ".gitignore").read_text(encoding="utf-8"))
+
+
 class VersionCodeTest(unittest.TestCase):
     EPOCH = 1767225600  # 2026-01-01T00:00:00Z
 
