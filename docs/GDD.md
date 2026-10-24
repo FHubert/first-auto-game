@@ -148,6 +148,7 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
 - Poziom dnia (wyróżnik): jeden poziom na dzień UTC, ten sam dla wszystkich (seed z dnia UTC, ADR-009), `daily_colors` = 8, próg `daily_min_moves_factor` = 1.8 × n; nagroda `daily_challenge_coins` = 50 raz na dzień; licznik `daily_completed_total` i odznaka „ukończono dziś" na ekranie głównym. Licznik do następnego (północ UTC).
 - Cele 7 dni: (1) 7-dniowy streak = nagroda D7 300 monet, (2) pierwszy kupiony motyw (koszt 600 ≈ dzień 2), (3) 7 ukończonych Poziomów dnia, (4) poziom ~50 (11 kolorów).
 - Cele 30 dni: (1) wszystkie 3 płatne motywy MVP (600 + 1080 + 1944 = 3624 monety ≈ dzień 12–14), (2) 20+ Poziomów dnia w miesiącu → (later) motyw miesiąca i kalendarz odznak, (3) najlepszy streak ≥ 30 (`streak_best`).
+- Koszt motywu zależy od pozycji w katalogu (`ThemeCatalog.cost`): pierwszy motyw darmowy (`free_id`), płatne wg `Economy.theme_cost(paid_index)` = `theme_cost_base` × `theme_cost_growth`^(paid_index−1) → 600 / 1080 / 1944; kolejność kart = kolejność w `themes.json`. Zmiana motywu działa od razu, także na otwartej rundzie (`Level.apply_theme`).
 
 ## Generator contentu
 *Opisz algorytm generacji (seed, parametry z configu). Test rozwiązywalności: headless solver przechodzi każdy poziom dla zakresu seedów, uruchamiany w `make test`.*

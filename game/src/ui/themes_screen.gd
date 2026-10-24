@@ -29,6 +29,10 @@ func card_button(id: String) -> Button:
 	return cards[id]["button"]
 
 
+func card_name_label(id: String) -> Label:
+	return cards[id]["name"]
+
+
 func refresh() -> void:
 	coins_label.text = str(state.coins)
 	for id: String in cards:
@@ -97,7 +101,7 @@ func _add_card(grid: GridContainer, t: Dictionary) -> void:
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label := Label.new()
-	name_label.text = str(t.get("name", id))
+	name_label.text = tr("theme_name_" + id)
 	name_label.add_theme_font_size_override("font_size", FONT_SIZE)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(name_label)
@@ -111,7 +115,7 @@ func _add_card(grid: GridContainer, t: Dictionary) -> void:
 	b.pressed.connect(_on_card_pressed.bind(id))
 	col.add_child(b)
 	grid.add_child(col)
-	cards[id] = {"panel": col, "button": b}
+	cards[id] = {"panel": col, "button": b, "name": name_label}
 
 
 ## Maly podglad: 3 probowki z warstwami cieczy na tle motywu.

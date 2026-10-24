@@ -50,6 +50,10 @@ btn_play_daily,Play,Graj,Spielen
 hud_daily,Daily level,Poziom dnia,Tagesrätsel
 lc_daily_title,Daily level done!,Poziom dnia ukończony!,Tagesrätsel geschafft!
 themes_title,Themes,Motywy,Themen
+theme_name_classic,Classic,Klasyczny,Klassisch
+theme_name_pastel,Pastel,Pastelowy,Pastell
+theme_name_neon,Neon,Neonowy,Neon
+theme_name_ocean,Ocean,Oceaniczny,Ozean
 btn_active,Active,Aktywny,Aktiv
 btn_use,Use,Użyj,Nutzen
 btn_buy,Buy %d,Kup %d,Kaufen %d

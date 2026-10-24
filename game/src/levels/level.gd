@@ -343,7 +343,13 @@ func _finish_purchase(ok: bool) -> bool:
 
 ## Odswieza HUD/plansze/stuck panel po powrocie ze sklepu (overlay).
 func refresh_after_shop() -> void:
+	if board.theme_id != state.theme_active:
+		board.apply_theme(state.theme_active)
 	_after_action()
+
+
+func apply_theme(theme_id_in: String) -> void:
+	board.apply_theme(theme_id_in)
 
 
 func _after_action() -> void:

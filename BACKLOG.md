@@ -46,7 +46,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: po przelewie zamykającym probówkę widok odtwarza puls (skala z nazwanej `const`, czas z klucza `tube_full_pulse_seconds` w `GameConfig`, propozycja 0,25) i wywołuje haptykę przez istniejący `AudioService` (respektuje ustawienia). Test gdUnit4 z fake serwisem: 1 zamknięcie → 1 puls + 1 haptyka; przelew niezamykający → 0; restart/undo w trakcie pulsu → skala wraca do 1.0. `make check` zielone. ≤ ~70 linii.
   Skill: `godot-dev`
 
-- [ ] T-080 `in_progress` Themes: motyw zastosowany od razu po `theme_selected`, nazwy motywów z kluczy `theme_name_*`, usunięcie martwej `BoardView.THEMES_PATH` (przeniesione z Inbox T-043)
+- [ ] T-080 `review` Themes: motyw zastosowany od razu po `theme_selected`, nazwy motywów z kluczy `theme_name_*`, usunięcie martwej `BoardView.THEMES_PATH` (przeniesione z Inbox T-043) → PR #__N__
   KA: `App` po `theme_selected` odświeża aktywny Level (paleta + tło + kształt) bez resetu rundy — test gdUnit4: wybór motywu przy otwartym Level → kolory warstw w `BoardView` = paleta nowego motywu, liczba ruchów bez zmian; etykiety w Themes przez `tr("theme_name_<id>")` (klucze EN/PL/DE, objęte testem kompletności z T-023); grep `THEMES_PATH` w `board_view.gd` = 0. GDD → Meta: zdanie o koszcie wg pozycji w katalogu (zgodne z `ThemeCatalog`). `make check` zielone. ≤ ~100 linii.
   Skill: `godot-dev`
 

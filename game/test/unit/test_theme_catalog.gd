@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 
 const SAVE_PATH: String = "user://test_theme_catalog.json"
+const LEVEL_SCENE: String = "res://src/levels/level.tscn"
 
 var _old_path: String
 
@@ -93,7 +94,7 @@ func test_screen_buy_and_use() -> void:
 
 func test_board_and_level_use_catalog() -> void:
 	assert_str(BoardView.load_theme("pastel")["shape"]).is_equal("flask")
-	var level: Level = auto_free(load("res://src/levels/level.tscn").instantiate())
+	var level: Level = auto_free(load(LEVEL_SCENE).instantiate())
 	level.state = GameState.new()
 	add_child(level)
 	level.load_level(2, "pastel")
@@ -109,3 +110,69 @@ func test_app_routes_to_themes() -> void:
 	assert_bool(app.current_screen() is ThemesScreen).is_true()
 	(app.current_screen() as ThemesScreen).back_pressed.emit()
 	assert_bool(app.current_screen() is Home).is_true()
+
+
+func _level_with_move() -> Level:
+	var level: Level = auto_free(load(LEVEL_SCENE).instantiate())
+	level.state = GameState.new()
+	add_child(level)
+	level.board.animate = false
+	level.load_level(2, "classic")
+	var m: Vector2i = level.round.board().legal_moves()[0]
+	level.board.tap(m.x)
+	level.board.tap(m.y)
+	return level
+
+
+func test_level_apply_theme_keeps_round() -> void:
+	var level: Level = _level_with_move()
+	var moves: int = level.round.moves()
+	var tubes: Array = level.round.board().tubes.duplicate(true)
+	level.apply_theme("neon")
+	assert_str(level.board.theme_id).is_equal("neon")
+	assert_int(level.round.moves()).is_equal(moves)
+	assert_array(level.round.board().tubes).is_equal(tubes)
+	var neon: Dictionary = ThemeCatalog.theme("neon")
+	var expected: Array = []
+	for c: String in neon["liquids"]:
+		expected.append(Color(c))
+	for i: int in tubes.size():
+		assert_array(level.board.view_layers(i)).is_equal(tubes[i])
+		assert_array(level.board.view_liquids(i)).is_equal(expected)
+	assert_str(level.board.theme_data["background"]).is_equal(neon["background"])
+
+
+func test_refresh_after_shop_applies_new_theme() -> void:
+	var level: Level = _level_with_move()
+	var moves: int = level.round.moves()
+	level.state.themes_owned.append("neon")
+	assert_bool(ThemeCatalog.set_active(level.state, "neon")).is_true()
+	level.refresh_after_shop()
+	assert_str(level.board.theme_id).is_equal("neon")
+	assert_int(level.round.moves()).is_equal(moves)
+
+
+func test_screen_uses_translated_names() -> void:
+	TranslationServer.set_locale("pl")
+	var screen: ThemesScreen = auto_free(ThemesScreen.new())
+	screen.state = _state(0)
+	add_child(screen)
+	assert_str(screen.card_name_label("neon").text).is_equal("Neonowy")
+	TranslationServer.set_locale("en")
+
+
+func test_app_theme_selected_hook() -> void:
+	var app: App = auto_free(App.new())
+	app.state = GameState.new()
+	app.state.settings["tutorial_done"] = true
+	add_child(app)
+	app.show_level()
+	app.state.themes_owned.append("neon")
+	ThemeCatalog.set_active(app.state, "neon")
+	app._on_theme_selected("neon")
+	assert_str((app.current_screen() as Level).board.theme_id).is_equal("neon")
+
+
+func test_board_view_has_no_dead_themes_path() -> void:
+	var src: String = FileAccess.get_file_as_string("res://src/ui/board_view.gd")
+	assert_int(src.count("THEMES_PATH")).is_equal(0)
