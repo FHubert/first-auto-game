@@ -8,6 +8,7 @@ Każdy punkt sprawdzamy przed `git tag`. Niezaznaczony punkt oznacza brak wydani
 - [ ] Crash-free na Firebase Test Lab.
 - [ ] Screenshoty aktualne (`make screenshots`).
 - [ ] Changelog w `fastlane/metadata`.
+- [ ] Adapter SDK (reklamy, IAP, zgoda, powiadomienia, analityka) dopisany do `PAIRS` w `test_provider_contracts.gd` i zielony przed podpięciem w `App`/autoloadzie (Faza 5).
 
 ## Google Play
 - [ ] Data Safety zgodne z eventami w `docs/GDD.md` → Analityka oraz z SDK (AdMob, GameAnalytics).
