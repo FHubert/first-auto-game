@@ -298,5 +298,40 @@ class StoreMetadataTest(unittest.TestCase):
             self.assertNotIn("TBD", f.read_text(encoding="utf-8"), str(f))
 
 
+class PrivacyDocsTest(unittest.TestCase):
+    PRIVACY = ROOT / "docs" / "privacy"
+
+    def gdd_events(self):
+        import re
+
+        text = (ROOT / "docs" / "GDD.md").read_text(encoding="utf-8")
+        section = text.split("\n## Analityka", 1)[1].split("\n## ", 1)[0]
+        names = []
+        for line in section.splitlines():
+            m = re.match(r"- ((?:`[a-z_]+`(?: / )?)+)", line)
+            if m:
+                names += re.findall(r"`([a-z_]+)`", m.group(1))
+        return names
+
+    def test_every_gdd_event_is_in_checklist(self):
+        events = self.gdd_events()
+        self.assertGreaterEqual(len(events), 17)
+        checklist = (ROOT / "docs" / "RELEASE_CHECKLIST.md").read_text(encoding="utf-8")
+        for ev in events:
+            with self.subTest(event=ev):
+                self.assertIn(ev, checklist)
+
+    def test_policies_content_and_link_dates(self):
+        for name in ("index.md", "pl.md"):
+            text = (self.PRIVACY / name).read_text(encoding="utf-8")
+            for needle in ("__PRIVACY_CONTACT__", "All In IT", "GameAnalytics", "AdMob", "13"):
+                with self.subTest(file=name, needle=needle):
+                    self.assertIn(needle, text)
+            for line in text.splitlines():
+                if "https://" in line:
+                    with self.subTest(file=name, line=line[:60]):
+                        self.assertTrue("(2026-" in line or "ZWERYFIKUJ" in line)
+
+
 if __name__ == "__main__":
     unittest.main()

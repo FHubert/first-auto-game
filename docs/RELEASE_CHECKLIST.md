@@ -11,23 +11,40 @@ Każdy punkt sprawdzamy przed `git tag`. Niezaznaczony punkt oznacza brak wydani
 
 ## Google Play
 - [ ] Data Safety zgodne z eventami w `docs/GDD.md` → Analityka oraz z SDK (AdMob, GameAnalytics).
-  Dane zbierane przez eventy GA (GDD → Analityka); aktualizować przy każdej zmianie listy eventów:
-  - identyfikatory urządzenia/SDK (GameAnalytics, AdMob),
-  - postęp w grze (poziomy, wygrane/porażki, boostery),
-  - interakcje z reklamami (placement, wynik),
-  - zakupy IAP (sku, kwota, waluta),
-  - diagnostyka/sesje (start/koniec, czas),
-  - wynik zgody UMP/ATT,
-  - brak danych osobowych wpisywanych przez gracza.
+  Tabela odpowiedzi Data Safety (aktualizować przy każdej zmianie listy eventów; całość ZWERYFIKUJ przed wysłaniem formularza):
+
+  | Typ danych (Play) | Zbierane | Udostępniane | Cel | Opcjonalne | Źródło/eventy |
+  |---|---|---|---|---|---|
+  | Device or other IDs | tak | tak (AdMob, GameAnalytics) | Analytics, Advertising | nie | SDK: AdMob, GA |
+  | App interactions | tak | tak (GA) | Analytics | nie | level_start, level_complete, level_fail, level_stuck, booster_used, daily_reward_claimed, streak_changed, daily_challenge_complete, theme_unlocked, coins_earned, session_start, session_end |
+  | App info and performance (Diagnostics) | ZWERYFIKUJ (czy GA zbiera crash logs) | ZWERYFIKUJ | Analytics | nie | SDK |
+  | Purchase history | tak | nie | App functionality | nie | iap_purchase |
+  | Advertising interactions | tak | tak (AdMob) | Advertising | nie | rewarded_offered, rewarded_completed, interstitial_shown |
+  | Approximate location | ZWERYFIKUJ (IP → kraj) | ZWERYFIKUJ (AdMob/GA) | Analytics, Advertising | nie | SDK |
+  | Consent (informacyjnie, nie jest „danymi" w Play) | - | - | - | - | consent_result |
+  | Dane osobowe wpisywane przez gracza | nie | nie | - | - | brak kont i pól tekstowych |
+
 - [ ] UMP consent przetestowany na EEA.
 - [ ] Polityka prywatności: URL podany w Play Console.
 - [ ] Staged rollout 10 %.
 
 ## App Store Connect
-- [ ] Privacy Nutrition Labels zgodne z eventami w `docs/GDD.md` → Analityka.
+- [ ] Privacy Nutrition Labels zgodne z eventami w `docs/GDD.md` → Analityka (całość ZWERYFIKUJ przed wysłaniem):
+
+  | Kategoria (ASC) | Linked to user | Used for tracking | Źródło |
+  |---|---|---|---|
+  | Identifiers → Device ID | AdMob: tak (ZWERYFIKUJ); GA: nie (ZWERYFIKUJ) | AdMob: tak, tylko po zgodzie ATT; GA: nie (ZWERYFIKUJ) | SDK; consent_result |
+  | Usage Data → Product Interaction | nie (ZWERYFIKUJ) | nie | level_start, level_complete, level_fail, level_stuck, booster_used, session_start, session_end, streak_changed, daily_reward_claimed, daily_challenge_complete, theme_unlocked, coins_earned |
+  | Usage Data → Advertising Data | ZWERYFIKUJ | tak, tylko po ATT | rewarded_offered, rewarded_completed, interstitial_shown |
+  | Purchases → Purchase History | nie (ZWERYFIKUJ) | nie | iap_purchase |
+  | Diagnostics → Crash Data | ZWERYFIKUJ | ZWERYFIKUJ | SDK |
+  | Location → Coarse Location | ZWERYFIKUJ | ZWERYFIKUJ | SDK (IP → kraj) |
+
 - [ ] Privacy manifest iOS (`PrivacyInfo.xcprivacy`) zawiera SDK AdMob i GameAnalytics.
 - [ ] ATT prompt na iOS.
 - [ ] Polityka prywatności: URL podany w App Store Connect.
+- [ ] Polityka prywatności opublikowana (docs/privacy/ → GitHub Pages lub strona All In IT), URL wpisany w metadata (__PRIVACY_URL__) — wymaga Huberta
+- [ ] Przegląd prawny polityki (DRAFT) — wymaga Huberta
 
 ## Wersja
 - [ ] Wersja podbita przez `release.yml`, nie ręcznie.
