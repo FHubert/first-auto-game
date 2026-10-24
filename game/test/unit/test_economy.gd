@@ -105,6 +105,48 @@ func test_rewarded_bonus() -> void:
 	assert_int(Economy.rewarded_bonus(10)).is_equal(20)
 
 
+func test_rewarded_bonus_never_negative() -> void:
+	GameConfig.apply_remote({"rewarded_multiplier": 0.5})
+	assert_int(Economy.rewarded_bonus(10)).is_equal(0)
+	GameConfig.apply_remote({"rewarded_multiplier": 0.0})
+	assert_int(Economy.rewarded_bonus(10)).is_equal(0)
+	GameConfig.apply_remote({"rewarded_multiplier": 1.0})
+	assert_int(Economy.rewarded_bonus(10)).is_equal(0)
+
+
+func test_can_afford_boundaries() -> void:
+	_state.coins = 50
+	assert_bool(Economy.can_afford(_state, 50)).is_true()
+	assert_bool(Economy.can_afford(_state, 51)).is_false()
+	assert_bool(Economy.can_afford(_state, 0)).is_true()
+	assert_bool(Economy.can_afford(_state, -1)).is_false()
+
+
+func test_apply_win_perfect_records_two_resource_events() -> void:
+	Economy.apply_win(_state, {"won": true, "perfect": true})
+	assert_int(_fake.events.size()).is_equal(2)
+	var win_ev: Dictionary = _fake.events[0]
+	var perfect_ev: Dictionary = _fake.events[1]
+	assert_str(win_ev["type"]).is_equal("resource")
+	assert_str(perfect_ev["type"]).is_equal("resource")
+	assert_str(win_ev["flow"]).is_equal("Source")
+	assert_str(perfect_ev["flow"]).is_equal("Source")
+	assert_str(win_ev["currency"]).is_equal("coins")
+	assert_str(perfect_ev["currency"]).is_equal("coins")
+	assert_str(win_ev["item_type"]).is_equal("economy")
+	assert_str(perfect_ev["item_type"]).is_equal("economy")
+	assert_str(win_ev["item_id"]).is_equal(Economy.SOURCE_WIN)
+	assert_float(win_ev["amount"]).is_equal(float(GameConfig.get_value("win_reward_coins")))
+	assert_str(perfect_ev["item_id"]).is_equal(Economy.SOURCE_PERFECT)
+	assert_float(perfect_ev["amount"]).is_equal(float(GameConfig.get_value("par_bonus_coins")))
+
+
+func test_apply_win_without_perfect_records_one_event() -> void:
+	Economy.apply_win(_state, {"won": true})
+	assert_int(_fake.events.size()).is_equal(1)
+	assert_str(_fake.events[0]["item_id"]).is_equal(Economy.SOURCE_WIN)
+
+
 func test_analytics_events_recorded() -> void:
 	_state.coins = 0
 	Economy.earn(_state, 30, Economy.SOURCE_DAILY_REWARD)
