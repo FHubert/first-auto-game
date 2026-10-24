@@ -35,7 +35,8 @@ func _run_screenshot(args: PackedStringArray) -> void:
 		get_tree().quit(2)
 		return
 	SaveSystem.read_only = true
-	var today: int = DailyRewards.utc_day_from_unix(int(Time.get_unix_time_from_system()))
+	var now_unix: int = int(parsed["now"])
+	var today: int = DailyRewards.utc_day_from_unix(now_unix)
 	var state: GameState = ScreenshotFixtures.make(str(parsed["fixture"]), today)
 	if str(parsed["lang"]) != "":
 		state.settings["locale"] = parsed["lang"]
@@ -45,6 +46,7 @@ func _run_screenshot(args: PackedStringArray) -> void:
 	var app := App.new()
 	app.state = state
 	app.effects_enabled = false
+	app.clock = func() -> int: return now_unix
 	app.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(app)
 	_label.visible = false
