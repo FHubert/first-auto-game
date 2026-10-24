@@ -73,6 +73,24 @@ else
   rm -rf "$tmp2"
 fi
 
+# --- Android build template (gradle build; from android_source.zip in the export templates) ---
+ANDROID_DIR="$ROOT/game/android"
+BUILD_DIR="$ANDROID_DIR/build"
+BUILD_VERSION_FILE="$ANDROID_DIR/.build_version"
+SRC_ZIP="$TEMPLATES_ROOT/$TEMPLATE_DIR_NAME/android_source.zip"
+if [ -f "$BUILD_DIR/build.gradle" ] && [ "$(cat "$BUILD_VERSION_FILE" 2>/dev/null)" = "$TEMPLATE_DIR_NAME" ]; then
+  echo "[setup] Android build template already present"
+elif [ ! -f "$SRC_ZIP" ]; then
+  echo "[setup] WARN: $SRC_ZIP missing, skipping Android build template" >&2
+else
+  echo "[setup] Installing Android build template ($TEMPLATE_DIR_NAME)"
+  rm -rf "$BUILD_DIR"
+  mkdir -p "$BUILD_DIR"
+  unzip -q "$SRC_ZIP" -d "$BUILD_DIR"
+  touch "$ANDROID_DIR/.gdignore" # keep the editor from importing template resources
+  printf '%s\n' "$TEMPLATE_DIR_NAME" > "$BUILD_VERSION_FILE"
+fi
+
 # --- gdUnit4 (cloned, never vendored; repo keeps addon under addons/gdUnit4) ---
 ADDON="$ROOT/game/addons/gdUnit4"
 if [ -f "$ADDON/plugin.cfg" ]; then

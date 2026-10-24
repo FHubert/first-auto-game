@@ -6,6 +6,10 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P0 — fundamenty (Faza 1–2)
 
+- [ ] GH-83 `review` Nightly sanity: export Android (gradle) padał na „Android build template not installed” — `make setup` instaluje szablon z `android_source.zip` (`game/android/build/`, `.build_version`, `.gdignore`) (issue #83) → PR #86
+  KA: `make setup` idempotentnie rozpakowuje `android_source.zip` z export templates do `game/android/build/` i zapisuje `game/android/.build_version` = `4.7.2.stable`; `game/android/.gdignore` w repo, `build/` i `.build_version` ignorowane; lokalnie `--export-debug Android` nie zgłasza już „build template not installed” (zostają tylko błędy braku SDK); test statyczny w `tools/test_tools.py`; nightly-sanity zielony przy następnym uruchomieniu (weryfikacja po merge — `gh api …/actions/workflows/nightly-sanity.yml/dispatches`). Blokada backlog-sync (GH006) → `docs/SETUP_HUBERT.md` §15 (7).
+  Skill: `godot-build`
+
 ## P1 — core loop i retencja (z GDD v1.0, R-003)
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->

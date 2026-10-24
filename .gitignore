@@ -30,3 +30,6 @@ game/locale/*.csv.import
 # Ruby / bundler
 vendor/bundle/
 .bundle/
+# Android gradle build template installed by make setup (from export templates)
+game/android/build/
+game/android/.build_version
