@@ -82,7 +82,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `maybe_show_interstitial` wołane maks. 1× na zakończoną rundę (po przegranej bez awansu nie powtarza tego samego numeru) — test gdUnit4 na bocie: 3 przegrane tego samego poziomu → ≤ 1 wywołanie na rundę, licznik `interstitials_shown` w raporcie zgodny z `FakeAdProvider`; `get_value("win_reward_coins", 10)` → `get_value("win_reward_coins")` (grep fallbacku = 0). `make playtest` 200/200 bez softlocka, `interstitials_shown` w `playtest.json` podany przed/po w opisie PR. `make check` zielone. ≤ ~50 linii.
   Skill: `godot-test`
 
-- [ ] T-085 `todo` ConsentFlow: błąd `request_consent_info_update` (`ok=false`) → event `consent:ump:error` i ścieżka niespersonalizowana; `FakeConsentProvider` umie zwrócić `ok=false` (przeniesione z Inbox T-069)
+- [ ] T-085 `in_progress` ConsentFlow: błąd `request_consent_info_update` (`ok=false`) → event `consent:ump:error` i ścieżka niespersonalizowana; `FakeConsentProvider` umie zwrócić `ok=false` (przeniesione z Inbox T-069)
   KA: `FakeConsentProvider` ma skryptowane `info_update_ok: bool`; przy `false` flow kończy `finished` z `can_request_ads=true`, `personalized=false`, bez pokazania formularza, i rejestruje dokładnie jeden event błędu w `FakeAnalyticsProvider` (nazwa zgodna z konwencją z GDD → Analityka; jeśli brak — dopisać wiersz w GDD). Test gdUnit4 ≥ 2 przypadki (EEA + błąd, poza EEA + błąd). `make check` zielone. ≤ ~60 linii.
   Skill: `ads-iap`
 
