@@ -71,8 +71,10 @@ Patrz `KPI.md`. Skrót: D1 retention ≥ 35 %, D7 ≥ 12 %, ARPDAU ≥ 0,05 USD,
 | `make playtest` | bot gra N tur headless, raport JSON (`game/test/reports/playtest.json`) |
 | `make sim` | symulacja ekonomii offline (`tools/balance_sim.py`) |
 | `make export-check` | dry-run exportu Android do scratch, bez podpisu |
-| `make check` | lint + test + export-check (bramka przed PR) |
+| `make test-tools` | testy narzędzi (`tools/test_tools.py`, część `make check`) |
+| `make check` | lint + test + test-tools + export-check (bramka przed PR) |
 | `make screenshots` | screenshoty headless do `fastlane/metadata/` |
+| `make screenshots-smoke` | smoke wszystkich ekranów z `tools/screens.txt` → `export/screenshots_framed/` |
 
 ## GitHub: tylko REST (gh api)
 W sesjach Claude Code Remote `gh pr *` (GraphQL) zwraca 403 — używaj wyłącznie `gh api`. Owner/repo: FHubert/first-auto-game.
