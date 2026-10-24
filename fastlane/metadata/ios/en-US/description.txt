@@ -1,0 +1,12 @@
+Pour, sort, breathe. Vialo is a calm water sort puzzle: tap a vial, pour the top color into another, and finish when every vial holds a single color.
+
+- A new Daily Level every day - the same puzzle for everyone, with its own reward.
+- Hundreds of levels that grow from 2 to 12 colors - every level is checked by a solver, so every one can be solved.
+- Undo, an extra vial and hints when you get stuck - no timers, no pressure.
+- Unlock themes: new liquid palettes, backgrounds and vial shapes.
+- Soft pouring sounds and haptics. Plays offline.
+
+Why you'll love it: short levels for a coffee break, a streak that rewards coming back, and a water sort puzzle that never runs out.
+
+Vialo is free to play. It contains optional rewarded ads, ads between levels, and in-app purchases (including one that removes ads between levels).
+Privacy policy: __PRIVACY_URL__

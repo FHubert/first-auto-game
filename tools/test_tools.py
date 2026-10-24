@@ -257,5 +257,46 @@ class StoreScreenshotsTest(unittest.TestCase):
                 self.assertEqual(im.size, (1080, 1920))
 
 
+class StoreMetadataTest(unittest.TestCase):
+    TITLE_MAX, SHORT_MAX, FULL_MAX, CHANGELOG_MAX, KEYWORDS_MAX_BYTES = 30, 80, 4000, 500, 100
+    META = ROOT / "fastlane" / "metadata"
+    ANDROID = {"en-US": ("ads", "in-app"), "pl-PL": ("reklam", "zakup"), "de-DE": ("werbung", "in-app")}
+    IOS = ("en-US", "pl", "de-DE")
+
+    def read(self, *parts):
+        return self.META.joinpath(*parts).read_text(encoding="utf-8").strip()
+
+    def test_android_limits_and_disclosure(self):
+        for loc, (ads, iap) in self.ANDROID.items():
+            with self.subTest(loc=loc):
+                self.assertTrue(0 < len(self.read("android", loc, "title.txt")) <= self.TITLE_MAX)
+                self.assertTrue(0 < len(self.read("android", loc, "short_description.txt")) <= self.SHORT_MAX)
+                full = self.read("android", loc, "full_description.txt")
+                self.assertTrue(0 < len(full) <= self.FULL_MAX)
+                self.assertTrue(0 < len(self.read("android", loc, "changelogs", "default.txt")) <= self.CHANGELOG_MAX)
+                self.assertIn(ads, full.lower())
+                self.assertIn(iap, full.lower())
+
+    def test_ios_limits_and_keywords(self):
+        import re
+
+        for loc in self.IOS:
+            with self.subTest(loc=loc):
+                name, sub = self.read("ios", loc, "name.txt"), self.read("ios", loc, "subtitle.txt")
+                kw = self.read("ios", loc, "keywords.txt")
+                self.assertTrue(0 < len(name) <= self.TITLE_MAX)
+                self.assertTrue(0 < len(sub) <= self.TITLE_MAX)
+                self.assertLessEqual(len(kw.encode("utf-8")), self.KEYWORDS_MAX_BYTES)
+                self.assertNotIn(" ", kw)
+                used = {t for t in re.findall(r"\w+", (name + " " + sub).lower()) if len(t) >= 3}
+                self.assertFalse(used & set(kw.lower().split(",")), "keywords repeat title/subtitle")
+                self.assertTrue(0 < len(self.read("ios", loc, "description.txt")) <= self.FULL_MAX)
+                self.assertTrue(self.read("ios", loc, "privacy_url.txt"))
+
+    def test_no_tbd_in_metadata(self):
+        for f in self.META.rglob("*.txt"):
+            self.assertNotIn("TBD", f.read_text(encoding="utf-8"), str(f))
+
+
 if __name__ == "__main__":
     unittest.main()
