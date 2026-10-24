@@ -21,6 +21,9 @@ var _consent_flow: ConsentFlow
 
 var _last_interstitial_s: float = -INF
 var _rewarded_in_break: bool = false
+var _muted_at_s: float = -INF
+var _ad_break_open: bool = false
+var _watchdog_fired: bool = false
 
 
 func _ready() -> void:
@@ -32,6 +35,31 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if consent_state == ConsentState.PENDING and _consent_flow != null:
 		_consent_flow.poll()
+	poll_watchdog()
+
+
+## Unmutes audio when an ad break outlives ad_unmute_timeout_seconds (lost SDK callback).
+func poll_watchdog() -> void:
+	if not _ad_break_open or _watchdog_fired:
+		return
+	var limit: float = float(GameConfig.get_value("ad_unmute_timeout_seconds", 90))
+	if float(clock.call()) - _muted_at_s >= limit:
+		_watchdog_fired = true
+		_ad_break_open = false
+		Audio.set_app_muted(false)
+		Analytics.track_design("ads:watchdog:unmute")
+
+
+func _begin_ad_break() -> void:
+	Audio.set_app_muted(true)
+	_muted_at_s = clock.call()
+	_ad_break_open = true
+	_watchdog_fired = false
+
+
+func _end_ad_break() -> void:
+	_ad_break_open = false
+	Audio.set_app_muted(false)
 
 
 ## Starts the UMP/ATT flow once; ads stay gated until it finishes.
@@ -103,7 +131,7 @@ func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
 		return false
 	if not provider.interstitial_closed.is_connected(_on_interstitial_closed):
 		provider.interstitial_closed.connect(_on_interstitial_closed)
-	Audio.set_app_muted(true)
+	_begin_ad_break()
 	ad_about_to_show.emit("interstitial")
 	provider.show_interstitial()
 	_last_interstitial_s = now
@@ -114,7 +142,10 @@ func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
 
 
 func _on_interstitial_closed() -> void:
-	Audio.set_app_muted(false)
+	if _watchdog_fired:
+		_watchdog_fired = false
+		return
+	_end_ad_break()
 
 
 ## Clears the "rewarded already shown in this break" flag (tests / bot).
@@ -136,11 +167,18 @@ func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 		Analytics.track_design("ads:rewarded:%s:unavailable" % placement_id)
 		return false
 	_rewarded_in_break = true
-	Audio.set_app_muted(true)
+	_begin_ad_break()
+	var rewarded_done: Array[bool] = [false]
 	ad_about_to_show.emit("rewarded")
 	provider.show_rewarded(
 		func(granted: bool) -> void:
-			Audio.set_app_muted(false)
+			if rewarded_done[0]:
+				return
+			rewarded_done[0] = true
+			if _watchdog_fired:
+				_watchdog_fired = false
+			else:
+				_end_ad_break()
 			if granted:
 				Analytics.track_design("ads:rewarded:%s:granted" % placement_id)
 				rewarded_granted.emit(placement_id)
