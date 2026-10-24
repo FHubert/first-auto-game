@@ -16,6 +16,7 @@ const SCENE_SHOP: String = "res://src/ui/shop_screen.tscn"
 
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
+var effects_enabled: bool = true
 var shop_overlay: ShopScreen
 var _screen: Node
 var _screen_name: String = ""
@@ -161,6 +162,7 @@ func _close_popup(_amount: int = 0) -> void:
 func show_level() -> void:
 	var level: Level = _swap(SCENE_LEVEL, SCREEN_LEVEL)
 	level.clock = clock
+	level.effects_enabled = effects_enabled
 	level.pause_requested.connect(show_home)
 	level.home_requested.connect(show_home)
 	level.shop_requested.connect(func(r: String) -> void: show_shop(r, true))
@@ -179,6 +181,7 @@ func show_level() -> void:
 func show_daily_level() -> void:
 	var level: Level = _swap(SCENE_LEVEL, SCREEN_LEVEL)
 	level.clock = clock
+	level.effects_enabled = effects_enabled
 	level.pause_requested.connect(show_home)
 	level.home_requested.connect(show_home)
 	level.shop_requested.connect(func(r: String) -> void: show_shop(r, true))

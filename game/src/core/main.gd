@@ -44,6 +44,7 @@ func _run_screenshot(args: PackedStringArray) -> void:
 		state.daily_reward_last_claim_day = today
 	var app := App.new()
 	app.state = state
+	app.effects_enabled = false
 	app.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(app)
 	_label.visible = false
