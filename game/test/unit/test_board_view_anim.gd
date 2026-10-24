@@ -12,6 +12,7 @@ func before_test() -> void:
 	GameConfig.reset()
 	GameConfig.apply_remote({"pour_anim_seconds": DURATION})
 	_level = auto_free(load("res://src/levels/level.tscn").instantiate())
+	_level.clock = TestClock.fixed()
 	_runner = scene_runner_for(_level)
 	_level.load_level(2)
 	_level.board.animate = true

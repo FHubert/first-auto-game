@@ -1,7 +1,6 @@
 extends GdUnitTestSuite
 
 const SAVE_PATH: String = "user://test_level_fit.json"
-const FAKE_UNIX: int = 20750 * 86400 + 100
 
 var _level: Level
 var _old_path: String
@@ -22,7 +21,7 @@ func before_test() -> void:
 	_cleanup()
 	_level = load("res://src/levels/level.tscn").instantiate()
 	_level.state = GameState.new()
-	_level.clock = func() -> int: return FAKE_UNIX
+	_level.clock = TestClock.fixed()
 	_coins_before = _level.state.coins
 	add_child(_level)
 

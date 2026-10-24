@@ -74,7 +74,7 @@ func test_click_copies_once() -> void:
 func test_level_daily_win_shows_share() -> void:
 	var level: Level = load("res://src/levels/level.tscn").instantiate()
 	level.state = GameState.new()
-	level.clock = func() -> int: return 20750 * 86400 + 100
+	level.clock = TestClock.fixed()
 	add_child(level)
 	level.start_daily(20750)
 	level._on_round_won()

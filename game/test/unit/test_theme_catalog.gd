@@ -96,6 +96,7 @@ func test_board_and_level_use_catalog() -> void:
 	assert_str(BoardView.load_theme("pastel")["shape"]).is_equal("flask")
 	var level: Level = auto_free(load(LEVEL_SCENE).instantiate())
 	level.state = GameState.new()
+	level.clock = TestClock.fixed()
 	add_child(level)
 	level.load_level(2, "pastel")
 	assert_str(level.board.theme_data["id"]).is_equal("pastel")
@@ -116,6 +117,7 @@ func test_app_routes_to_themes() -> void:
 func _level_with_move() -> Level:
 	var level: Level = auto_free(load(LEVEL_SCENE).instantiate())
 	level.state = GameState.new()
+	level.clock = TestClock.fixed()
 	add_child(level)
 	level.board.animate = false
 	level.load_level(2, "classic")

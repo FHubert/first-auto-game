@@ -14,6 +14,7 @@ func before_test() -> void:
 	_old_path = SaveSystem.save_path
 	SaveSystem.save_path = SAVE_PATH
 	_level = load("res://src/levels/level.tscn").instantiate()
+	_level.clock = TestClock.fixed()
 	_level.state = GameState.new()
 	add_child(_level)
 	_full[0] = 0

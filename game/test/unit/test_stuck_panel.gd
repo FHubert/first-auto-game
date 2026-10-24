@@ -17,6 +17,7 @@ func before_test() -> void:
 	_cleanup()
 	_shop_reasons.clear()
 	_level = load("res://src/levels/level.tscn").instantiate()
+	_level.clock = TestClock.fixed()
 	_level.state = GameState.new()
 	add_child(_level)
 	_level.shop_requested.connect(func(r: String) -> void: _shop_reasons.append(r))
