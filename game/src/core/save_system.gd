@@ -2,10 +2,14 @@ extends Node
 ## Autoload "SaveSystem": atomic JSON persistence of GameState.
 
 var save_path: String = "user://save.json"
+## When true save() is a no-op (screenshot mode must not overwrite the player's save).
+var read_only: bool = false
 
 
 ## Writes to a temp file, then renames over the target. Returns true on success.
 func save(state: GameState) -> bool:
+	if read_only:
+		return true
 	var tmp_path: String = save_path + ".tmp"
 	var file := FileAccess.open(tmp_path, FileAccess.WRITE)
 	if file == null:
