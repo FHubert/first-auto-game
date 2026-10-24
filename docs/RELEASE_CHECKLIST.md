@@ -40,7 +40,7 @@ Każdy punkt sprawdzamy przed `git tag`. Niezaznaczony punkt oznacza brak wydani
   | Diagnostics → Crash Data | ZWERYFIKUJ | ZWERYFIKUJ | SDK |
   | Location → Coarse Location | ZWERYFIKUJ | ZWERYFIKUJ | SDK (IP → kraj) |
 
-- [ ] Privacy manifest iOS (`PrivacyInfo.xcprivacy`) zawiera SDK AdMob i GameAnalytics.
+- [ ] Privacy manifest iOS: plik źródłowy `game/ios/PrivacyInfo.xcprivacy` (T-064), podpięcie w presecie iOS w T-053; SDK AdMob i GameAnalytics dostarczają własne manifesty; domeny trackingu (tracking domains) ZWERYFIKUJ (lista pusta do instalacji pluginu).
 - [ ] ATT prompt na iOS.
 - [ ] Polityka prywatności: URL podany w App Store Connect.
 - [ ] Polityka prywatności opublikowana (docs/privacy/ → GitHub Pages lub strona All In IT), URL wpisany w metadata (__PRIVACY_URL__) — wymaga Huberta
