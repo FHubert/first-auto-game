@@ -82,7 +82,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `watch_*`, `buy_*`, `can_double_coins`, `double_coins_bonus` przeniesione do `game/src/levels/level_offers.gd` (`class_name LevelOffers`, zależności przez konstruktor/`bind`: `GameState`, `GameRound`, `RewardedPlacements`); `Level` wystawia `offers: LevelOffers`, HUD/StuckPanel/LevelComplete łączą się z `level.offers`; grep `max-public-methods` w `level.gd` = 0 i `make lint` zielone; liczba testów gdUnit4 nie maleje, asercje istniejących testów bez zmian (dozwolona tylko zmiana ścieżki wywołania `level.x()` → `level.offers.x()`); `make playtest` 200/200 bez softlocka. Zachowanie bez zmian (refaktor). ≤ ~200 linii zmienionych (głównie przeniesienie).
   Skill: `godot-dev`
 
-- [ ] T-102 `todo` Lokalizacja PL: anglicyzm „streak” → „seria” we wszystkich tekstach PL (`btn_save_streak` „Uratuj serię”) + test (przeniesione z Inbox T-088)
+- [ ] T-102 `review` Lokalizacja PL: anglicyzm „streak” → „seria” we wszystkich tekstach PL (`btn_save_streak` „Uratuj serię”) + test (przeniesione z Inbox T-088) → PR #85
   KA: w kolumnie PL `strings.csv` żadna wartość nie zawiera „streak” (case-insensitive; klucze nie liczone) — test gdUnit4 w suicie lokalizacji; `btn_save_streak` PL „Uratuj serię” mieści się w `MAX_BTN_LEN`; inne wystąpienia odmienione poprawnie („serii”, „serię”). Kadr 04 PL (`make screenshots`) odświeżony, jeśli zawiera zmieniony tekst. `make check` zielone. ≤ ~20 linii + PNG.
   Skill: `aso`
 

@@ -83,6 +83,14 @@ func test_btn_keys_fit_length() -> void:
 				assert_int(str(t.get_message(key)).length()).is_less_equal(MAX_BTN_LEN)
 
 
+func test_pl_has_no_streak_anglicism() -> void:
+	for t in Locale.load_csv(CSV):
+		if t.locale != "pl":
+			continue
+		for key: String in t.get_message_list():
+			assert_bool(str(t.get_message(key)).to_lower().contains("streak")).is_false()
+
+
 func test_apply_setting() -> void:
 	assert_str(Locale.apply_setting("de")).is_equal("de")
 	assert_str(TranslationServer.get_locale()).starts_with("de")
