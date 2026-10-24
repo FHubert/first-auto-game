@@ -181,7 +181,7 @@ func show_level() -> void:
 	level.shop_requested.connect(func(r: String) -> void: show_shop(r, true))
 	var snap: Dictionary = state.round_in_progress
 	if str(snap.get("mode", "")) == Level.MODE_CAMPAIGN:
-		level.round = GameRound.new()  # pomija autoload w _ready; resume/load_level ustawi
+		level.autoload_level = false  # resume/load_level ustawi runde
 		add_child(level)
 		if not level.resume(snap, _today()):
 			_discard_snapshot()
@@ -198,7 +198,7 @@ func show_daily_level() -> void:
 	level.pause_requested.connect(show_home)
 	level.home_requested.connect(show_home)
 	level.shop_requested.connect(func(r: String) -> void: show_shop(r, true))
-	level.round = GameRound.new()  # pomija load_level w _ready; start_daily ustawi runde
+	level.autoload_level = false  # start_daily/resume ustawi runde
 	add_child(level)
 	if str(state.round_in_progress.get("mode", "")) == Level.MODE_DAILY:
 		if level.resume(state.round_in_progress, _today()):

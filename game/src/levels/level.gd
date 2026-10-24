@@ -29,6 +29,9 @@ var tutorial: TutorialFlow
 var rewarded: RewardedPlacements = RewardedPlacements.new()
 var offers: LevelOffers = LevelOffers.new()
 var effects_enabled: bool = true
+## `_ready` laduje poziom z `state.level` tylko gdy true; `App` ustawia false
+## i sam woła resume/load_level/start_daily.
+var autoload_level: bool = true
 
 var _round_bound_at: int = 0
 var _tutorial_max_step: int = 0
@@ -94,7 +97,7 @@ func _ready() -> void:
 	hud.pause_pressed.connect(pause)
 	level_complete.next_pressed.connect(on_next_pressed)
 	level_complete.home_pressed.connect(func() -> void: home_requested.emit())
-	if round == null:
+	if autoload_level and round == null:
 		load_level(state.level, state.theme_active)
 
 
