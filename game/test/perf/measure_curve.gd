@@ -14,6 +14,9 @@ const GRID: Array = [
 	{"label": "cmax_10", "overrides": {"colors_max": 10}},
 	{"label": "info_empty_3", "overrides": {"empty_tubes": 3}},
 ]
+## T-175: wiersz bazy + siatka "probowka od proby N" (uruchom z `-- --assist`).
+const ASSIST_MIN_LEVELS: Array = [26, 56]
+const ASSIST_FROM_ATTEMPTS: Array = [1, 2, 3]
 const SEEDS: Array = [42, 7, 1]
 const ROUNDS: int = 400
 const LEVELS: int = 200
@@ -31,10 +34,31 @@ const PERCENT: float = 100.0
 const MEDIAN_Q: float = 0.5
 const P95_Q: float = 0.95
 
+var _extra_from: int = 0
+var _extra_min: int = 1
+
 
 func _initialize() -> void:
 	var cfg: Node = root.get_node("GameConfig")
-	for entry: Dictionary in GRID:
+	var grid: Array = GRID
+	if "--assist" in OS.get_cmdline_user_args():
+		grid = [{"label": "base", "overrides": {}}]
+		for min_level: int in ASSIST_MIN_LEVELS:
+			for from_attempt: int in ASSIST_FROM_ATTEMPTS:
+				(
+					grid
+					. append(
+						{
+							"label": "assist_min%d_from%d" % [min_level, from_attempt],
+							"overrides": {},
+							"extra_from": from_attempt,
+							"extra_min_level": min_level,
+						}
+					)
+				)
+	for entry: Dictionary in grid:
+		_extra_from = int(entry.get("extra_from", 0))
+		_extra_min = int(entry.get("extra_min_level", 1))
 		cfg.reset()
 		cfg.apply_remote(entry["overrides"])
 		_measure(cfg, str(entry["label"]))
@@ -105,6 +129,8 @@ func _run_bot(start_level: int, rng_seed: int) -> Dictionary:
 	bot.use_campaign_seed = true
 	bot.stay_on_level = true
 	bot.start_level = start_level
+	bot.extra_tube_from_attempt = _extra_from
+	bot.extra_tube_min_level = _extra_min
 	return bot.run(ROUNDS, rng_seed, "greedy")
 
 

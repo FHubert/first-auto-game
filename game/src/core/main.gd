@@ -88,6 +88,8 @@ func _run_playtest(args: PackedStringArray) -> int:
 	)
 	bot.use_campaign_seed = "--campaign" in args
 	bot.stay_on_level = "--stay" in args
+	bot.extra_tube_from_attempt = int(_arg_value(args, "--extra-tube-from", "0"))
+	bot.extra_tube_min_level = int(_arg_value(args, "--extra-tube-min-level", "1"))
 	var mode: String = PlaytestBot.MODE_SOLVER
 	if "--greedy" in args:
 		mode = PlaytestBot.MODE_GREEDY
