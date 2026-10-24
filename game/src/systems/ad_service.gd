@@ -1,6 +1,7 @@
 extends Node
 ## Autoload "Ads": owns the provider and enforces interstitial caps from GameConfig.
 
+signal ad_about_to_show(kind: String)
 signal interstitial_shown(round_index: int)
 signal rewarded_granted(placement_id: String)
 signal consent_finished(result: Dictionary)
@@ -103,6 +104,7 @@ func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
 	if not provider.interstitial_closed.is_connected(_on_interstitial_closed):
 		provider.interstitial_closed.connect(_on_interstitial_closed)
 	Audio.set_app_muted(true)
+	ad_about_to_show.emit("interstitial")
 	provider.show_interstitial()
 	_last_interstitial_s = now
 	interstitials_shown += 1
@@ -135,6 +137,7 @@ func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 		return false
 	_rewarded_in_break = true
 	Audio.set_app_muted(true)
+	ad_about_to_show.emit("rewarded")
 	provider.show_rewarded(
 		func(granted: bool) -> void:
 			Audio.set_app_muted(false)
