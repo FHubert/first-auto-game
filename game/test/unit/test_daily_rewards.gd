@@ -35,7 +35,7 @@ func test_config_keys() -> void:
 	assert_int(GameConfig.get_value("streak_save_max_per_week")).is_equal(1)
 	assert_int(GameConfig.get_value("streak_save_window_days")).is_equal(7)
 	assert_int(GameConfig.get_value("streak_grace_days")).is_equal(1)
-	assert_int(GameConfig.apply_remote({"daily_reward_multipliers": [1, 2, 3]})).is_equal(1)
+	GameConfig._values["daily_reward_multipliers"] = [1, 2, 3]  # not 7 long: direct inject
 	assert_int(DailyRewards.reward_for_cycle_day(3)).is_equal(150)
 
 

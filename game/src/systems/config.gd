@@ -82,6 +82,80 @@ const DEFAULTS: Dictionary = {
 	"starter_offer_hours": 72,
 }
 
+## Accepted remote range [min, max] per numeric key (T-135); out-of-range values are rejected.
+const RANGES: Dictionary = {
+	"interstitial_every_n_rounds": [1, 1000],
+	"interstitial_min_seconds": [0, 86400],
+	"interstitial_min_level": [0, 1000],
+	"ad_unmute_timeout_seconds": [0, 86400],
+	"consent_timeout_seconds": [0, 86400],
+	"rewarded_multiplier": [1.0, 5.0],
+	"rewarded_double_coins_min_level": [0, 1000],
+	"rewarded_undo_refill_max_per_level": [0, 100],
+	"rewarded_double_coins_max_per_level": [0, 100],
+	"rewarded_skip_max_per_level": [0, 100],
+	"daily_reward_base": [0, 100000],
+	"starting_coins": [0, 100000],
+	"win_reward_coins": [0, 100000],
+	"par_bonus_coins": [0, 100000],
+	"hint_cost_coins": [0, 100000],
+	"extra_tube_cost_coins": [0, 100000],
+	"undo_refill_cost_coins": [0, 100000],
+	"theme_cost_base": [0, 100000],
+	"theme_cost_growth": [1.0, 5.0],
+	"daily_challenge_coins": [0, 100000],
+	"daily_unlock_level": [0, 1000],
+	"session_target_seconds": [0, 86400],
+	"difficulty_min": [0.0, 1.0],
+	"difficulty_max": [0.0, 1.0],
+	"difficulty_midpoint_level": [0, 1000],
+	"difficulty_steepness": [0.0, 10.0],
+	"tube_capacity": [2, 6],
+	"empty_tubes": [0, 4],
+	"tutorial_colors": [1, 12],
+	"colors_start": [1, 12],
+	"colors_max": [1, 12],
+	"levels_per_extra_color": [1, 1000],
+	"breather_every": [1, 1000],
+	"breather_factor": [0.0, 1.0],
+	"min_moves_factor_easy": [0.0, 10.0],
+	"min_moves_factor_hard": [0.0, 10.0],
+	"gen_max_attempts": [1, 1000],
+	"gen_quick_state_budget": [1, 200000],
+	"gen_exact_state_budget": [1, 200000],
+	"gen_exact_max_colors": [0, 12],
+	"solver_max_states": [1, 200000],
+	"solver_fallback_weight": [1.0, 10.0],
+	"campaign_seed": [0, 2147483647],
+	"daily_seed_salt": [0, 2147483647],
+	"daily_colors": [1, 12],
+	"daily_min_moves_factor": [0.0, 10.0],
+	"undo_free_per_level": [0, 100],
+	"undo_refill_amount": [0, 100],
+	"extra_tube_max_per_level": [0, 4],
+	"skip_unlock_restarts": [0, 100],
+	"par_slack_moves": [-10, 100],
+	"hint_solver_max_states": [1, 200000],
+	"streak_save_max_per_week": [0, 7],
+	"streak_save_window_days": [1, 365],
+	"streak_grace_days": [0, 30],
+	"pour_anim_seconds": [0.0, 5.0],
+	"tube_lift_seconds": [0.0, 5.0],
+	"shake_seconds": [0.0, 5.0],
+	"tube_full_pulse_seconds": [0.0, 5.0],
+	"confetti_seconds": [0.0, 5.0],
+	"iap_coins_small": [0, 100000],
+	"iap_coins_large": [0, 100000],
+	"iap_starter_coins": [0, 100000],
+	"starter_offer_min_level": [0, 1000],
+	"starter_offer_hours": [0, 8760],
+}
+
+## Array-valued keys: required length and minimum element (ints).
+const ARRAY_RULES: Dictionary = {
+	"daily_reward_multipliers": {"size": 7, "min": 0},
+}
+
 var _values: Dictionary = DEFAULTS.duplicate(true)
 
 
@@ -89,9 +163,11 @@ func get_value(key: String, default: Variant = null) -> Variant:
 	return _values.get(key, default)
 
 
-## Overrides known keys only; wrong types are skipped. Returns applied count.
+## Overrides known keys only; wrong types / out-of-range values are skipped.
+## A batch that breaks the invariants is rolled back entirely (returns 0).
 func apply_remote(remote: Dictionary) -> int:
 	var applied: int = 0
+	var next: Dictionary = _values.duplicate(true)
 	for key: Variant in remote:
 		if typeof(key) != TYPE_STRING or not DEFAULTS.has(key):
 			continue
@@ -99,8 +175,15 @@ func apply_remote(remote: Dictionary) -> int:
 		if converted == null:
 			push_warning("GameConfig: ignoring remote '%s' (bad type)" % key)
 			continue
-		_values[key] = converted
+		if not _in_range(key, converted):
+			push_warning("GameConfig: ignoring remote '%s' (out of range)" % key)
+			continue
+		next[key] = converted
 		applied += 1
+	if applied > 0 and not _invariants_ok(next):
+		push_warning("GameConfig: remote batch breaks invariants, rolled back")
+		return 0
+	_values = next
 	return applied
 
 
@@ -119,3 +202,35 @@ func _coerce(default: Variant, value: Variant) -> Variant:
 	if want == TYPE_INT and got == TYPE_FLOAT and is_equal_approx(value, roundf(value)):
 		return int(value)
 	return null
+
+
+func _in_range(key: String, value: Variant) -> bool:
+	if value is String:
+		return not (value as String).is_empty()
+	if value is Array:
+		var rule: Dictionary = ARRAY_RULES.get(key, {})
+		var arr: Array = value
+		if rule.is_empty() or arr.size() != int(rule["size"]):
+			return false
+		for item: Variant in arr:
+			if typeof(item) != TYPE_INT or int(item) < int(rule["min"]):
+				return false
+		return true
+	if not RANGES.has(key):
+		return true
+	var bounds: Array = RANGES[key]
+	return value >= bounds[0] and value <= bounds[1]
+
+
+func _invariants_ok(v: Dictionary) -> bool:
+	var tubes: int = (
+		maxi(int(v["colors_max"]), int(v["daily_colors"]))
+		+ int(v["empty_tubes"])
+		+ int(v["extra_tube_max_per_level"])
+	)
+	return (
+		tubes <= GameRound.ACTION_BASE
+		and int(v["tutorial_colors"]) <= int(v["colors_start"])
+		and int(v["colors_start"]) <= int(v["colors_max"])
+		and float(v["difficulty_min"]) <= float(v["difficulty_max"])
+	)
