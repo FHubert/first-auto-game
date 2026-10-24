@@ -216,7 +216,7 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 ## ADR-011: Generacja następnego poziomu w tle (`WorkerThreadPool`, prefetch N+1)
 
 **Data:** 2026-10-24
-**Status:** Proposed (Accepted po merge T-136; nie zmienia ADR-009)
+**Status:** Accepted (T-136; nie zmienia ADR-009)
 
 **Kontekst:**
 - Poziom powstaje w runtime z seeda (ADR-009) synchronicznie w `Level.load_level` — wątek główny stoi na czas `ContentGenerator.generate`. Pomiar CI: mediana ~57–60 ms/poziom, p95 159–189 ms (T-107, T-124); słabsze telefony są kilkukrotnie wolniejsze (współczynnik ZWERYFIKUJ na urządzeniu w T-054), więc przy starcie trudnego poziomu grozi widoczne przycięcie (> 100 ms, 6+ klatek przy 60 FPS).

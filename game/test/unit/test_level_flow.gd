@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 extends GdUnitTestSuite
 
 const SAVE_PATH: String = "user://test_level_flow.json"
@@ -263,3 +264,11 @@ func test_win_panel_below_board_aso_win() -> void:
 	_level.load_level(_level.state.level, _level.state.theme_active)
 	assert_float(_level.board.offset_top).is_equal(0.0)
 	assert_float(_level.board.offset_bottom).is_equal(0.0)
+
+
+func test_win_prefetches_next_level() -> void:
+	_level.prefetch = LevelPrefetch.new()
+	_win()
+	_level.load_level(_level.state.level, _level.state.theme_active)
+	assert_int(_level.level_no).is_equal(2)
+	assert_int(_level.prefetch.sync_generations).is_equal(0)
