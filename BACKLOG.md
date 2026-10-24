@@ -49,11 +49,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `PanelContainer` w `level_complete.tscn`, `stuck_panel.tscn`, `daily_reward_popup.tscn` i panele budowane w kodzie (`home.gd`) dostają `StyleBoxFlat` (tło `background_alt` z `tools/palette.json` alfa 1.0, promień rogów, margines) przez `ui_theme.tres` (styl `PanelContainer/styles/panel`) albo `theme_override_styles/panel` — spód ekranu nie prześwituje przez tekst (dziś domyślny panel Godota ma alfa ~0,6 → kadry 02/04 nieczytelne). Pod popupem przyciemnienie `ColorRect` (alfa z klucza w `GameConfig` lub stała w scenie). Test gdUnit4: `LevelComplete`/`DailyRewardPopup` po `show_*` mają stylebox panelu z `bg_color.a == 1.0`. `make screenshots` → 15 PNG odświeżone i zacommitowane; kadry 02 i 04 obejrzane (tekst czytelny). `make check` zielone. ≤ ~120 linii + PNG.
   Skill: `godot-dev`
 
-- [ ] T-051 `in_progress` Metadata sklepowe EN/PL/DE w `fastlane/metadata` (Android + iOS) z `docs/ASO.md`
+- [ ] T-051 `review` Metadata sklepowe EN/PL/DE w `fastlane/metadata` (Android + iOS) z `docs/ASO.md` → PR #51
   KA: Android `en-US`/`pl-PL`/`de-DE`: `title.txt`, `short_description.txt`, `full_description.txt`, `changelogs/default.txt`; iOS `en-US`/`pl`/`de-DE`: `name.txt`, `subtitle.txt`, `keywords.txt`, `description.txt`, `privacy_url.txt` (URL z T-052 albo placeholder `__PRIVACY_URL__`). Opis zawiera informację o reklamach i IAP (jak w ASO). Test w `tools/test_tools.py`: limity (tytuł/name/subtitle ≤ 30 znaków, short ≤ 80, full/description ≤ 4000, keywords ≤ 100 bajtów, brak słów z tytułu w keywords), żaden plik nie zawiera „TBD”. Zadanie wprost dotyczy `fastlane/metadata` (bez `Fastfile`). ≤ ~200 linii tekstu.
   Skill: `aso`
 
-- [ ] T-052 `todo` Polityka prywatności (EN/PL) + odpowiedzi do Play Data Safety i App Store Privacy Labels (zależy od T-025)
+- [ ] T-052 `in_progress` Polityka prywatności (EN/PL) + odpowiedzi do Play Data Safety i App Store Privacy Labels (zależy od T-025)
   KA: `docs/privacy/index.md` (EN) i `docs/privacy/pl.md` — administrator All In IT sp. z o.o., kontakt `__PRIVACY_CONTACT__` do uzupełnienia przez Huberta, sekcje: dane zbierane przez GameAnalytics i AdMob (linki do dokumentacji SDK), IAP, zgoda UMP/ATT, prawa RODO, brak kont i danych wpisywanych przez gracza, 13+. W `docs/RELEASE_CHECKLIST.md` tabela odpowiedzi Data Safety (typ danych → zbierane/udostępniane/cel/opcjonalne) i Privacy Labels (kategoria → linked/tracking). Test w `tools/test_tools.py`: każdy z 16 eventów z `docs/GDD.md` → Analityka jest zmapowany w tabeli. Fakty o SDK z linkiem i datą, inaczej `ZWERYFIKUJ`. Treść do przeglądu prawnego przez Huberta przed publikacją. ≤ ~200 linii.
   Skill: `store-release`
 
