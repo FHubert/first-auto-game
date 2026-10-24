@@ -14,8 +14,17 @@ const SAMPLE_LEVEL: int = 2
 @onready var perfect_label: Label = $Panel/Box/PerfectLabel
 @onready var progress_label: Label = $Panel/Box/ProgressLabel
 @onready var double_button: Button = $Panel/Box/DoubleButton
-@onready var next_button: Button = $Panel/Box/NextButton
-@onready var home_button: Button = $Panel/Box/HomeButton
+@onready var next_button: Button = $Panel/Box/Buttons/NextButton
+@onready var home_button: Button = $Panel/Box/Buttons/HomeButton
+
+
+## Wysokosc panelu liczona od dolnej krawedzi (px, z marginesem) - plansza ma sie zmiescic nad nim.
+func panel_height() -> float:
+	return -$Panel.offset_top
+
+
+func panel_rect() -> Rect2:
+	return $Panel.get_global_rect()
 
 
 func _ready() -> void:

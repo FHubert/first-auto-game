@@ -236,3 +236,21 @@ func test_ad_buttons_hidden_when_no_ad_ready() -> void:
 func test_hud_ad_button_visible_when_ready() -> void:
 	_level.load_level(2)
 	assert_bool(_level.hud.extra_tube_ad_button.visible).is_true()
+
+
+func test_win_panel_below_board_aso_win() -> void:
+	_level.state = ScreenshotFixtures.make("aso_win", 20750)
+	_level.size = Vector2(720, 1280)
+	_level.load_level(_level.state.level, _level.state.theme_active)
+	ScreenshotFixtures.apply_win(_level)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var panel: Rect2 = _level.level_complete.panel_rect()
+	assert_float(panel.size.y).is_less_equal(640.0)
+	var tubes: Rect2 = _level.board.tube_rect(0)
+	for i in _level.round.board().tube_count():
+		tubes = tubes.merge(_level.board.tube_rect(i))
+	assert_bool(panel.intersects(tubes)).is_false()
+	_level.load_level(_level.state.level, _level.state.theme_active)
+	assert_float(_level.board.offset_top).is_equal(0.0)
+	assert_float(_level.board.offset_bottom).is_equal(0.0)

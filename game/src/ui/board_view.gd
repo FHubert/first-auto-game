@@ -311,6 +311,12 @@ func _rebuild() -> void:
 	refresh()
 
 
+## Wysokosc zawartosci (rzedy probowek z odstepami).
+func content_height() -> float:
+	var rows: int = ceili(float(_views.size()) / float(COLUMNS_PER_ROW))
+	return maxi(rows, 1) * TUBE_HEIGHT + (maxi(rows, 1) - 1) * GAP_Y
+
+
 func _layout() -> void:
 	_abort_pour()
 	var prev: int = _selected
