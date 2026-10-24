@@ -120,6 +120,17 @@ func test_shop_overlay_opens_once() -> void:
 	await get_tree().process_frame
 
 
+func test_daily_popup_hides_daily_card() -> void:
+	var app := _app(true)
+	var home := app.current_screen() as Home
+	assert_bool(app.popup_visible()).is_true()
+	assert_bool(home.daily_card.visible).is_false()
+	app._popup.closed.emit()
+	await get_tree().process_frame
+	assert_bool(app.popup_visible()).is_false()
+	assert_bool(home.daily_card.visible).is_true()
+
+
 func test_session_start_and_end_events() -> void:
 	var prev: AnalyticsProvider = Analytics.provider
 	var fake := FakeAnalyticsProvider.new()
