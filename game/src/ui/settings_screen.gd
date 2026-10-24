@@ -30,6 +30,17 @@ func _ready() -> void:
 		state = SaveSystem.load()
 	_build()
 	apply_from_state()
+	if not Ads.consent_finished.is_connected(_on_consent_finished):
+		Ads.consent_finished.connect(_on_consent_finished)
+
+
+func _exit_tree() -> void:
+	if Ads.consent_finished.is_connected(_on_consent_finished):
+		Ads.consent_finished.disconnect(_on_consent_finished)
+
+
+func _on_consent_finished(_result: Dictionary) -> void:
+	privacy_button.visible = Ads.is_privacy_options_required()
 
 
 func set_setting(key: String, value: Variant) -> void:

@@ -22,6 +22,8 @@ var info_update_calls: int = 0
 var form_shown: int = 0
 var att_requests: int = 0
 var privacy_options_shown: int = 0
+## UMP status after the privacy options form closes ("" = unchanged).
+var privacy_options_status: String = ""
 
 var _current_ump: String = UMP_UNKNOWN
 var _att_current: String = ATT_NOT_DETERMINED
@@ -72,8 +74,12 @@ func is_privacy_options_required() -> bool:
 	return privacy_options_required
 
 
-func show_privacy_options(_on_closed: Callable) -> void:
+func show_privacy_options(on_closed: Callable) -> void:
 	privacy_options_shown += 1
+	if privacy_options_status != "":
+		_current_ump = privacy_options_status
+	if respond:
+		on_closed.call(_current_ump)
 
 
 func is_att_supported() -> bool:
