@@ -1,0 +1,12 @@
+Gießen, sortieren, durchatmen. Vialo ist ein entspanntes Wassersortier-Rätsel: Tippe auf ein Fläschchen, gieße die oberste Farbe in ein anderes und schließe ab, wenn jedes Fläschchen nur noch eine Farbe enthält.
+
+- Jeden Tag ein neues Tageslevel - dasselbe Rätsel für alle, mit eigener Belohnung.
+- Hunderte Level, in denen die Zahl der Farben von 2 auf 12 wächst - jedes Level wird von einem Solver geprüft und ist daher lösbar.
+- Rückgängig, ein zusätzliches Fläschchen und Hinweise, wenn du nicht weiterkommst - ohne Zeitdruck.
+- Schalte Designs frei: neue Flüssigkeitspaletten, Hintergründe und Fläschchenformen.
+- Sanfte Gießgeräusche und Haptik. Funktioniert offline.
+
+Darum wirst du es lieben: kurze Level für die Kaffeepause, eine Serie, die Wiederkommen belohnt, und ein Wassersortier-Rätsel, das nie ausgeht.
+
+Vialo ist kostenlos spielbar. Es enthält optionale Belohnungswerbung, Werbung zwischen den Levels und In-App-Käufe (darunter einen, der die Werbung zwischen den Levels entfernt).
+Datenschutzerklärung: __PRIVACY_URL__

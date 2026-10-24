@@ -1,1 +1,12 @@
-TBD by aso skill
+Przelewaj, sortuj, oddychaj. Vialo to spokojna gra logiczna w sortowanie wody: dotknij probówki, przelej wierzchni kolor do innej i skończ, gdy w każdej probówce jest jeden kolor.
+
+- Nowy Poziom dnia każdego dnia - ta sama łamigłówka dla wszystkich, z własną nagrodą.
+- Setki poziomów, na których liczba kolorów rośnie od 2 do 12 - każdy poziom sprawdza solver, więc każdy da się rozwiązać.
+- Cofnięcie ruchu, dodatkowa probówka i podpowiedzi, gdy utkniesz - bez liczników czasu i presji.
+- Odblokowuj motywy: nowe palety płynów, tła i kształty probówek.
+- Delikatne dźwięki przelewania i wibracje. Działa offline.
+
+Dlaczego pokochasz: krótkie poziomy na przerwę na kawę, seria nagradzająca regularne powroty i gra w sortowanie wody, której nigdy nie zabraknie.
+
+Vialo jest darmowe. Zawiera opcjonalne reklamy nagradzane, reklamy między poziomami oraz zakupy w aplikacji (w tym jeden usuwający reklamy między poziomami).
+Polityka prywatności: __PRIVACY_URL__
