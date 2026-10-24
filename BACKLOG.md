@@ -37,11 +37,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: plik `.ttf` z Google Fonts (OFL 1.1) w `game/assets/fonts/` + `OFL.txt` + wiersz w `docs/LICENSES.md`; font ustawiony przez zasób `Theme` w scenach UI (bez zmian w `project.godot` poza dozwolonymi sekcjami). Test gdUnit4: każdy znak każdego tekstu z `strings.csv` (EN/PL/DE) przechodzi `font.has_char()`. Etykieta nad wyborem języka w `SettingsScreen` z kluczem w CSV (EN/PL/DE). `make check` zielone. ≤ ~120 linii.
   Skill: `asset-gen`
 
-- [ ] T-003 `in_progress` Tryb `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]` w `main.gd`, żeby `tools/gen_screenshots.sh` produkował obrazy (zależy od T-040)
+- [ ] T-003 `review` Tryb `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]` w `main.gd`, żeby `tools/gen_screenshots.sh` produkował obrazy (zależy od T-040) → PR #48
   KA: parser argumentów jako czysta funkcja z testem gdUnit4 (poprawne argumenty, brak `--out`, nieznana scena → kod wyjścia ≠ 0); scena ładuje się ze stanem z fixture (in-memory `GameState`, bez zapisu do save'a gracza), po 2 klatkach zapisuje PNG i kończy exit 0; zły argument → exit ≠ 0. `make screenshots` lokalnie pod `xvfb-run` daje 1 PNG na każdą linię `tools/screens.txt` (lista plików w opisie PR). `make check` zielone. ≤ ~150 linii.
   Skill: `godot-dev`
 
-- [ ] T-050 `todo` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` (zależy od T-003)
+- [ ] T-050 `in_progress` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` (zależy od T-003)
   KA: fixtures dla 5 kadrów z ASO (Level ~20 / 6 kolorów w trakcie gry, LevelComplete z „idealnie”, Home z kartą Poziomu dnia, DailyRewardPopup dzień 5 streaka, Themes z 4 motywami); `gen_screenshots.sh` iteruje po `en-US`/`pl-PL`/`de-DE` z `--lang`, captiony z ASO przetłumaczone (PL/DE natywnie) w `frame_screenshots.py`. Test w `tools/test_tools.py`: 15 plików PNG, każdy 1080×1920 (proporcja ≤ 2:1, wymóg Play). Wersja iOS (rozmiar 6,9") — tylko jeśli wymagany rozmiar zweryfikowany w dokumentacji ASC, inaczej wpis do Inbox. Zadanie wprost dotyczy `fastlane/metadata`. ≤ ~200 linii (bez PNG).
   Skill: `aso`
 
@@ -81,6 +81,10 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
+- [ ] T-056 `todo` BoardView: dolna warstwa płynu wystaje poza zaokrąglenie probówki (widać na screenshocie Level z T-003) — maska/clip warstw do kształtu probówki. Skill: godot-dev
+- [ ] T-057 `todo` Screenshoty: fixture „pre-win” dla LevelComplete (dziś `_on_round_won` bez realnej wygranej daje „+0 coins”) — po T-050 sprawdzić, czy `show_result` z wartościami fixture wystarcza. Skill: godot-dev
+- [ ] T-058 `todo` Screenshoty iOS 6,9" (1320×2868) w `fastlane/metadata/ios/<locale>/` — tylko po weryfikacji wymaganego rozmiaru w dokumentacji App Store Connect (link w zadaniu). Skill: aso
+- [ ] T-059 `todo` `export/screenshots_raw/` jest ignorowane, ale `fastlane/metadata/android/*/images/` nie — ustalić politykę (commitowane tylko kadry sklepowe z T-050; smoke-screenshoty z `screens.txt` do `export/`). Skill: aso
 - [ ] T-055 `blocked` CI: dokończyć T-011 — zweryfikować na stronach releases i podbić: actions/download-artifact (v4→v7?, para z upload-artifact v7), setup-java, android-actions/setup-android, ruby/setup-ruby, maxim-lobanov/setup-xcode, google-github-actions/setup-gcloud, EnricoMi/publish-unit-test-result-action; `actionlint` (w sesji bez dostępu do github.com/releases i bez pobierania binarek — zrobić w sesji z dostępem). Skill: godot-build — powód: edycja `.github/workflows/` niedostępna w sesji scheduled (jak T-002b)
 - [ ] T-049 `todo` App.show_shop z Poziomu dnia: powrót woła `show_level()` (kampania) zamiast `show_daily_level()`; zapamiętać ekran źródłowy i wracać do właściwego trybu (albo Shop jako overlay nad Level, bez utraty rundy). Skill: godot-dev
 - [ ] T-046 `todo` playtest_bot.gd: fallback `win_reward_coins` = 10 w `GameConfig.get_value(..., 10)` nieaktualny po G-013 — usunąć fallback (klucz zawsze istnieje). Skill: godot-test
