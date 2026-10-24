@@ -26,6 +26,7 @@ var _session_open: bool = false
 
 func _ready() -> void:
 	track_session_start()
+	Ads.begin_consent()
 	if state == null:
 		state = SaveSystem.load()
 	Purchases.bind_state(state)

@@ -26,3 +26,8 @@ func is_interstitial_ready() -> bool:
 
 func show_interstitial() -> void:
 	pass
+
+
+## Consent result: false = non-personalized ads (AdMob "npa"). Real SDK sets it in Phase 5.
+func set_personalized(_enabled: bool) -> void:
+	pass
