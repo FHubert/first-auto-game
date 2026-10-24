@@ -55,6 +55,19 @@ func _notification(what: int) -> void:
 		track_session_end()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
 		track_session_start()
+		_on_focus_in()
+
+
+## Powrot z tla: Level nie liczy czasu w tle; Home odswieza sie i moze pokazac popup nagrody.
+func _on_focus_in() -> void:
+	if state == null:
+		return
+	if _screen is Level:
+		(_screen as Level).resume_clock()
+	elif _screen is Home:
+		var home := _screen as Home
+		home.refresh()
+		_maybe_show_daily_popup(home)
 
 
 func _on_ad_about_to_show(_kind: String) -> void:
