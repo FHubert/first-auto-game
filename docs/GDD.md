@@ -55,7 +55,7 @@ Co kilka sekund gracz stuka probówkę źródłową, a potem docelową — górn
 *Długość (cel 2–5 min), warunek zakończenia sesji i hook: co czeka na gracza po powrocie.*
 
 - Długość: cel ~3 min (`session_target_seconds` = 180, istniejący klucz) = 4–6 poziomów po 20–60 s; poziom dnia ~60–120 s. Mieści się w 2–5 min (KPI: kill-line 2 min, cel 4 min).
-- Zakończenie sesji: naturalny punkt wyjścia po ekranie wygranej (brak timera i brak porażki „game over" — gracz może przerwać w dowolnym momencie; stan planszy w trakcie poziomu nie jest zapisywany w MVP, poziom startuje od nowa — patrz Mechaniki „Zapis planszy w trakcie" = later).
+- Zakończenie sesji: naturalny punkt wyjścia po ekranie wygranej (brak timera i brak porażki „game over" — gracz może przerwać w dowolnym momencie; od G-014 (T-081/T-082) przerwana runda jest zapisywana w `round_in_progress` i wznawiana — patrz Mechaniki „Zapis planszy w trakcie poziomu"; przerwa nie jest liczona jako porażka, patrz Analityka `level_pause`).
 - Hook do następnej sesji: (1) licznik do kolejnego Poziomu dnia (północ UTC) na ekranie głównym, (2) streak i następna nagroda dzienna (dzień 7 = ×6), (3) pasek postępu do następnego motywu („420 / 600"), (4) „następny poziom: 1 kolor więcej" widoczne po co 6. poziomie.
 
 ## Progresja
@@ -139,6 +139,8 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
 | `starter_offer_min_level` / `starter_offer_hours` | 12 / 72 | |
 | `pour_anim_seconds` | 0.4 | UI, nie balans; w configu, by stroić bez builda |
 | `tube_full_pulse_seconds` | 0.25 | UI, nie balans |
+| `confetti_seconds` | 1.2 | UI, nie balans; czas życia konfetti na wygranej (T-097) |
+| `ad_unmute_timeout_seconds` | 90 | watchdog: po tylu sekundach bez zamknięcia reklamy dźwięk wraca, a przerwa reklamowa się kończy (T-099); > najdłuższej reklamy rewarded (~30 s + karta końcowa) |
 
 ## Meta
 *Daily reward (wartości dni 1–7), streak (co go resetuje, czy jest grace period) i cele 7- oraz 30-dniowe.*
@@ -174,7 +176,7 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
 - `DailyRewardPopup` — nagroda dnia (7 kafelków), „Odbierz" / „Odbierz ×2" (rewarded `daily_x2`), wariant „Uratuj streak" (rewarded `streak_save`); wejście z: `Home` (pierwsze wejście dnia); wyjście do: `Home`.
 - `Level` — probówki, HUD: numer poziomu / „Poziom dnia", licznik ruchów, cofnij (z licznikiem ładunków), restart, +probówka, podpowiedź, pauza; tryby `campaign` i `daily`; wejście z: `Home`, `LevelComplete`; wyjście do: `LevelComplete`, `StuckPanel`, `Home`.
 - `StuckPanel` (overlay) — „Utknąłeś — X ruchów od celu": cofnij, +probówka (monety / rewarded `extra_tube`), +3 cofnięcia (monety / rewarded `undo_refill`), restart, pomiń (rewarded `skip_level`, po `skip_unlock_restarts` restartach); wejście z: `Level`; wyjście do: `Level`.
-- `LevelComplete` — monety (+premia „idealnie"), „×2" (rewarded `double_coins`), „Dalej"; komunikat o nowym kolorze/postępie motywu; tu (i tylko tu) może wystąpić interstitial `level_end` po „Dalej"; wejście z: `Level`; wyjście do: `Level` (następny), `Home`.
+- `LevelComplete` — monety (+premia „idealnie"), „×2" (rewarded `double_coins`), „Dalej"; jeden komunikat (T-096): „Następny poziom: +1 kolor" gdy kolejny poziom kampanii ma więcej kolorów, w przeciwnym razie postęp do następnego motywu („420 / 600"), ukryty w Poziomie dnia i gdy wszystkie motywy kupione; konfetti w kolorach motywu (T-097); tu (i tylko tu) może wystąpić interstitial `level_end` po „Dalej"; wejście z: `Level`; wyjście do: `Level` (następny), `Home`.
 - `Themes` — siatka motywów (podgląd probówek w palecie), cena / „Aktywny" / „Kup"; wejście z: `Home`; wyjście do: `Home`.
 - `Shop` — IAP: `remove_ads`, `coins_small`, `coins_large`, `starter_pack` (gdy aktywny), „Przywróć zakupy" (wymóg Apple 3.1.1); wejście z: `Home`, `StuckPanel` (brak monet); wyjście do: poprzedni ekran; ze `StuckPanel`/HUD otwierany jako overlay nad `Level` (runda i tryb zachowane), z `Home` jako pełny ekran.
 - `Settings` — dźwięk, muzyka, haptyka, język (EN/PL/DE/systemowy), „Przywróć zakupy", „Prywatność / zgoda" (UMP privacy options), wersja (`BUILD_INFO`); wejście z: `Home`, pauza w `Level`; wyjście do: poprzedni ekran.
@@ -222,7 +224,7 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
 
 - Paleta: **UI — 6 kolorów** (zgodnie z `tools/palette.json`): tło `#14213D`, tło alternatywne/panele `#1F3A6B`, akcent/monety `#FFD166`, przycisk główny `#2EC4B6`, tekst `#FFFFFF`, szkło probówki `#CAD2E0` (alfa 35 %). **Płyny — osobna paleta contentu 12 kolorów per motyw** (gatunek wymaga do 12 rozróżnialnych kolorów; to wyjątek od limitu 6, patrz Otwarte pytania). Motyw „Classic": `#E63946` czerwony, `#FB8500` pomarańczowy, `#FFD166` żółty, `#80ED99` jasnozielony, `#2A9D8F` morski, `#4CC9F0` błękitny, `#3A86FF` niebieski, `#8338EC` fioletowy, `#FF70A6` różowy, `#9C6644` brązowy, `#ADB5BD` szary, `#F8F9FA` biały. Pozostałe motywy MVP („Pastel", „Neon", „Ocean") definiuje `tools/gen_assets.py` (JSON palet), każdy z 12 kolorami o min. odległości ΔE ≥ 20 między sobą (test w `tools/test_tools.py`).
 - Kształty: probówka = zaokrąglony prostokąt (wariant „tube") albo prostokąt z szyjką (wariant „flask"), rysowane w `_draw()` / generowane jako PNG 9-slice; warstwy płynu = prostokąty; ikony UI (cofnij, restart, +probówka, żarówka, moneta, płomień streaka) = proste figury z `tools/gen_assets.py`. Brak tekstur i ilustracji.
-- Animacje (tween / klatki): wyłącznie tweeny: podniesienie probówki (0,1 s), przechylenie i przelew (`pour_anim_seconds` = 0,4 s w 3 fazach: uniesienie+przechył 25 % → transfer warstw 50 % → powrót 25 %, stałe `POUR_*_RATIO`; ubywanie/przybywanie warstw; input zablokowany do `pour_finished`), „pełna probówka" (pulsowanie `tube_full_pulse_seconds` = 0,25 s, skala `TUBE_FULL_PULSE_SCALE`; korek — later), shake przy nielegalnym ruchu (0,2 s), konfetti z prostokątów na wygranej (cząsteczki `CPUParticles2D`).
+- Animacje (tween / klatki): wyłącznie tweeny: podniesienie probówki (0,1 s), przechylenie i przelew (`pour_anim_seconds` = 0,4 s w 3 fazach: uniesienie+przechył 25 % → transfer warstw 50 % → powrót 25 %, stałe `POUR_*_RATIO`; ubywanie/przybywanie warstw; input zablokowany do `pour_finished`), „pełna probówka" (pulsowanie `tube_full_pulse_seconds` = 0,25 s, skala `TUBE_FULL_PULSE_SCALE`; korek — later), shake przy nielegalnym ruchu (0,2 s), konfetti z prostokątów na wygranej (cząsteczki `CPUParticles2D`, `one_shot`, czas `confetti_seconds` = 1,2 s, 6 pierwszych kolorów palety aktywnego motywu; wyłączone w trybie `--screenshot`).
 - Kontrast tekstu na tle (minimum): WCAG AA 4,5 : 1 dla tekstu; `#FFFFFF` na `#14213D` ≈ 15,9 : 1, `#14213D` na `#FFD166` (przyciski akcentu) ≈ 11 : 1 (ZWERYFIKUJ kalkulatorem WCAG przy implementacji).
 
 ## Audio
@@ -240,8 +242,11 @@ Lista zatwierdzona (v1.0). Mapowanie na GA przez istniejący autoload `Analytics
 - `session_start` — start aplikacji; parametry: wersja (`BUILD_INFO`), platforma. GA: sesja automatyczna SDK + `track_design("session:start")` (`App.track_session_start`, `_ready` i powrót fokusu).
 - `session_end` — utrata fokusu/zamknięcie; parametr: czas trwania [s]. GA: automatyczne + `track_design("session:end", seconds)` (`App.track_session_end`, utrata fokusu/zamknięcie).
 - `level_start` — start poziomu; parametry: `mode` (`campaign`/`daily`), numer poziomu lub dzień UTC, `colors`, `min_moves`. GA: `track_progression("Start", mode, "level_%04d")` + `track_design("level:start", min_moves)`.
-- `level_complete` — wygrana; parametry: poziom, `moves`, `min_moves`, czas [s], `undos_used`, `boosters_used`, `perfect`. GA: `track_progression("Complete", mode, "level_%04d", moves)`.
-- `level_fail` — restart / pomiń / wyjście do menu bez wygranej; parametry: poziom, `reason` (`restart`/`skip`/`quit`), czas. GA: `track_progression("Fail", mode, "level_%04d")` + `track_design("level:fail:<restart|skip|quit>")` (dla skip dodatkowo `level:skip:free|rewarded`).
+- `level_complete` — wygrana; parametry: poziom, `moves`, `min_moves`, czas [s], `undos_used`, `boosters_used`, `perfect`. GA: `track_progression("Complete", mode, "level_%04d", moves)` + (PROPOZYCJA refill #5, T-094; GA design event ma jedną wartość, więc parametry rozbite na 3 eventy) `track_design("level:complete:<perfect|normal>", sekundy)`, `track_design("level:complete:undos", undos_used)`, `track_design("level:complete:boosters", boosters_used)`. Czas = aktywny czas rundy (`GameRound.elapsed_s`, sumowany przez wznowienia).
+- `level_fail` — restart / pomiń / porzucenie zapisanej rundy; parametry: poziom, `reason` (`restart`/`skip`/`abandon`), czas. GA: `track_progression("Fail", mode, "level_%04d")` + `track_design("level:fail:<restart|skip|abandon>")` (dla skip dodatkowo `level:skip:free|rewarded`). Od refill #5 (T-093): `abandon` = niepusty `round_in_progress` odrzucony (Poziom dnia z poprzedniego dnia UTC, niespójny snapshot) albo nadpisany rundą innego trybu — raportowany z trybem i poziomem snapshotu; dawne `quit` (pauza → Home) nie jest porażką, bo runda jest wznawiana (G-014).
+- `level_pause` — pauza / wyjście z nieukończonej rundy do Home (runda zapisana do wznowienia); parametr: `moves`. GA: `track_design("level:pause", moves)` (T-093). Wznowienie: `track_design("level:resume", moves)` zamiast `level_start` (T-082).
+- `tutorial_step` — lejek FTUE poziomu 1 (KPI reguła 2): `track_design("tutorial:step:<1|2|3>")` przy pierwszym wejściu w krok `TutorialFlow` (`PICK_SOURCE`/`PICK_TARGET`/`FINISH`) w rundzie, `track_design("tutorial:reset", krok)` przy cofnięciu kroku, `track_design("tutorial:done")` po ukończeniu (istniejące) — T-095.
+- `nav` — wejścia do Sklepu i Motywów z Home: `track_design("nav:shop")`, `track_design("nav:themes")` (istniejące, dopisane do listy w refill #5).
 - `level_stuck` — pokazanie `StuckPanel`; parametry: poziom, `moves_to_goal`. GA: `track_design("level:stuck", moves_to_goal)`.
 - `booster_used` — cofnij poza darmowymi / probówka / podpowiedź / +3 cofnięcia; parametry: `type`, `source` (`free`/`coins`/`rewarded`). GA: `track_design("booster:<type>:<source>")` + przy monetach `track_resource("Sink", "coins", koszt, "economy", "<type>")` (przez `Economy.spend`).
 - `rewarded_offered` / `rewarded_completed` — parametr: placement id z `docs/MONETIZATION.md` (`double_coins`, `extra_tube`, `undo_refill`, `skip_level`, `daily_x2`, `streak_save`). GA: `track_design("ads:rewarded:<placement>:offered|granted|skipped|unavailable")` (istniejący wzorzec w `Ads`).
@@ -252,7 +257,8 @@ Lista zatwierdzona (v1.0). Mapowanie na GA przez istniejący autoload `Analytics
 - `theme_unlocked` — parametry: `theme_id`, `source` (`coins`/`iap`). GA: `track_resource("Sink", "coins", koszt, "theme", theme_id)`.
 - `coins_earned` — wygrana poziomu (raz na poziom, skill §7). GA: `track_resource("Source", "coins", kwota, "economy", "win")` (+ `perfect`, `rewarded`) przez `Economy.earn`.
 - `iap_purchase` — parametry: sku, cena (centy), waluta. GA: `track_business(sku, amount_cents, currency)` (od T-026, `Purchases`).
-- `consent_result` — wynik UMP / ATT. GA: `track_design("consent:ump:<status>")`, `track_design("consent:att:<status>")` przez `Ads.report_consent` (wywołania od Fazy 5); `<status>` UMP obejmuje też `error` i `timeout`.
+- `consent_result` — wynik UMP / ATT. GA: `track_design("consent:ump:<status>")`, `track_design("consent:att:<status>")` przez `Ads.report_consent` (wywołania od Fazy 5); `<status>` UMP obejmuje też `error` i `timeout`; ponownie po zamknięciu „Opcji prywatności" z nowym statusem (T-100).
+- `ads_watchdog` — reklama nie zamknięta przez provider w `ad_unmute_timeout_seconds`: `track_design("ads:watchdog:unmute")` (T-099; diagnostyka SDK w Fazie 5).
 
 ## Otwarte pytania
 *Pytania wymagające decyzji produktowej. Każde trafia też do `BACKLOG.md` → `## Pytania do Huberta`.*
