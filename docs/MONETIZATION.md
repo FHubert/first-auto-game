@@ -28,7 +28,7 @@ ARPDAU (metoda z `docs/RESEARCH.md`): eCPM blended przy mixie 30/30/40 US/DE/PL 
 | id | moment | nagroda | cap |
 |---|---|---|---|
 | `double_coins` (rewarded) | ekran `LevelComplete`, przycisk „×2" obok „Dalej" | monety poziomu × `rewarded_multiplier` (2.0) — kwota widoczna na przycisku przed reklamą | 1 na poziom; nie w poziomie 1 (FTUE: pierwsza oferta po pierwszej wygranej, od poziomu 2) |
-| `extra_tube` (rewarded) | HUD `Level` (przycisk +probówka) i `StuckPanel` | +1 pusta probówka w bieżącym poziomie (alternatywa: `extra_tube_cost_coins` = 60) | `extra_tube_max_per_level` = 1 na poziom |
+| `extra_tube` (rewarded) | HUD `Level` (przycisk +probówka), `StuckPanel` i pasek „Pomoc na plateau” (kampania ≥ `plateau_assist_min_level`, próba ≥ `plateau_assist_from_attempt`; `make sim`: 0,09 → 0,22/DAU przy take_rate 0,3) | +1 pusta probówka w bieżącym poziomie (alternatywa: `extra_tube_cost_coins` = 60) | `extra_tube_max_per_level` = 1 na poziom |
 | `undo_refill` (rewarded) | po wyczerpaniu `undo_free_per_level` (przycisk cofnij → oferta) i w `StuckPanel` | +`undo_refill_amount` = 3 cofnięcia (alternatywa: 20 monet) | 2 na poziom |
 | `skip_level` (rewarded) | `StuckPanel`, po `skip_unlock_restarts` = 2 restartach tego samego poziomu | poziom zaliczony bez monet (kampania; w Poziomie dnia niedostępne) | 1 na poziom |
 | `daily_x2` (rewarded) | `DailyRewardPopup`, przycisk „Odbierz ×2" | nagroda dzienna × 2 | 1 na dzień UTC |
