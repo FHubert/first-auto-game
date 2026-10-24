@@ -73,6 +73,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #6, refill #4): Faza 5 prep II — jakość zapisu, polish core loopu, FTUE, czysty log CI. Bez workflowów, binarek z Releases, kont i SDK. Kolejność = zależności / wpływ na D1. -->
 
+- [ ] T-074 `todo` GameState.from_dict: zły typ/zakres pojedynczego klucza → reset tego klucza do domyślnej zamiast odrzucenia całego zapisu; górny limit dla `_as_int` (przeniesione z Inbox T-032)
 - [ ] T-074 `review` GameState.from_dict: zły typ/zakres pojedynczego klucza → reset tego klucza do domyślnej zamiast odrzucenia całego zapisu; górny limit dla `_as_int` (przeniesione z Inbox T-032) → PR #65
   KA: `from_dict` przy złym typie klucza w `settings` (np. `"music": "x"`) lub pola głównego (`coins: "abc"`, `coins: 1e30`, `NaN`) zwraca stan z wartością domyślną tylko tego klucza, reszta postępu (`level`, `coins`, `streak_days`, `owned_themes`) zachowana. Limit górny jako nazwana `const` (np. `MAX_SAVE_INT = 1_000_000_000`), wartość ponad limit → przycięta do limitu. Odrzucenie całego zapisu tylko dla `schema_version` > obecny lub nie-Dictionary (istniejący test zostaje). Test gdUnit4 ≥ 5 przypadków (zły typ w settings, string w coins, 1e30, NaN, ujemne) — każdy sprawdza, że `level` z zapisu przetrwał. `make check` zielone. ≤ ~100 linii.
   Skill: `godot-dev`
