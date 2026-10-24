@@ -10,6 +10,9 @@ const MIDGAME_EXTRA_THEME: String = "neon"
 const ASO_LEVEL: int = 20
 const ASO_COINS: int = 350
 const ASO_STREAK: int = 4  # claiming on the next day lands on cycle day 5
+const ASO_HOME_DAILY_TOTAL: int = 23
+const ASO_HOME_STREAK_BEST: int = 12
+const ASO_HOME_STREAK_DAYS: int = 5
 const ASO_THEMES: Array = ["classic", "pastel", "neon", "ocean"]
 
 
@@ -49,6 +52,10 @@ static func make(fixture: String, utc_day: int = 0) -> GameState:
 			state.levels_completed = ASO_LEVEL - 1
 			state.coins = ASO_COINS
 			state.streak_days = ASO_STREAK
+			if fixture == "aso_home":
+				state.streak_days = ASO_HOME_STREAK_DAYS
+				state.streak_best = ASO_HOME_STREAK_BEST
+				state.daily_completed_total = ASO_HOME_DAILY_TOTAL
 		"aso_daily":
 			state.level = ASO_LEVEL
 			state.levels_completed = ASO_LEVEL - 1
