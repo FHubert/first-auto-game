@@ -17,6 +17,10 @@ const GAP_X: float = 24.0
 const GAP_Y: float = 40.0
 const LIFT_PX: float = 30.0
 const SHAKE_PX: float = 12.0
+const POUR_LIFT_RATIO: float = 0.25
+const POUR_TRANSFER_RATIO: float = 0.5
+const POUR_RETURN_RATIO: float = 0.25
+const TILT_DEG: float = 35.0
 
 var round: GameRound
 var theme_data: Dictionary = {}
@@ -28,6 +32,8 @@ var _selected: int = -1
 var _busy: bool = false
 var _bg: ColorRect
 var _slice: Dictionary = {}
+var _pour_tween: Tween
+var _pour_pending: Vector2i = Vector2i(-1, -1)
 
 
 static func load_theme(theme_id: String) -> Dictionary:
@@ -44,6 +50,7 @@ func pour_duration() -> float:
 
 
 func setup(round_in: GameRound, theme_id: String) -> void:
+	_cancel_pour()
 	round = round_in
 	theme_data = load_theme(theme_id)
 	_slice = theme_data.get("nine_slice", {})
@@ -70,7 +77,7 @@ func tap(index: int) -> void:
 	else:
 		var from: int = _selected
 		if round.try_move(from, index):
-			await _pour(from, index)
+			_pour(from, index)
 		else:
 			_deselect()
 			_shake(_views[from])
@@ -89,6 +96,18 @@ func refresh() -> void:
 
 func selected_index() -> int:
 	return _selected
+
+
+func is_busy() -> bool:
+	return _busy
+
+
+func view_layers(index: int) -> Array:
+	return _views[index].layers
+
+
+func view_rotation(index: int) -> float:
+	return _views[index].rotation_degrees
 
 
 func tube_rect(index: int) -> Rect2:
@@ -110,21 +129,84 @@ func _deselect() -> void:
 
 func _pour(from: int, to: int) -> void:
 	_busy = true
-	if animate:
-		var v: TubeView = _views[from]
-		var target: Vector2 = _rest[to] + Vector2(0, -LIFT_PX)
-		var half: float = pour_duration() * 0.5
-		var tw: Tween = create_tween()
-		tw.tween_property(v, "position", target, half)
-		tw.tween_property(v, "position", _rest[from], half)
-		await tw.finished
+	_pour_pending = Vector2i(from, to)
 	_selected = -1
-	_views[from].position = _rest[from]
+	if not animate:
+		_finish_pour()
+		return
+	# Widoki trzymaja referencje do tubes (stan koncowy), wiec stan "przed" odtwarzamy.
+	var board: SortBoard = round.board()
+	var moved: int = maxi(board.last_pour_amount, 1)
+	var color: int = int(board.tubes[to][-1])
+	var src_before: Array = (board.tubes[from] as Array).duplicate()
+	for _k in moved:
+		src_before.append(color)
+	var dst_before: Array = (board.tubes[to] as Array).slice(0, board.tubes[to].size() - moved)
+	var total: float = pour_duration()
+	var dir: float = -1.0 if _rest[to].x < _rest[from].x else 1.0
+	var target: Vector2 = _rest[to] + Vector2(dir * TUBE_WIDTH * 0.5, -LIFT_PX)
+	var v: TubeView = _views[from]
+	v.pivot_offset = Vector2(TUBE_WIDTH * 0.5, TUBE_HEIGHT)
+	v.z_index = 1
+	var tw: Tween = create_tween()
+	_pour_tween = tw
+	var t1: float = total * POUR_LIFT_RATIO
+	tw.tween_property(v, "position", target, t1)
+	tw.parallel().tween_property(v, "rotation_degrees", dir * TILT_DEG, t1)
+	for k: int in range(1, moved + 1):
+		tw.tween_interval(total * POUR_TRANSFER_RATIO / float(moved))
+		tw.tween_callback(_apply_transfer_step.bind(from, to, src_before, dst_before, k))
+	var t3: float = total * POUR_RETURN_RATIO
+	tw.tween_property(v, "position", _rest[from], t3)
+	tw.parallel().tween_property(v, "rotation_degrees", 0.0, t3)
+	tw.tween_callback(_finish_pour)
+
+
+func _apply_transfer_step(from: int, to: int, src_before: Array, dst_before: Array, k: int) -> void:
+	if from >= _views.size() or to >= _views.size():
+		return
+	if not is_instance_valid(_views[from]) or not is_instance_valid(_views[to]):
+		return
+	_views[from].set_layers(src_before.slice(0, src_before.size() - k))
+	_views[to].set_layers(dst_before + src_before.slice(src_before.size() - k))
+
+
+func _finish_pour() -> void:
+	if _pour_pending.x < 0:
+		return
+	var p: Vector2i = _pour_pending
+	_pour_pending = Vector2i(-1, -1)
+	_pour_tween = null
+	if p.x < _views.size() and is_instance_valid(_views[p.x]):
+		var v: TubeView = _views[p.x]
+		if p.x < _rest.size():
+			v.position = _rest[p.x]
+		v.rotation_degrees = 0.0
+		v.z_index = 0
+	_selected = -1
 	refresh()
 	_busy = false
-	pour_finished.emit(from, to)
+	pour_finished.emit(p.x, p.y)
 	if round.is_done():
 		round_won.emit()
+
+
+func _cancel_pour() -> void:
+	if _pour_tween != null and _pour_tween.is_valid():
+		_pour_tween.kill()
+	var p: Vector2i = _pour_pending
+	_pour_tween = null
+	_pour_pending = Vector2i(-1, -1)
+	_busy = false
+	if p.x >= 0 and p.x < _views.size() and is_instance_valid(_views[p.x]):
+		_views[p.x].rotation_degrees = 0.0
+		_views[p.x].z_index = 0
+
+
+func _abort_pour() -> void:
+	if _pour_tween != null and _pour_tween.is_valid():
+		_pour_tween.kill()
+	_finish_pour()
 
 
 func _move_to(v: Control, pos: Vector2, seconds: float) -> void:
@@ -146,6 +228,7 @@ func _shake(v: Control) -> void:
 
 
 func _rebuild() -> void:
+	_abort_pour()
 	for v in _views:
 		v.queue_free()
 	_views.clear()
@@ -170,6 +253,7 @@ func _rebuild() -> void:
 
 
 func _layout() -> void:
+	_abort_pour()
 	var prev: int = _selected
 	_rest.clear()
 	var n: int = _views.size()
