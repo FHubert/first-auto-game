@@ -59,7 +59,7 @@ func save(state: GameState) -> bool:
 func load() -> GameState:
 	if not FileAccess.file_exists(save_path):
 		last_load_source = "none"
-		return GameState.new()
+		return fresh_state()
 	var state: GameState = _parse_state(save_path)
 	if state != null:
 		last_load_source = "main"
@@ -69,7 +69,14 @@ func load() -> GameState:
 		last_load_source = "backup"
 		return state
 	last_load_source = "fresh"
-	return GameState.new()
+	return fresh_state()
+
+
+## New player state with the starting coin grant (T-173). Not used for states read from a save.
+static func fresh_state() -> GameState:
+	var state := GameState.new()
+	state.coins = int(GameConfig.get_value("starting_coins"))
+	return state
 
 
 ## Null when the file is missing, not valid JSON, not a Dictionary or invalid GameState data.
