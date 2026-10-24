@@ -18,7 +18,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `bundle lock --add-platform x86_64-linux arm64-darwin` → `Gemfile.lock` w repo z obiema platformami; na Linuksie `bundle install` + `bundle exec fastlane lanes` kończą się exit 0 i listują lane'y z `fastlane/Fastfile` (Fastfile bez zmian); `ruby/setup-ruby` z `bundler-cache: true` w workflowach używa locka (log runu lub `actionlint`). ≤ ~20 linii poza lock-file.
   Skill: `store-release`
 
-- [ ] T-002 `todo` CI: wspólne, monotoniczne źródło `version_code` dla `build-android.yml`, `build-ios.yml` i `release.yml` (zależy od T-011)
+- [ ] T-002 `in_progress` CI: wspólne, monotoniczne źródło `version_code` dla `build-android.yml`, `build-ios.yml` i `release.yml` (zależy od T-011)
   KA: jeden skrypt (np. `tools/version_code.sh`, minuty od 2026-01-01 UTC) używany przez wszystkie 3 workflowy zamiast `github.run_number`; jawny input `version_code` nadal ma pierwszeństwo. Test w `tools/test_tools.py`: dwa wywołania z rosnącym czasem dają rosnące wartości, wynik < 2 100 000 000 (limit Play) dla dat do 2100 r., wynik jest liczbą całkowitą. `actionlint` 0 błędów, `make check` zielone. Trigger `push` w build-* zostaje wyłączony (T-008) do czasu sekretów. ≤ ~80 linii.
   Skill: `godot-build`
 
