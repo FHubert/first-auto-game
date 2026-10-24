@@ -19,8 +19,6 @@ const CONFETTI_AMOUNT: int = 48
 const CONFETTI_COLORS: int = 6
 const CONFETTI_EMIT_HEIGHT: float = 4.0
 
-@export var level: int = 2
-
 var round: GameRound
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
@@ -109,7 +107,7 @@ func load_level(level_in: int, theme_id: String = "classic") -> void:
 	mode = MODE_CAMPAIGN
 	hud.set_title("")
 	level_no = level_in
-	var seed_value: int = int(GameConfig.get_value("campaign_seed", 1))
+	var seed_value: int = int(GameConfig.get_value("campaign_seed"))
 	start_round(ContentGenerator.new().generate(seed_value, level_no), theme_id)
 
 
@@ -369,7 +367,7 @@ func _start_confetti() -> void:
 	if not effects_enabled:
 		return
 	confetti.amount = CONFETTI_AMOUNT
-	confetti.lifetime = float(GameConfig.get_value("confetti_seconds", 1.2))
+	confetti.lifetime = float(GameConfig.get_value("confetti_seconds"))
 	confetti.position = board.position + Vector2(board.size.x * 0.5, 0.0)
 	confetti.emission_rect_extents = Vector2(board.size.x * 0.5, CONFETTI_EMIT_HEIGHT)
 	confetti.color_initial_ramp = _confetti_ramp()

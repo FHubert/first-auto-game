@@ -50,7 +50,7 @@ func _ready() -> void:
 
 
 func pour_duration() -> float:
-	return float(GameConfig.get_value("pour_anim_seconds", 0.4))
+	return float(GameConfig.get_value("pour_anim_seconds"))
 
 
 func setup(round_in: GameRound, theme_id_in: String) -> void:
@@ -142,7 +142,7 @@ func tube_rect(index: int) -> Rect2:
 
 
 func _lift_time() -> float:
-	return float(GameConfig.get_value("tube_lift_seconds", 0.1))
+	return float(GameConfig.get_value("tube_lift_seconds"))
 
 
 func _deselect() -> void:
@@ -241,7 +241,7 @@ func pulse_tube(index: int) -> void:
 		return
 	var v: TubeView = _views[index]
 	v.pivot_offset = v.size * 0.5
-	var half: float = float(GameConfig.get_value("tube_full_pulse_seconds", 0.25)) * 0.5
+	var half: float = float(GameConfig.get_value("tube_full_pulse_seconds")) * 0.5
 	_pulse_tween = create_tween()
 	_pulse_tween.tween_property(v, "scale", Vector2.ONE * TUBE_FULL_PULSE_SCALE, half)
 	_pulse_tween.tween_property(v, "scale", Vector2.ONE, half)
@@ -278,7 +278,7 @@ func _shake(v: Control) -> void:
 	if not animate:
 		return
 	var base: Vector2 = v.position
-	var part: float = float(GameConfig.get_value("shake_seconds", 0.2)) / 4.0
+	var part: float = float(GameConfig.get_value("shake_seconds")) / 4.0
 	var tw: Tween = create_tween()
 	tw.tween_property(v, "position:x", base.x + SHAKE_PX, part)
 	tw.tween_property(v, "position:x", base.x - SHAKE_PX, part * 2.0)
