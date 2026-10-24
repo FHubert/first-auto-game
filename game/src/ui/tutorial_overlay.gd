@@ -8,6 +8,7 @@ const HAND_GAP: float = 8.0
 const PULSE_SECONDS: float = 0.5
 const PULSE_SHIFT: float = 12.0
 const TEXT_BOTTOM: float = 160.0
+const TEXT_HEIGHT: float = 60.0
 const FONT_SIZE: int = 32
 
 var hand: ColorRect
@@ -26,7 +27,7 @@ func _ready() -> void:
 	label = Label.new()
 	label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	label.offset_top = -TEXT_BOTTOM
-	label.offset_bottom = -TEXT_BOTTOM + 60.0
+	label.offset_bottom = -TEXT_BOTTOM + TEXT_HEIGHT
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", FONT_SIZE)
 	label.add_theme_color_override("font_color", ACCENT)

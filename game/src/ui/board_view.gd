@@ -3,6 +3,7 @@ extends Control
 ## Widok planszy: rysuje probowki z GameRound, obsluguje tap, przelew i shake.
 
 signal tube_selected(index: int)
+signal tube_deselected(index: int)
 signal pour_finished(from: int, to: int)
 signal illegal_move(from: int, to: int)
 signal round_won
@@ -99,9 +100,12 @@ func _lift_time() -> float:
 
 
 func _deselect() -> void:
-	if _selected >= 0 and _selected < _views.size():
-		_move_to(_views[_selected], _rest[_selected], _lift_time())
+	var prev: int = _selected
+	if prev >= 0 and prev < _views.size():
+		_move_to(_views[prev], _rest[prev], _lift_time())
 	_selected = -1
+	if prev >= 0:
+		tube_deselected.emit(prev)
 
 
 func _pour(from: int, to: int) -> void:
@@ -166,6 +170,7 @@ func _rebuild() -> void:
 
 
 func _layout() -> void:
+	var prev: int = _selected
 	_rest.clear()
 	var n: int = _views.size()
 	if n == 0:
@@ -184,3 +189,5 @@ func _layout() -> void:
 		_views[i].position = pos
 		_views[i].size = Vector2(TUBE_WIDTH, TUBE_HEIGHT)
 	_selected = -1
+	if prev >= 0:
+		tube_deselected.emit(prev)

@@ -52,6 +52,7 @@ func _ready() -> void:
 	)
 	board.illegal_move.connect(func(_from: int, _to: int) -> void: Audio.play_sfx("error"))
 	board.tube_selected.connect(_on_tutorial_selected)
+	board.tube_deselected.connect(_on_tutorial_deselected)
 	board.pour_finished.connect(_on_tutorial_pour)
 	hud.hint_pressed.connect(buy_hint)
 	hud.extra_tube_pressed.connect(buy_extra_tube)
@@ -124,13 +125,6 @@ func on_next_pressed() -> void:
 	next_requested.emit(state.level)
 
 
-func _process(_delta: float) -> void:
-	if tutorial != null and board.selected_index() == -1:
-		if tutorial.step == TutorialFlow.Step.PICK_TARGET:
-			tutorial.on_deselect()
-			_update_tutorial_overlay()
-
-
 ## Pierwszy ruch solvera z biezacego stanu (bez liczenia podpowiedzi).
 func _solver_first_move() -> Vector2i:
 	var max_states: int = int(GameConfig.get_value("hint_solver_max_states"))
@@ -142,6 +136,12 @@ func _solver_first_move() -> Vector2i:
 
 func _on_tutorial_selected(index: int) -> void:
 	if tutorial != null and tutorial.on_tube_selected(index):
+		_update_tutorial_overlay()
+
+
+func _on_tutorial_deselected(_index: int) -> void:
+	if tutorial != null and tutorial.step == TutorialFlow.Step.PICK_TARGET:
+		tutorial.on_deselect()
 		_update_tutorial_overlay()
 
 
