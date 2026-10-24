@@ -42,7 +42,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `Home` dostaje `daily_total_label` (w karcie Poziomu dnia, `tr("home_daily_total") % state.daily_completed_total`, ukryty przy 0) i `streak_best_label` (`tr("home_streak_best") % state.streak_best`, widoczny gdy `streak_best >= 2`), odświeżane w `refresh()`. Klucze w `strings.csv` EN/PL/DE (PROPOZYCJA: „Completed: %d” / „Ukończone: %d” / „Geschafft: %d”; „Best: %d” / „Rekord: %d” / „Rekord: %d” — DE dopisać do `SAME_AS_EN`, jeśli test „≠ EN” tego wymaga, z komentarzem). Fixture `aso_home` w `ScreenshotFixtures`: `daily_completed_total = 23`, `streak_best = 12`, `streak_days = 5`. Testy gdUnit4 ≥ 3 (0 → etykieta ukryta; 23 → tekst zawiera „23”; `streak_best` 1 → ukryta, 12 → widoczna). `make screenshots` → kadr 03 ×3 locale odświeżony i obejrzany (PL), etykiety nie wychodzą poza kartę 720 px. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `godot-dev`
 
-- [ ] T-111 `in_progress` Kadr sklepowy 02 (`aso_win`): plansza widoczna nad panelem LevelComplete — panel kompaktowy przy dolnej krawędzi (przeniesione z Inbox T-105; KPI store conversion ≥ 25 %; zależy od T-108 i T-101 — ten sam ekran wygranej)
+- [ ] T-111 `review` Kadr sklepowy 02 (`aso_win`): plansza widoczna nad panelem LevelComplete — panel kompaktowy przy dolnej krawędzi (przeniesione z Inbox T-105; KPI store conversion ≥ 25 %; zależy od T-108 i T-101 — ten sam ekran wygranej) → PR #97
   KA: panel `LevelComplete` zakotwiczony do dołu ekranu, wysokość ≤ 50 % viewportu (≤ 640 px przy 720×1280), treść bez zmian (monety, premia, ×2, „Dalej”, komunikat T-096); konfetti (T-097) nadal nad planszą i pod panelem. Test gdUnit4 ≥ 1 w scenie `Level` 720×1280 z fixture `aso_win`: `level_complete` panel `get_global_rect()` nie przecina prostokąta obejmującego probówki `BoardView` i ma `size.y <= 640`. `make screenshots` → kadr 02 ×3 locale odświeżony; na PL widać ≥ 80 % probówek (opis + ogląd w PR). `make playtest` 200/200 bez softlocka (ekran wygranej nadal działa). `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `aso`
 
@@ -89,6 +89,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 ## P3 — polish / later
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
+- [ ] T-117 `todo` LevelComplete (po T-111): `panel_height()` zwraca stały `-offset_top` — gdy treść (np. długi komunikat T-096 po zawinięciu) przekroczy ~384 px, `PanelContainer` rośnie w górę i nachodzi na probówki; rozważyć `maxf(-offset_top, get_combined_minimum_size().y + margines)` + test `BoardView.content_height()` (1 i 2 rzędy) + `_reset_board_fit()` także w `restart()`; `level.tscn` Hud `offset_bottom = 150` vs `hud.gd` `BAR_HEIGHT = 230` — ujednolicić (odkryte w T-111). Skill: godot-dev
 - [ ] T-092 `todo` Skill godot-test §6: format `playtest.json` o pole `interstitial_calls` (T-084) i `playtest_random.json`; `AdService`: publiczny reset `_last_interstitial_s` (test bota ustawia pole prywatne `-INF`, bo realny zegar z innych suit blokuje pokaz przy symulowanym zegarze) (odkryte w T-084). Skill: godot-test
 - [ ] T-089 `todo` Skill godot-test (dotyczy `.claude/`): wzorzec testów parametryzowanych (gdlint `unused-argument` dla `test_parameters`, gdUnit opróżnia tablicę w trakcie — działa `assert_that(test_parameters).is_not_null()`) (odkryte w T-081; część kodowa `min_moves` → T-098). Skill: godot-test
 
@@ -134,6 +135,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - Refill #6 (T-115): symbole kolorów (dostępność) awansowane z „later” do MVP — przyjęto: tak, domyślnie wyłączone (przełącznik w Settings), symbol zależy od indeksu koloru, nie od motywu; do zmiany (alternatywa: domyślnie włączone albo pytanie w FTUE).
 - Refill #6 (T-109): popup nagrody dziennej po powrocie z tła po północy UTC — przyjęto: tylko gdy aplikacja wraca na `Home`; w trakcie rundy (`Level`) nie przerywamy gry, popup pojawi się przy następnym wejściu na `Home`; do zmiany.
 - Refill #6 (T-111): kadr sklepowy 02 — przyjęto: panel LevelComplete kompaktowy przy dolnej krawędzi także w grze (nie tylko w fixture kadru), żeby screenshot pokazywał prawdziwy ekran; do zmiany (alternatywa: specjalny układ tylko w trybie `--screenshot` — szybciej, ale kadr przestaje odpowiadać grze, ryzyko odrzucenia za mylące screenshoty).
+- T-111: `Dim` ekranu wygranej przyciemniony do alfa 0,3 (było 0,6), żeby plansza była widoczna pod panelem także w grze — przyjęto: 0,3, do zmiany.
 
 ## Done (ostatnie 30)
 - [x] T-057 `done` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox) → PR #58 (zmergowany 2026-10-24)
