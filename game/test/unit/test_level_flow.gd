@@ -166,12 +166,12 @@ func _win_level_two() -> void:
 
 func test_double_coins_once_on_level_two() -> void:
 	_win_level_two()
-	assert_bool(_level.can_double_coins()).is_true()
+	assert_bool(_level.offers.can_double_coins()).is_true()
 	var before: int = _level.state.coins
 	var bonus: int = Economy.rewarded_bonus(_level._last_win_coins)
-	assert_bool(_level.watch_double_coins()).is_true()
+	assert_bool(_level.offers.watch_double_coins()).is_true()
 	assert_int(_level.state.coins).is_equal(before + bonus)
-	assert_bool(_level.watch_double_coins()).is_false()
+	assert_bool(_level.offers.watch_double_coins()).is_false()
 	assert_int(_level.state.coins).is_equal(before + bonus)
 
 
@@ -179,7 +179,7 @@ func test_double_coins_updates_progress_label() -> void:
 	_win_level_two()
 	var label: Label = _level.level_complete.progress_label
 	assert_bool(label.visible).is_true()
-	assert_bool(_level.watch_double_coins()).is_true()
+	assert_bool(_level.offers.watch_double_coins()).is_true()
 	var expected: Dictionary = LevelComplete.progress_message(2, _level.mode, _level.state)
 	if expected["key"] == "lc_theme_progress":
 		assert_str(label.text).is_equal(tr("lc_theme_progress") % expected["args"])
@@ -188,22 +188,22 @@ func test_double_coins_updates_progress_label() -> void:
 
 func test_double_coins_not_on_level_one() -> void:
 	_win()
-	assert_bool(_level.can_double_coins()).is_false()
-	assert_bool(_level.watch_double_coins()).is_false()
+	assert_bool(_level.offers.can_double_coins()).is_false()
+	assert_bool(_level.offers.watch_double_coins()).is_false()
 
 
 func test_watch_extra_tube_is_free() -> void:
 	var coins: int = _level.state.coins
 	var tubes: int = _level.round.board().tube_count()
-	assert_bool(_level.watch_extra_tube()).is_true()
+	assert_bool(_level.offers.watch_extra_tube()).is_true()
 	assert_int(_level.round.board().tube_count()).is_equal(tubes + 1)
 	assert_int(_level.state.coins).is_equal(coins)
-	assert_bool(_level.watch_extra_tube()).is_false()
+	assert_bool(_level.offers.watch_extra_tube()).is_false()
 
 
 func test_watch_undo_refill_adds_charges() -> void:
 	var before: int = _level.round.undo_charges()
-	assert_bool(_level.watch_undo_refill()).is_true()
+	assert_bool(_level.offers.watch_undo_refill()).is_true()
 	var amount: int = int(GameConfig.get_value("undo_refill_amount"))
 	assert_int(_level.round.undo_charges()).is_equal(before + amount)
 

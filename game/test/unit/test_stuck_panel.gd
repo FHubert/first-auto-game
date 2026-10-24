@@ -56,7 +56,7 @@ func test_buy_extra_tube_resolves_deadlock() -> void:
 	_level.state.coins = 100
 	_level.start_round(DEADLOCK)
 	_level._check_stuck()
-	assert_bool(_level.buy_extra_tube()).is_true()
+	assert_bool(_level.offers.buy_extra_tube()).is_true()
 	assert_int(_level.state.coins).is_equal(100 - Economy.extra_tube_cost())
 	assert_int(_level.round.board().tube_count()).is_equal(3)
 	assert_int(_views()).is_equal(3)
@@ -66,23 +66,23 @@ func test_buy_extra_tube_resolves_deadlock() -> void:
 func test_no_coins_requests_shop() -> void:
 	_level.state.coins = 0
 	_level.start_round(DEADLOCK)
-	assert_bool(_level.buy_extra_tube()).is_false()
+	assert_bool(_level.offers.buy_extra_tube()).is_false()
 	assert_array(_shop_reasons).contains_exactly(["extra_tube"])
 	assert_int(_level.state.coins).is_equal(0)
 	assert_int(_level.round.board().tube_count()).is_equal(2)
 
 
 func test_skip_unlocks_after_restarts_and_advances() -> void:
-	_level.stuck_panel.show_for(_level.round, true, _level._ad_offers())
+	_level.stuck_panel.show_for(_level.round, true, _level.offers.ad_offers())
 	assert_bool(_level.stuck_panel.skip_button.visible).is_false()
 	var lvl: int = _level.state.level
-	_level.skip_level()
+	_level.offers.skip_level()
 	assert_int(_level.state.level).is_equal(lvl)
 	for i in int(GameConfig.get_value("skip_unlock_restarts")):
 		_level.restart()
-	_level.stuck_panel.show_for(_level.round, true, _level._ad_offers())
+	_level.stuck_panel.show_for(_level.round, true, _level.offers.ad_offers())
 	assert_bool(_level.stuck_panel.skip_button.visible).is_true()
-	_level.skip_level()
+	_level.offers.skip_level()
 	assert_int(_level.state.level).is_equal(lvl + 1)
 	assert_int(SaveSystem.load().level).is_equal(lvl + 1)
 
