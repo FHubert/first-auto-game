@@ -106,9 +106,9 @@ func test_rewarded_bonus() -> void:
 
 
 func test_rewarded_bonus_never_negative() -> void:
-	GameConfig.apply_remote({"rewarded_multiplier": 0.5})
+	GameConfig._values["rewarded_multiplier"] = 0.5  # below RANGES: direct inject
 	assert_int(Economy.rewarded_bonus(10)).is_equal(0)
-	GameConfig.apply_remote({"rewarded_multiplier": 0.0})
+	GameConfig._values["rewarded_multiplier"] = 0.0
 	assert_int(Economy.rewarded_bonus(10)).is_equal(0)
 	GameConfig.apply_remote({"rewarded_multiplier": 1.0})
 	assert_int(Economy.rewarded_bonus(10)).is_equal(0)
