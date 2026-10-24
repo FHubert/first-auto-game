@@ -109,6 +109,7 @@ func test_settings_privacy_button_hidden_when_not_required() -> void:
 
 func test_app_ready_starts_consent() -> void:
 	var app: App = auto_free(App.new())
+	app.clock = TestClock.fixed()
 	app.state = GameState.new()
 	app.state.settings["tutorial_done"] = true
 	add_child(app)

@@ -36,6 +36,7 @@ func test_home_shows_state() -> void:
 	st.level = 7
 	st.streak_days = 3
 	var home: Home = auto_free(load("res://src/ui/home.tscn").instantiate())
+	home.clock = TestClock.fixed()
 	home.state = st
 	add_child(home)
 	assert_str(home.play_button.text).contains("7")

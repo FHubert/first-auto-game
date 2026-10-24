@@ -6,6 +6,7 @@ func _home(total: int, best: int) -> Home:
 	st.daily_completed_total = total
 	st.streak_best = best
 	var home: Home = auto_free(load("res://src/ui/home.tscn").instantiate())
+	home.clock = TestClock.fixed()
 	home.state = st
 	add_child(home)
 	return home
