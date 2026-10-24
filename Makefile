@@ -43,7 +43,9 @@ playtest:
 	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --rounds=200 --seed=$(PLAYTEST_SEED) \
 		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_greedy.json && \
 	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --stay --rounds=400 --seed=$(PLAYTEST_SEED) \
-		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_greedy_stay.json
+		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_greedy_stay.json && \
+	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --assist --rounds=400 --seed=$(PLAYTEST_SEED) \
+		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_assist.json
 
 sim:
 	python3 tools/balance_sim.py

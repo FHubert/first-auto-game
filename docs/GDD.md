@@ -120,6 +120,8 @@ Przykładowe wartości (z wzorów powyżej, do potwierdzenia testem generatora):
 
   Sanity: wiersz (26, 1) dla 56+ = 55,0 % vs 47,1 % informacyjnego `empty_tubes` = 3 z T-162 (różnica 7,9 pp, w ±10 pp; probówka dodana po starcie próby, a nie w generatorze, i inne liczenie próby). Decyzja wg reguły (największe `from_attempt`, przy remisie większe `min_level`, bramka spełniona): **`plateau_assist_min_level` = 26, `plateau_assist_from_attempt` = 3** (56+ 38,3 %, 26–55 65,6 %); konfiguracje z `min_level` = 56 nie spełniają bramki 26–55 ≥ 50 %, bo ten przedział zostaje jak baza (46,7 %). Marża 56+ przy `from_attempt` = 3 jest wąska (3,3 pp nad bramką; górna granica - bot zawsze bierze ofertę), więc T-176 powinno brać pod uwagę również `from_attempt` = 2 (44,2 %).
 
+  Pomiar stały (T-182): `make playtest` (linia `--playtest --assist --rounds=400 --seed=42`; `--assist` = greedy + kampania + `--stay` + `extra_tube_min_level`/`extra_tube_from_attempt` z `plateau_assist_min_level`/`plateau_assist_from_attempt`, jawne `--extra-tube-*` nadpisują) zapisuje `test/reports/playtest_assist.json`; klucze `won_le3_pct_by_bracket` i `won_first_pct_by_bracket` (% z zamkniętych poziomów = wygrane + pominięcia; bez `--stay` 0,0). Wynik dla `DEFAULTS` (26 / 3, seed 42, 400 rund od poziomu 1, 1 seed): 26–55 **70,0 %** (baza `--stay` 46,7 %), 56+ **27,0 %** (baza 37,5 %; próba tylko 37 wygranych na 1 seedzie, a w bazie bot gra 56+ inną ścieżką — nie porównywać z średnią 3 seedów 38,3 % z T-175). Test gdUnit4 pilnuje bramki 26–55 ≥ 50 % (1 seed, 100 rund od poziomu 26); bramka 56+ ≥ 35 % nie jest w teście, bo próba jest za mała.
+
 ## Ekonomia
 *Waluty, źródła i sinki. Wartości startowe trzymamy w `game/src/systems/config.gd`, nie w tym dokumencie.*
 
