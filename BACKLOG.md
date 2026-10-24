@@ -70,7 +70,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #10, refill #7, P2): Faza 5 prep V — testy niezależne od daty systemowej (fałszywe czerwone o północy UTC blokują auto-merge), dostępność zweryfikowana liczbą (kontrast symboli), porządki GameRound, viralowa pętla Poziomu dnia bez SDK. Kolejność = zależności (T-125 po T-114, T-126 po T-115, T-127 po T-122). -->
 
-- [ ] T-125 `todo` Testy: każda instancja `App`/`Home` w suitach dostaje stały zegar — wynik `make test` niezależny od daty i godziny systemowej (obejmuje Inbox T-119; zależy od T-114 — helper zegara w `test_app.gd`)
+- [ ] T-125 `in_progress` Testy: każda instancja `App`/`Home` w suitach dostaje stały zegar — wynik `make test` niezależny od daty i godziny systemowej (obejmuje Inbox T-119; zależy od T-114 — helper zegara w `test_app.gd`)
   KA: wspólny helper testowy (np. `game/test/helpers/test_clock.gd`, `const FIXED_UNIX` = 1792843200, dzień UTC 20750 — ten sam co `SCREENSHOT_NOW_UNIX`) użyty we wszystkich suitach tworzących `App` lub `Home` (dziś 3 suity bez zegara wg T-119 — lista w PR); grep w `game/test`: każde `App`/`home.tscn`/`Home.new` ma w tej samej funkcji/helperze przypisanie `clock` (lista miejsc w PR, 0 wyjątków). Dowód niezależności: `make test` zielone 2× — z `FIXED_UNIX` i lokalnie z `FIXED_UNIX + 86 399` (23:59:59 tego samego dnia UTC; zmiana tylko na czas pomiaru, nie commitowana) — wynik obu przebiegów w PR; dodatkowo lista pozostałych wystąpień `Time.get_unix_time_from_system` w `game/test` z uzasadnieniem w PR (cel: 0 poza helperem). Żadna asercja nie osłabiona, liczba testów nie maleje. `make check` zielone. ≤ ~80 linii.
   Skill: `godot-test`
 
