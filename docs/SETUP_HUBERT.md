@@ -9,6 +9,8 @@ Zasady:
 
 Repo: `https://github.com/FHubert/first-auto-game`. Owner: FHubert.
 
+Kroki Fazy 4 wymagające sesji interaktywnej (workflowy, pluginy, polityka prywatności, nazwa): sekcja 15 na końcu pliku.
+
 ---
 
 ## 1. Konto Google Play Developer
@@ -115,3 +117,27 @@ Repo: `https://github.com/FHubert/first-auto-game`. Owner: FHubert.
 ---
 
 Po krokach 2–9 w Settings → Secrets and variables → Actions powinno być 20 sekretów. Jeśli pominiesz krok 9, zostaje 19.
+
+---
+
+## 15. Faza 4 — do zrobienia w sesji interaktywnej (nie dla pętli scheduled)
+Sesja scheduled (auto-mode) odrzuca edycję `.github/workflows/**` i nie ma dostępu do GitHub Releases (403), więc te zadania są `blocked` w [BACKLOG.md](../BACKLOG.md). Po wykonaniu punktu zmień status zadania na `done` i zaktualizuj `docs/STATUS.md`.
+
+- [ ] **(1) Workflowy: T-002b, T-005, T-053, T-055** — [T-002b](../BACKLOG.md), [T-005](../BACKLOG.md), [T-053](../BACKLOG.md), [T-055](../BACKLOG.md).
+  Wykonaj kroki z KA każdego zadania w `BACKLOG.md` (kolejność: T-002b, T-055, T-005, T-053). T-055 wymaga `actionlint` i sprawdzenia wersji akcji na stronach releases.
+  Zrobione: 3 workflowy bez `GITHUB_RUN_NUMBER + 100`, `actionlint` 0 błędów, istnieją workflowy niepodpisanych buildów Android i iOS, PR-y zmergowane, T-002b/T-005/T-053/T-055 `done`.
+- [ ] **(2) Pluginy IAP: T-047 (Android), T-048 (iOS)** — [T-047](../BACKLOG.md), [T-048](../BACKLOG.md).
+  Pobierz release zip GodotGooglePlayBilling 3.3.0 i godot_ios_plugin_iap v0.4.0 z GitHub Releases, policz `sha256sum`, wpisz tag i SHA-256 do `make setup`.
+  Zrobione: `make setup` instaluje oba pluginy i weryfikuje SHA-256, `make check` zielone, T-047/T-048 `done`.
+- [ ] **(3) Polityka prywatności: publikacja** — [T-071](../BACKLOG.md) (manifest iOS) oraz `docs/privacy/`.
+  Podmień w `docs/privacy/index.md` placeholdery `__PRIVACY_CONTACT__` (3 wystąpienia) i `__CONTROLLER_ADDRESS__`. Zdecyduj hosting (Pytania do Huberta: GitHub Pages z `docs/privacy/` vs strona All In IT). Zleć przegląd prawny (RODO, Data Safety, Privacy Labels). Wpisz publiczny URL w konsolach sklepów.
+  Zrobione: brak `__` placeholderów w `docs/privacy/`, URL publiczny zwraca 200, przegląd prawny potwierdzony w `docs/RELEASE_CHECKLIST.md`.
+- [ ] **(4) Przegląd znaczników `ZWERYFIKUJ`** — stan na 2026-10-24: 85 (`grep -ro "ZWERYFIKUJ" docs/ | wc -l`); lista: `grep -rn "ZWERYFIKUJ" docs/`.
+  Kolejność: `docs/privacy/` i `docs/RELEASE_CHECKLIST.md` przed publikacją (3); `docs/ASO.md` przed wypełnieniem sklepów; `docs/RESEARCH.md` informacyjnie.
+  Zrobione: każdy znacznik zweryfikowany ze źródłem i usunięty (albo świadomie zostawiony z uzasadnieniem w `docs/LOG.md`); liczba z `grep` spada do 0 dla privacy, RELEASE_CHECKLIST i ASO.
+- [ ] **(5) Nazwa „Vialo: Water Sort Puzzle”** — zapasowe: „Flaskly: Color Sort Puzzle”, „Pourio: Daily Water Sort” (`BACKLOG.md` → Pytania do Huberta, R-002).
+  Sprawdź: EUIPO eSearch plus (klasy 9 i 41), UPRP (wyszukiwarka znaków), wyszukiwarki Google Play i App Store oraz dostępność w App Store Connect / Play Console.
+  Zrobione: decyzja wpisana w Pytania do Huberta i w `docs/ASO.md`.
+- [ ] **(6) Opcjonalnie: odblokowanie T-054** — [T-054](../BACKLOG.md).
+  Po (1)–(2) i krokach 1–6 (konta, keystore) odblokuj QA na urządzeniu. To kryterium wyjścia z Fazy 4.
+  Zrobione: T-054 zmieniony z `blocked` na `todo`.
