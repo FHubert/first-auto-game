@@ -16,6 +16,7 @@ var state: GameState
 var music_toggle: CheckButton
 var sfx_toggle: CheckButton
 var haptics_toggle: CheckButton
+var symbols_toggle: CheckButton
 var language_label: Label
 var locale_option: OptionButton
 var version_label: Label
@@ -66,6 +67,7 @@ func apply_from_state() -> void:
 	music_toggle.set_pressed_no_signal(bool(state.settings.get("music_on", true)))
 	sfx_toggle.set_pressed_no_signal(bool(state.settings.get("sfx_on", true)))
 	haptics_toggle.set_pressed_no_signal(bool(state.settings.get("haptics_on", true)))
+	symbols_toggle.set_pressed_no_signal(ColorSymbols.enabled(state.settings))
 	privacy_button.visible = Ads.is_privacy_options_required()
 	var code: String = str(state.settings.get("locale", ""))
 	for i in LOCALES.size():
@@ -85,6 +87,7 @@ func _build() -> void:
 	music_toggle = _toggle(box, tr("set_music"), "music_on")
 	sfx_toggle = _toggle(box, tr("set_sfx"), "sfx_on")
 	haptics_toggle = _toggle(box, tr("set_haptics"), "haptics_on")
+	symbols_toggle = _toggle(box, tr("set_symbols"), ColorSymbols.SETTING_KEY)
 	language_label = Label.new()
 	language_label.text = tr("set_language")
 	language_label.add_theme_font_size_override("font_size", FONT_SIZE)

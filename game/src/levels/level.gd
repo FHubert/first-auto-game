@@ -138,6 +138,7 @@ func _bind_round(theme_id: String) -> void:
 	_reset_board_fit()
 	offers.bind(state, round, rewarded, mode, level_no)
 	_round_bound_at = int(clock.call())
+	board.show_symbols = ColorSymbols.enabled(state.settings)
 	board.setup(round, theme_id)
 	hud.bind(round, level_no)
 	stuck_panel.visible = false

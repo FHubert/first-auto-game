@@ -27,6 +27,7 @@ var round: GameRound
 var theme_data: Dictionary = {}
 var theme_id: String = ""
 var animate: bool = true
+var show_symbols: bool = false
 
 var _views: Array[TubeView] = []
 var _rest: Array[Vector2] = []
@@ -47,6 +48,12 @@ static func load_theme(theme_id: String) -> Dictionary:
 func _ready() -> void:
 	animate = DisplayServer.get_name() != "headless"
 	resized.connect(_layout)
+
+
+func set_show_symbols(on: bool) -> void:
+	show_symbols = on
+	for v: TubeView in _views:
+		v.set_symbols(on)
 
 
 func pour_duration() -> float:
@@ -304,6 +311,7 @@ func _rebuild() -> void:
 		var v := TubeView.new()
 		v.size = Vector2(TUBE_WIDTH, TUBE_HEIGHT)
 		v.setup(i, board.capacity, tex, _slice, glass, liquids)
+		v.show_symbols = show_symbols
 		v.tapped.connect(tap)
 		add_child(v)
 		_views.append(v)
