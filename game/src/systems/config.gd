@@ -6,6 +6,7 @@ const DEFAULTS: Dictionary = {
 	"interstitial_every_n_rounds": 5,
 	"interstitial_min_seconds": 120,
 	"interstitial_min_level": 8,
+	"ad_unmute_timeout_seconds": 90,
 	"consent_timeout_seconds": 8,
 	"rewarded_multiplier": 2.0,
 	"rewarded_double_coins_min_level": 2,

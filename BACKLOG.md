@@ -46,7 +46,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #8, refill #5, P2): reklamy/consent bez SDK — odporność na zawieszony provider i zmianę zgody; refaktor Level po paczce analityki P1; spójność PL. Kolejność = zależności. -->
 
-- [ ] T-099 `in_progress` Ads/Audio: watchdog odciszenia — gdy provider nie zamknie interstitiala ani nie wywoła callbacku rewarded w `ad_unmute_timeout_seconds`, dźwięk wraca, a przerwa reklamowa się kończy (przeniesione z Inbox T-073)
+- [ ] T-099 `review` Ads/Audio: watchdog odciszenia — gdy provider nie zamknie interstitiala ani nie wywoła callbacku rewarded w `ad_unmute_timeout_seconds`, dźwięk wraca, a przerwa reklamowa się kończy (przeniesione z Inbox T-073) → PR #87
   KA: klucz `ad_unmute_timeout_seconds` w `GameConfig` (PROPOZYCJA 90, GDD → tabela kluczy); `AdService` zapamiętuje moment wyciszenia (wstrzykiwany `clock`) i w `_process` po przekroczeniu limitu woła `Audio.set_app_muted(false)` i rejestruje dokładnie 1× `ads:watchdog:unmute`; późny callback/`interstitial_closed` po watchdogu nie wycisza ponownie, a nagroda rewarded jest przyznana maks. 1×. `FakeAdProvider` dostaje flagę `hold_show: bool` (pokaz bez callbacku i bez `*_closed`) i metodę `release(granted: bool)`. Testy gdUnit4 ≥ 3: `hold_show` + zegar +91 s → `Audio.is_app_muted() == false` i 1 event; zamknięcie przed limitem → 0 eventów watchdoga; `release(true)` po watchdogu → nagroda 1×, `muted_by_ads == false`. `make check` zielone. ≤ ~80 linii.
   Skill: `ads-iap`
 

@@ -1,12 +1,18 @@
+# gdlint: disable=max-public-methods
 extends GdUnitTestSuite
 
 var _ads: Node
 var _provider: FakeAdProvider
 var _now: Array[float] = [0.0]
+var _fake_an: FakeAnalyticsProvider
+var _prev_an: AnalyticsProvider
 
 
 func before_test() -> void:
 	GameConfig.reset()
+	_prev_an = Analytics.provider
+	_fake_an = FakeAnalyticsProvider.new()
+	Analytics.provider = _fake_an
 	_now[0] = 0.0
 	_provider = FakeAdProvider.new()
 	_ads = auto_free(load("res://src/systems/ad_service.gd").new())
@@ -15,6 +21,8 @@ func before_test() -> void:
 
 
 func after_test() -> void:
+	Analytics.provider = _prev_an
+	Audio.set_app_muted(false)
 	GameConfig.reset()
 
 
@@ -112,3 +120,75 @@ func test_rewarded_always_unmuted_at_end() -> void:
 func test_interstitial_unmuted_after_close() -> void:
 	assert_bool(_ads.maybe_show_interstitial(10)).is_true()
 	assert_bool(Audio.is_app_muted()).is_false()
+
+
+func _watchdog_events() -> int:
+	var n: int = 0
+	for e: Dictionary in _fake_an.events:
+		if e.get("event_id", "") == "ads:watchdog:unmute":
+			n += 1
+	return n
+
+
+func test_watchdog_unmutes_held_rewarded_once() -> void:
+	_provider.hold_show = true
+	_ads.request_rewarded("x", func() -> void: pass)
+	assert_bool(Audio.is_app_muted()).is_true()
+	_now[0] = 50.0
+	_ads.poll_watchdog()
+	assert_bool(Audio.is_app_muted()).is_true()
+	assert_int(_watchdog_events()).is_equal(0)
+	_now[0] = 91.0
+	_ads.poll_watchdog()
+	assert_bool(Audio.is_app_muted()).is_false()
+	assert_int(_watchdog_events()).is_equal(1)
+	_ads.poll_watchdog()
+	assert_int(_watchdog_events()).is_equal(1)
+
+
+func test_watchdog_interstitial_late_close_does_not_remute() -> void:
+	_provider.hold_show = true
+	assert_bool(_ads.maybe_show_interstitial(10)).is_true()
+	assert_bool(Audio.is_app_muted()).is_true()
+	_now[0] = 91.0
+	_ads.poll_watchdog()
+	assert_bool(Audio.is_app_muted()).is_false()
+	assert_int(_watchdog_events()).is_equal(1)
+	_provider.release(true)
+	assert_bool(Audio.is_app_muted()).is_false()
+	assert_int(_watchdog_events()).is_equal(1)
+
+
+func test_watchdog_not_fired_when_closed_in_time() -> void:
+	var count: Array[int] = [0]
+	_provider.hold_show = true
+	_ads.request_rewarded("x", func() -> void: count[0] += 1)
+	_now[0] = 10.0
+	_provider.release(true)
+	assert_bool(Audio.is_app_muted()).is_false()
+	assert_int(count[0]).is_equal(1)
+	_now[0] = 200.0
+	_ads.poll_watchdog()
+	assert_int(_watchdog_events()).is_equal(0)
+
+
+func test_rewarded_after_watchdog_granted_once() -> void:
+	var count: Array[int] = [0]
+	_provider.hold_show = true
+	_ads.request_rewarded("x", func() -> void: count[0] += 1)
+	_now[0] = 91.0
+	_ads.poll_watchdog()
+	_provider.release(true)
+	assert_int(count[0]).is_equal(1)
+	assert_bool(Audio.is_app_muted()).is_false()
+	_provider.release(true)
+	assert_int(count[0]).is_equal(1)
+
+
+func test_watchdog_timeout_follows_config() -> void:
+	GameConfig.apply_remote({"ad_unmute_timeout_seconds": 5})
+	_provider.hold_show = true
+	_ads.request_rewarded("x", func() -> void: pass)
+	_now[0] = 6.0
+	_ads.poll_watchdog()
+	assert_int(_watchdog_events()).is_equal(1)
