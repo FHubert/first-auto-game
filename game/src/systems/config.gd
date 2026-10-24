@@ -82,6 +82,8 @@ const DEFAULTS: Dictionary = {
 	"iap_starter_theme": "neon",
 	"starter_offer_min_level": 12,
 	"starter_offer_hours": 72,
+	# Experiments (T-142): variant label logged as design event config:variant:<v>
+	"remote_config_variant": "default",
 }
 
 ## Accepted remote range [min, max] per numeric key (T-135); out-of-range values are rejected.
@@ -160,6 +162,11 @@ const ARRAY_RULES: Dictionary = {
 	"daily_reward_multipliers": {"size": 7, "min": 0},
 }
 
+## String-valued keys with a required format (regex); others only need to be non-empty.
+const STRING_RULES: Dictionary = {
+	"remote_config_variant": "^[a-z0-9_]{1,24}$",
+}
+
 var _values: Dictionary = DEFAULTS.duplicate(true)
 
 
@@ -208,9 +215,15 @@ func _coerce(default: Variant, value: Variant) -> Variant:
 	return null
 
 
+func _string_ok(key: String, value: String) -> bool:
+	if STRING_RULES.has(key):
+		return RegEx.create_from_string(str(STRING_RULES[key])).search(value) != null
+	return not value.is_empty()
+
+
 func _in_range(key: String, value: Variant) -> bool:
 	if value is String:
-		return not (value as String).is_empty()
+		return _string_ok(key, value)
 	if value is Array:
 		var rule: Dictionary = ARRAY_RULES.get(key, {})
 		var arr: Array = value
