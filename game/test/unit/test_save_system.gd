@@ -74,3 +74,9 @@ func test_round_trip_themes_and_purchases() -> void:
 	assert_array(loaded.themes_owned).is_equal(["classic", "neon"])
 	assert_str(loaded.theme_active).is_equal("neon")
 	assert_bool(loaded.has_purchase("remove_ads")).is_true()
+
+
+func test_read_only_skips_write() -> void:
+	_sys.read_only = true
+	assert_bool(_sys.save(GameState.new())).is_true()
+	assert_bool(FileAccess.file_exists(TEST_PATH)).is_false()

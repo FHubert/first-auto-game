@@ -10,7 +10,9 @@ func _ready() -> void:
 	_label.text = Version.BUILD_INFO
 	print("Build: ", Version.BUILD_INFO)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
-	if "--playtest" in args:
+	if ScreenshotArgs.has_flag(args, "--screenshot"):
+		_run_screenshot(args)
+	elif "--playtest" in args:
 		_label.text = "Playtest..."
 		var exit_code: int = _run_playtest(args)
 		get_tree().quit(exit_code)
@@ -23,6 +25,54 @@ func _start_app() -> void:
 	app.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(app)
 	_label.visible = false
+
+
+## `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]`: renders one screen and quits.
+func _run_screenshot(args: PackedStringArray) -> void:
+	var parsed: Dictionary = ScreenshotArgs.parse(args)
+	if not bool(parsed["ok"]):
+		push_error("screenshot: " + str(parsed["error"]))
+		get_tree().quit(2)
+		return
+	SaveSystem.read_only = true
+	var state: GameState = ScreenshotFixtures.make(str(parsed["fixture"]))
+	if str(parsed["lang"]) != "":
+		state.settings["locale"] = parsed["lang"]
+	var action: String = ScreenshotArgs.action_for(str(parsed["scene"]))
+	if action != "daily_popup":  # popup only on its own shot; keep Home clean otherwise
+		var today: int = DailyRewards.utc_day_from_unix(int(Time.get_unix_time_from_system()))
+		state.daily_reward_last_claim_day = today
+	var app := App.new()
+	app.state = state
+	app.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(app)
+	_label.visible = false
+	_show_screenshot_screen(app, action)
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	var out: String = str(parsed["out"])
+	DirAccess.make_dir_recursive_absolute(out.get_base_dir())
+	var err: int = get_viewport().get_texture().get_image().save_png(out)
+	get_tree().quit(0 if err == OK else 1)
+
+
+func _show_screenshot_screen(app: App, action: String) -> void:
+	match action:
+		"level":
+			app.show_level()
+		"settings":
+			app.show_settings()
+		"themes":
+			app.show_themes()
+		"shop":
+			app.show_shop()
+		"level_complete":
+			app.show_level()
+			(app.current_screen() as Level)._on_round_won()
+		"stuck_panel":
+			app.show_level()
+			var level := app.current_screen() as Level
+			level.stuck_panel.show_for(level.round, true, level._ad_offers())
 
 
 func _run_playtest(args: PackedStringArray) -> int:
