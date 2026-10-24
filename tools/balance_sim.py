@@ -49,6 +49,8 @@ BUILTIN = {
     "daily_reward_multipliers": [1, 1, 2, 2, 3, 3, 6],
     "daily_challenge_coins": 50,
     "daily_unlock_level": 3,
+    "daily_month_goal": 20,
+    "daily_month_goal_coins": 300,
     "hint_cost_coins": 25,
     "extra_tube_cost_coins": 60,
     "undo_refill_cost_coins": 20,
@@ -180,6 +182,7 @@ def simulate(cfg: dict, players: int, days: int, seed: int) -> dict:
         buy_days: list[int] = []
         buy_active: list[int] = []
         active_count = 0
+        daily_done = 0
         coins_at_active7 = None
         activity = [rnd.random() < retention_at(cfg, d) for d in range(days)]
         activity[0] = True
@@ -217,6 +220,9 @@ def simulate(cfg: dict, players: int, days: int, seed: int) -> dict:
                 coins += int(round(reward))
                 if level >= cfg["daily_unlock_level"] and rnd.random() < cfg["daily_challenge_play_rate"]:
                     coins += int(cfg["daily_challenge_coins"])
+                    daily_done += 1
+                    if daily_done == cfg["daily_month_goal"]:  # month goal bonus (T-137)
+                        coins += int(cfg["daily_month_goal_coins"])
                 n_sessions = max(1, poisson(rnd, cfg["sessions_per_day"] * engagement))
                 sessions_total += n_sessions
                 for _s in range(n_sessions):

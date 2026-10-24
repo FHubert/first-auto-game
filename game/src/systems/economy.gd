@@ -6,6 +6,7 @@ const SOURCE_WIN: String = "win"
 const SOURCE_PERFECT: String = "perfect"
 const SOURCE_DAILY_REWARD: String = "daily_reward"
 const SOURCE_DAILY_CHALLENGE: String = "daily_challenge"
+const SOURCE_DAILY_MONTH_GOAL: String = "daily_month_goal"
 const SOURCE_REWARDED: String = "rewarded"
 const SOURCE_IAP: String = "iap"
 
