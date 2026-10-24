@@ -6,7 +6,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P0 — fundamenty (Faza 1–2)
 
-- [ ] GH-83b `blocked` Nightly sanity: export Android wymaga `rendering/textures/vram_compression/import_etc2_astc=true` w `game/project.godot` (sekcja `[rendering]`) — po GH-83 (PR #86) ręczny run nightly (40080077585) pada na „ETC2/ASTC texture compression is required for Android export” — powód: twarda zasada CLAUDE.md zabrania sesji scheduled zmian `project.godot` poza `[autoload]`/`[input]`/`[display]`; decyzja Huberta (jedna linia; po zmianie Godot reimportuje tekstury — bez nowych plików w repo)
+- [ ] GH-83b `blocked` Nightly sanity (issue #90): export Android wymaga `rendering/textures/vram_compression/import_etc2_astc=true` w `game/project.godot` (sekcja `[rendering]`) — po GH-83 (PR #86) ręczny run nightly (40080077585) pada na „ETC2/ASTC texture compression is required for Android export” — powód: twarda zasada CLAUDE.md zabrania sesji scheduled zmian `project.godot` poza `[autoload]`/`[input]`/`[display]`; decyzja Huberta (jedna linia; po zmianie Godot reimportuje tekstury — bez nowych plików w repo)
   KA: `game/project.godot` ma `[rendering]` → `textures/vram_compression/import_etc2_astc=true`; `make check` zielone; `nightly-sanity` (`workflow_dispatch`) przechodzi krok „Export Android debug APK” (lub pokazuje następny, inny błąd → nowy wpis); `docs/SETUP_HUBERT.md` §15 uzupełnione. ≤ ~5 linii.
   Skill: `godot-build`
 
