@@ -46,6 +46,19 @@ func test_apply_remote_converts_numeric_types() -> void:
 	assert_int(_cfg.get_value("daily_reward_base")).is_equal(60)
 
 
+func test_set_for_test_bypasses_ranges() -> void:
+	_cfg.set_for_test("rewarded_multiplier", 0.5)
+	assert_float(_cfg.get_value("rewarded_multiplier")).is_equal(0.5)
+
+
+func test_set_for_test_unknown_key_is_rejected() -> void:
+	await (
+		assert_error(func() -> void: _cfg.set_for_test("no_such_key", 1))
+		. is_push_error("GameConfig.set_for_test: unknown key 'no_such_key'")
+	)
+	assert_that(_cfg.get_value("no_such_key")).is_null()
+
+
 func test_reset_restores_defaults() -> void:
 	_cfg.apply_remote({"daily_reward_base": 99})
 	_cfg.reset()

@@ -209,6 +209,14 @@ func reset() -> void:
 	_values = DEFAULTS.duplicate(true)
 
 
+## TYLKO TESTY: ustawia wartosc z pominieciem RANGES/niezmiennikow (np. wartosc poza zakresem).
+func set_for_test(key: String, value: Variant) -> void:
+	if not DEFAULTS.has(key):
+		push_error("GameConfig.set_for_test: unknown key '%s'" % key)
+		return
+	_values[key] = value
+
+
 ## Returns value converted to the default's type, or null if incompatible.
 func _coerce(default: Variant, value: Variant) -> Variant:
 	var want: int = typeof(default)

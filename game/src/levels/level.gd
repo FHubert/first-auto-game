@@ -334,7 +334,7 @@ func _on_round_won() -> void:
 	var title: String = ""
 	_last_month_goal_hit = false
 	if mode == MODE_DAILY:
-		var goal: int = int(GameConfig.get_value("daily_month_goal"))
+		var goal: int = DailyChallenge.month_goal()
 		var before: int = DailyChallenge.month_progress(state, utc_day)
 		coins = DailyChallenge.complete(state, utc_day, result)
 		_last_month_goal_hit = (

@@ -18,6 +18,7 @@ func before_test() -> void:
 
 func after_test() -> void:
 	_cleanup()
+	GameConfig.reset()
 	SaveSystem.save_path = _old_path
 	TranslationServer.set_locale(_old_locale)
 
@@ -51,11 +52,20 @@ func test_hidden_at_zero() -> void:
 func test_visible_with_progress() -> void:
 	var home := _home(_unlock(), 5)
 	assert_bool(home.daily_month_label.visible).is_true()
-	assert_str(home.daily_month_label.text).contains("5/20")
+	assert_str(home.daily_month_label.text).is_equal(
+		tr("home_daily_month") % [5, DailyChallenge.month_goal()]
+	)
+
+
+func test_custom_goal_from_config() -> void:
+	GameConfig.set_for_test("daily_month_goal", 3)
+	var home := _home(_unlock(), 1)
+	assert_str(home.daily_month_label.text).is_equal(tr("home_daily_month") % [1, 3])
+	assert_str(home.daily_month_label.text).contains("1/3")
 
 
 func test_done_text_at_goal() -> void:
-	var home := _home(_unlock(), int(GameConfig.get_value("daily_month_goal")))
+	var home := _home(_unlock(), DailyChallenge.month_goal())
 	assert_bool(home.daily_month_label.visible).is_true()
 	assert_str(home.daily_month_label.text).is_equal(tr("home_daily_month_done"))
 
@@ -65,7 +75,7 @@ func test_hidden_when_locked() -> void:
 
 
 func test_label_fits_card_in_all_locales() -> void:
-	var goal: int = int(GameConfig.get_value("daily_month_goal"))
+	var goal: int = DailyChallenge.month_goal()
 	for loc: String in LOCALES:
 		TranslationServer.set_locale(loc)
 		for count: int in [goal - 1, goal]:

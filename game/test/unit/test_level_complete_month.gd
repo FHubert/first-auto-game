@@ -1,7 +1,6 @@
 extends GdUnitTestSuite
 
 const SAVE_PATH: String = "user://test_level_complete_month.json"
-const WIN_COINS_WITH_BONUS: int = 350
 
 var _level: Level
 var _old_path: String
@@ -37,6 +36,15 @@ func _cleanup() -> void:
 	for p in [SAVE_PATH, SAVE_PATH + ".tmp"]:
 		if FileAccess.file_exists(p):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+
+
+func _bonus() -> int:
+	return int(GameConfig.get_value("daily_month_goal_coins"))
+
+
+## Wygrana Poziomu dnia w dniu osiagniecia celu: nagroda dnia + premia miesiaca.
+func _win_coins_with_bonus() -> int:
+	return DailyChallenge.reward_amount() + _bonus()
 
 
 func _start(month_count: int) -> void:
@@ -79,13 +87,29 @@ func _assert_panel_fits(lc: LevelComplete) -> void:
 
 
 func test_goal_day_shows_message_and_bonus_coins() -> void:
-	await _start(int(GameConfig.get_value("daily_month_goal")) - 1)
+	await _start(DailyChallenge.month_goal() - 1)
 	var lc: LevelComplete = _level.level_complete
 	assert_bool(lc.progress_label.visible).is_true()
-	var bonus: int = int(GameConfig.get_value("daily_month_goal_coins"))
-	assert_str(lc.progress_label.text).is_equal(tr("lc_month_goal") % bonus)
-	assert_str(lc.coins_label.text).is_equal(tr("lc_coins") % WIN_COINS_WITH_BONUS)
+	assert_str(lc.progress_label.text).is_equal(tr("lc_month_goal") % _bonus())
+	assert_str(lc.coins_label.text).is_equal(tr("lc_coins") % _win_coins_with_bonus())
 	_assert_panel_fits(lc)
+
+
+func test_goal_message_stays_after_double_coins() -> void:
+	await _start(DailyChallenge.month_goal() - 1)
+	_level._on_double_coins_granted(_win_coins_with_bonus())
+	var lc: LevelComplete = _level.level_complete
+	assert_bool(lc.progress_label.visible).is_true()
+	assert_str(lc.progress_label.text).is_equal(tr("lc_month_goal") % _bonus())
+
+
+func test_custom_goal_from_config_gives_bonus() -> void:
+	GameConfig.set_for_test("daily_month_goal", 3)
+	await _start(2)
+	assert_str(_level.level_complete.progress_label.text).is_equal(tr("lc_month_goal") % _bonus())
+	assert_str(_level.level_complete.coins_label.text).is_equal(
+		tr("lc_coins") % _win_coins_with_bonus()
+	)
 
 
 func test_normal_day_has_no_message() -> void:

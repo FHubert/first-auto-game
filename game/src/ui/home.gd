@@ -96,7 +96,7 @@ func _refresh_daily() -> void:
 	daily_total_label.text = tr("home_daily_total") % state.daily_completed_total
 	daily_total_label.visible = state.daily_completed_total > 0
 	var progress: int = DailyChallenge.month_progress(state, day)
-	var goal: int = int(GameConfig.get_value("daily_month_goal"))
+	var goal: int = DailyChallenge.month_goal()
 	if progress >= goal:
 		daily_month_label.text = tr("home_daily_month_done")
 	else:
