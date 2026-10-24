@@ -271,3 +271,13 @@ func test_win_prefetches_next_level() -> void:
 	_level.load_level(_level.state.level, _level.state.theme_active)
 	assert_int(_level.level_no).is_equal(2)
 	assert_int(_level.prefetch.sync_generations).is_equal(0)
+
+
+func test_skip_prefetches_next_level() -> void:
+	_level.prefetch = LevelPrefetch.new()
+	_level.load_level(1)
+	_level._apply_skip("level:skip:free")
+	var after_skip: int = _level.prefetch.sync_generations
+	_level.load_level(_level.state.level + 1, _level.state.theme_active)
+	assert_int(_level.level_no).is_equal(3)
+	assert_int(_level.prefetch.sync_generations).is_equal(after_skip)

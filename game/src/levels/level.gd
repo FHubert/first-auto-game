@@ -305,7 +305,12 @@ func _apply_skip(source: String) -> void:
 	state.level += 1
 	SaveSystem.save(state)
 	load_level(state.level, state.theme_active)
+	_prefetch_next()
 	next_requested.emit(state.level)
+
+
+func _prefetch_next() -> void:
+	prefetch.request(int(GameConfig.get_value("campaign_seed")), level_no + 1)
 
 
 func pause() -> void:
@@ -340,7 +345,7 @@ func _on_round_won() -> void:
 		coins = Economy.apply_win(state, result)
 		state.level += 1
 		state.levels_completed += 1
-		prefetch.request(int(GameConfig.get_value("campaign_seed")), level_no + 1)
+		_prefetch_next()
 		DailyRewards.register_play(state, DailyRewards.utc_day_from_unix(int(clock.call())))
 	state.round_in_progress = {}
 	SaveSystem.save(state)
