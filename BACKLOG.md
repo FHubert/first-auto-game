@@ -38,7 +38,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `BoardView` emituje `tube_deselected` (tap w tę samą probówkę / nielegalny cel); `Level._process` nie odpytuje zaznaczenia na potrzeby tutorialu; `TEXT_HEIGHT` w `tutorial_overlay.gd` jako `const`. Testy gdUnit4: (a) zaznaczenie + odznaczenie → 1 emisja; (b) w tutorialu krok 2 → nielegalny ruch → `TutorialFlow` wraca do kroku 1, overlay wskazuje źródło; (c) poprawna sekwencja → flaga ukończenia w `GameState.settings`. `make check` zielone. ≤ ~90 linii.
   Skill: `godot-dev`
 
-- [ ] T-078 `todo` BoardView: animacja przelewu wg GDD cz. 1 — przechylenie probówki źródłowej, ubywanie/przybywanie warstw w czasie `pour_anim_seconds`, ochrona tweenów przed `queue_free` w `_rebuild`/`resized` (przeniesione z Inbox T-035)
+- [ ] T-078 `review` BoardView: animacja przelewu wg GDD cz. 1 — przechylenie probówki źródłowej, ubywanie/przybywanie warstw w czasie `pour_anim_seconds`, ochrona tweenów przed `queue_free` w `_rebuild`/`resized` (przeniesione z Inbox T-035) → PR #69
   KA: przelew animowany w 3 fazach (uniesienie+przechył → transfer warstw → powrót) o łącznym czasie = `pour_anim_seconds` z `GameConfig` (proporcje faz jako nazwane `const`); `_rebuild`/`resized` w trakcie animacji zabija aktywne tweeny i rysuje stan końcowy (bez błędów „freed instance” w logu). Testy gdUnit4 przez `scene_runner` z `animate=true` i symulowanym czasem: `pour_finished` emitowane dokładnie raz po ≥ `pour_anim_seconds`; `resized` w połowie animacji → stan widoku = stan `SortBoard`; tap w trakcie animacji ignorowany (input zablokowany do `pour_finished`). Kadr Level (01) obejrzany. `make check` zielone. ≤ ~150 linii.
   Skill: `godot-dev`
 
