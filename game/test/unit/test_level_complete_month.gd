@@ -64,6 +64,20 @@ func _start(month_count: int) -> void:
 	await get_tree().process_frame
 
 
+func _assert_panel_fits(lc: LevelComplete) -> void:
+	assert_bool(lc.btn_copy_result.visible).is_true()
+	var expected_tubes: int = (
+		int(GameConfig.get_value("daily_colors")) + int(GameConfig.get_value("empty_tubes"))
+	)
+	assert_int(_level.round.board().tube_count()).is_equal(expected_tubes)
+	var margin: float = -lc.get_node("Panel").offset_bottom
+	assert_float(lc.panel_rect().size.y).is_equal_approx(lc.panel_height() - margin, 0.5)
+	var tubes: Rect2 = _level.board.tube_rect(0)
+	for i in _level.round.board().tube_count():
+		tubes = tubes.merge(_level.board.tube_rect(i))
+	assert_bool(lc.panel_rect().intersects(tubes)).is_false()
+
+
 func test_goal_day_shows_message_and_bonus_coins() -> void:
 	await _start(int(GameConfig.get_value("daily_month_goal")) - 1)
 	var lc: LevelComplete = _level.level_complete
@@ -71,12 +85,10 @@ func test_goal_day_shows_message_and_bonus_coins() -> void:
 	var bonus: int = int(GameConfig.get_value("daily_month_goal_coins"))
 	assert_str(lc.progress_label.text).is_equal(tr("lc_month_goal") % bonus)
 	assert_str(lc.coins_label.text).is_equal(tr("lc_coins") % WIN_COINS_WITH_BONUS)
-	var tubes: Rect2 = _level.board.tube_rect(0)
-	for i in _level.round.board().tube_count():
-		tubes = tubes.merge(_level.board.tube_rect(i))
-	assert_bool(lc.panel_rect().intersects(tubes)).is_false()
+	_assert_panel_fits(lc)
 
 
 func test_normal_day_has_no_message() -> void:
 	await _start(3)
 	assert_bool(_level.level_complete.progress_label.visible).is_false()
+	_assert_panel_fits(_level.level_complete)
