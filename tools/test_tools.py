@@ -187,5 +187,39 @@ class ShellToolsTest(unittest.TestCase):
             self.assertIn('const BUILD_INFO: String = "1.2.3+142"', gd.read_text())
 
 
+class VersionCodeTest(unittest.TestCase):
+    EPOCH = 1767225600  # 2026-01-01T00:00:00Z
+
+    def vc(self, *args, sde=None):
+        env = {k: v for k, v in os.environ.items() if k != "SOURCE_DATE_EPOCH"}
+        if sde is not None:
+            env["SOURCE_DATE_EPOCH"] = str(sde)
+        return subprocess.run(["bash", str(TOOLS / "version_code.sh"), *args], env=env, capture_output=True, text=True)
+
+    def test_minutes_since_epoch(self):
+        r = self.vc(sde=self.EPOCH + 600)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stdout.strip(), "10")
+
+    def test_monotonic(self):
+        a = int(self.vc(sde=self.EPOCH + 60).stdout)
+        b = int(self.vc(sde=self.EPOCH + 120).stdout)
+        self.assertLess(a, b)
+
+    def test_year_2100_under_play_limit(self):
+        r = self.vc(sde=4102444800)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertLess(int(r.stdout), 2100000000)
+
+    def test_check(self):
+        self.assertEqual(self.vc("--check", "0").returncode, 2)
+        self.assertEqual(self.vc("--check", "abc").returncode, 2)
+        self.assertEqual(self.vc("--check", "2100000000").returncode, 2)
+        self.assertEqual(self.vc("--check", "12345").returncode, 0)
+
+    def test_before_epoch_fails(self):
+        self.assertEqual(self.vc(sde=self.EPOCH - 1).returncode, 1)
+
+
 if __name__ == "__main__":
     unittest.main()
