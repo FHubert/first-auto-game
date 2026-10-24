@@ -20,6 +20,7 @@ var language_label: Label
 var locale_option: OptionButton
 var version_label: Label
 var restore_button: Button
+var privacy_button: Button
 var back_button: Button
 
 
@@ -54,6 +55,7 @@ func apply_from_state() -> void:
 	music_toggle.set_pressed_no_signal(bool(state.settings.get("music_on", true)))
 	sfx_toggle.set_pressed_no_signal(bool(state.settings.get("sfx_on", true)))
 	haptics_toggle.set_pressed_no_signal(bool(state.settings.get("haptics_on", true)))
+	privacy_button.visible = Ads.is_privacy_options_required()
 	var code: String = str(state.settings.get("locale", ""))
 	for i in LOCALES.size():
 		if LOCALES[i][1] == code:
@@ -91,6 +93,12 @@ func _build() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
+	privacy_button = Button.new()
+	privacy_button.text = tr("set_privacy_options")
+	privacy_button.custom_minimum_size = Vector2(0, 100)
+	privacy_button.add_theme_font_size_override("font_size", FONT_SIZE)
+	privacy_button.pressed.connect(func() -> void: Ads.show_privacy_options())
+	box.add_child(privacy_button)
 	restore_button = Button.new()
 	restore_button.text = tr("btn_restore")
 	restore_button.custom_minimum_size = Vector2(0, 100)

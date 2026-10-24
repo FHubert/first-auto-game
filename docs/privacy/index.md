@@ -34,7 +34,7 @@ Data is shared with these providers; they act under their own privacy policies.
 ## 5. Consent
 - EEA/UK/CH: Google UMP asks for consent to ads at first launch.
 - iOS 14.5+: App Tracking Transparency (ATT) prompt before any tracking.
-- Withdrawing: Settings → privacy options in the game, or system settings (reset or restrict the advertising ID, ATT toggle). ZWERYFIKUJ (menu name after implementation).
+- Withdrawing: Settings → “Privacy options” in the game (shown only where the consent SDK requires it), or system settings (reset or restrict the advertising ID, ATT toggle).
 
 ## 6. Data retention
 Retention depends on the SDK providers' policies. ZWERYFIKUJ. The game stores no personal data on our servers.
