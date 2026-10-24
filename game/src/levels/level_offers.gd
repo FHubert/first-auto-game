@@ -11,6 +11,7 @@ signal double_coins_granted(bonus: int)
 
 const MODE_CAMPAIGN: String = "campaign"
 const MODE_DAILY: String = "daily"
+const ASSIST_SOURCE: String = "assist"
 
 var state: GameState
 var round: GameRound
@@ -18,6 +19,7 @@ var rewarded: RewardedPlacements
 var mode: String = MODE_CAMPAIGN
 var level_no: int = 1
 var last_win_coins: int = 0
+var _assist_offered_attempt: int = -1
 
 
 func bind(
@@ -32,6 +34,7 @@ func bind(
 	rewarded = p_rewarded
 	mode = p_mode
 	level_no = p_level_no
+	_assist_offered_attempt = -1
 
 
 func buy_extra_tube() -> bool:
@@ -102,7 +105,7 @@ func watch_double_coins() -> bool:
 	)
 
 
-func watch_extra_tube() -> bool:
+func watch_extra_tube(source: String = "") -> bool:
 	if round.is_done() or not round.can_add_extra_tube():
 		return false
 	return rewarded.offer(
@@ -110,6 +113,8 @@ func watch_extra_tube() -> bool:
 		func() -> void:
 			round.add_extra_tube()
 			Analytics.track_design("booster:extra_tube:rewarded")
+			if source == ASSIST_SOURCE:
+				Analytics.track_design("level:assist:rewarded")
 			action_applied.emit()
 	)
 
@@ -140,3 +145,37 @@ func ad_offers() -> Dictionary:
 			and rewarded.can_offer(RewardedPlacements.SKIP_LEVEL)
 		),
 	}
+
+
+## Pasek "dodatkowa probowka" na starcie trudnej proby (kampania, plateau).
+func plateau_assist() -> Dictionary:
+	var base: bool = _assist_base()
+	var coins: bool = base and Economy.can_afford(state, Economy.extra_tube_cost())
+	var ad: bool = base and rewarded.can_offer(RewardedPlacements.EXTRA_TUBE)
+	var show: bool = coins or ad
+	if show and _assist_offered_attempt != round.restarts():
+		_assist_offered_attempt = round.restarts()
+		Analytics.track_design("level:assist:offered")
+	return {"show": show, "coins": coins, "rewarded": ad}
+
+
+func assist_buy_extra_tube() -> bool:
+	var ok: bool = buy_extra_tube()
+	if ok:
+		Analytics.track_design("level:assist:coins")
+	return ok
+
+
+func assist_watch_extra_tube() -> bool:
+	return watch_extra_tube(ASSIST_SOURCE)
+
+
+func _assist_base() -> bool:
+	return (
+		mode == MODE_CAMPAIGN
+		and level_no >= int(GameConfig.get_value("plateau_assist_min_level"))
+		and round.restarts() + 1 >= int(GameConfig.get_value("plateau_assist_from_attempt"))
+		and round.moves() == 0
+		and not round.is_done()
+		and round.can_add_extra_tube()
+	)
