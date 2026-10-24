@@ -23,8 +23,6 @@ jobs:
       version_name: ${{ steps.v.outputs.name }}
       version_code: ${{ steps.v.outputs.code }}
     steps:
-      # Checkout needed for tools/version_code.sh (shared monotonic version_code).
-      - uses: actions/checkout@v7
       - id: v
         run: |
           tag="${GITHUB_REF_NAME}"
@@ -34,9 +32,7 @@ jobs:
             exit 1
           fi
           echo "name=$name" >> "$GITHUB_OUTPUT"
-          code="$(bash tools/version_code.sh)"
-          bash tools/version_code.sh --check "$code"
-          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "code=$((GITHUB_RUN_NUMBER + 100))" >> "$GITHUB_OUTPUT"
 
   # Changelog = conventional-commit subjects since the previous tag. Kept as an artifact
   # (never committed); build jobs drop it into fastlane/metadata/android/.../<version_code>.txt

@@ -3,10 +3,11 @@
 # Required secrets:
 #   ANDROID_KEYSTORE_BASE64, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD,
 #   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
-# Version: version_code = inputs.version_code or minutes since 2026-01-01 UTC (tools/version_code.sh),
+# Version: version_code = inputs.version_code or github.run_number + 100,
 #          version_name = inputs.version_name or VERSION from game/src/core/version.gd.
-# NOTE: all workflows share tools/version_code.sh, so codes stay monotonic across
-# build-android, build-ios and release (Play rejects non-increasing codes).
+# NOTE: github.run_number is per workflow file. If both this workflow (push to main) and
+# release.yml (which passes its own version_code) upload to the same Play app, make sure
+# the codes never go backwards (Play rejects non-increasing codes).
 name: build-android
 
 on:
@@ -17,7 +18,7 @@ on:
         type: string
         default: internal
       version_code:
-        description: Override version code (default: minutes since 2026-01-01 UTC, tools/version_code.sh)
+        description: Override version code (default run_number + 100)
         type: string
         default: ""
       version_name:
@@ -31,7 +32,7 @@ on:
         type: string
         default: internal
       version_code:
-        description: Override version code (default: minutes since 2026-01-01 UTC, tools/version_code.sh)
+        description: Override version code (default run_number + 100)
         type: string
         default: ""
       version_name:
@@ -130,8 +131,7 @@ jobs:
           INPUT_CODE: ${{ inputs.version_code }}
           INPUT_NAME: ${{ inputs.version_name }}
         run: |
-          code="${INPUT_CODE:-$(bash tools/version_code.sh)}"
-          bash tools/version_code.sh --check "$code"
+          code="${INPUT_CODE:-$((GITHUB_RUN_NUMBER + 100))}"
           name="$INPUT_NAME"
           if [ -z "$name" ]; then
             name="$(sed -nE 's/^const VERSION: String = "([^"]+)".*/\1/p' game/src/core/version.gd | head -n1)"
