@@ -6,10 +6,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P0 — fundamenty (Faza 1–2)
 
-- [ ] GH-83 `review` Nightly sanity: export Android (gradle) padał na „Android build template not installed” — `make setup` instaluje szablon z `android_source.zip` (`game/android/build/`, `.build_version`, `.gdignore`) (issue #83) → PR #86
-  KA: `make setup` idempotentnie rozpakowuje `android_source.zip` z export templates do `game/android/build/` i zapisuje `game/android/.build_version` = `4.7.2.stable`; `game/android/.gdignore` w repo, `build/` i `.build_version` ignorowane; lokalnie `--export-debug Android` nie zgłasza już „build template not installed” (zostają tylko błędy braku SDK); test statyczny w `tools/test_tools.py`; nightly-sanity zielony przy następnym uruchomieniu (weryfikacja po merge — `gh api …/actions/workflows/nightly-sanity.yml/dispatches`). Blokada backlog-sync (GH006) → `docs/SETUP_HUBERT.md` §15 (7).
-  Skill: `godot-build`
-
 ## P1 — core loop i retencja (z GDD v1.0, R-003)
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->
@@ -27,10 +23,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   Skill: `godot-build`
 
 <!-- Refill 2026-10-24 (continuous-dev #8, refill #5): Faza 5 prep III — wiarygodna analityka przed soft launchem (lejek poziomów i FTUE), brakujące elementy MVP z GDD (LevelComplete, konfetti), odporność zapisu. Bez workflowów, binarek z Releases, kont i SDK. Kolejność = zależności (T-093 → T-094 → T-095 dotykają `level.gd`). -->
-
-- [ ] T-097 `in_progress` Konfetti na wygranej: `CPUParticles2D` z prostokątów w kolorach aktywnego motywu (GDD → Styl graficzny; zależy od T-096 — wspólny kadr 02)
-  KA: węzeł `CPUParticles2D` (`one_shot = true`) w scenie Level nad planszą, pod panelem `LevelComplete`, startowany w `Level._on_round_won` (kampania i daily); liczba cząstek z nazwanej `const CONFETTI_AMOUNT`, czas życia z klucza `confetti_seconds` w `GameConfig` (PROPOZYCJA 1.2, GDD → tabela kluczy), kolory = pierwsze 6 kolorów palety aktywnego motywu (Gradient w `color_initial_ramp`); restart/następny poziom/`resume` zatrzymują emisję; w trybie `--screenshot` konfetti nie startuje (deterministyczne kadry). Testy gdUnit4 ≥ 3: wygrana → `emitting == true` i `lifetime == confetti_seconds`; `load_level` po wygranej → `emitting == false`; tryb screenshot → `emitting == false`. `make screenshots` → kadr 02 bez cząstek (identyczny jak po T-096). `make check` zielone. ≤ ~70 linii.
-  Skill: `godot-dev`
 
 <!-- Refill 2026-10-24 (continuous-dev #9, refill #6): Faza 5 prep IV — wiarygodne CI i kadry, powrót z tła, widoczna meta — przed soft launchem bramka `make check` nie może dawać fałszywych czerwonych (próg 500 ms), PR-y nie mogą nieść przypadkowych PNG, a powrót z tła (najczęstsza ścieżka wejścia na mobile) musi liczyć czas rundy i pokazywać nagrodę dzienną, bo to dźwignie D1/D7 z KPI.md. Kolejność = zależności (T-108 przed zadaniami regenerującymi kadry: T-110, T-111). -->
 
@@ -72,21 +64,9 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #8, refill #5, P2): reklamy/consent bez SDK — odporność na zawieszony provider i zmianę zgody; refaktor Level po paczce analityki P1; spójność PL. Kolejność = zależności. -->
 
-- [ ] T-099 `review` Ads/Audio: watchdog odciszenia — gdy provider nie zamknie interstitiala ani nie wywoła callbacku rewarded w `ad_unmute_timeout_seconds`, dźwięk wraca, a przerwa reklamowa się kończy (przeniesione z Inbox T-073) → PR #87
-  KA: klucz `ad_unmute_timeout_seconds` w `GameConfig` (PROPOZYCJA 90, GDD → tabela kluczy); `AdService` zapamiętuje moment wyciszenia (wstrzykiwany `clock`) i w `_process` po przekroczeniu limitu woła `Audio.set_app_muted(false)` i rejestruje dokładnie 1× `ads:watchdog:unmute`; późny callback/`interstitial_closed` po watchdogu nie wycisza ponownie, a nagroda rewarded jest przyznana maks. 1×. `FakeAdProvider` dostaje flagę `hold_show: bool` (pokaz bez callbacku i bez `*_closed`) i metodę `release(granted: bool)`. Testy gdUnit4 ≥ 3: `hold_show` + zegar +91 s → `Audio.is_app_muted() == false` i 1 event; zamknięcie przed limitem → 0 eventów watchdoga; `release(true)` po watchdogu → nagroda 1×, `muted_by_ads == false`. `make check` zielone. ≤ ~80 linii.
-  Skill: `ads-iap`
-
-- [ ] T-100 `review` Consent: po zamknięciu „Opcji prywatności” ponowne `AdProvider.set_personalized` wg nowego statusu UMP, `consent_finished` dla Settings, `Ads` z `PROCESS_MODE_ALWAYS` (przeniesione z Inbox T-070) → PR #88
-  KA: `Ads.show_privacy_options()` przekazuje callback do `ConsentProvider.show_privacy_options`; po zamknięciu odczytuje `get_ump_status()`/`can_request_ads()`, woła `provider.set_personalized(...)` (zgoda → true, odmowa → false), aktualizuje `consent_result`, emituje `consent_finished` i rejestruje 1× `consent:ump:<status>` przez `report_consent`. `FakeConsentProvider` ma skryptowany status zwracany po `show_privacy_options`. Autoload `Ads` ma `process_mode = PROCESS_MODE_ALWAYS` (ustawione w `_ready`; test asercją). Testy gdUnit4 ≥ 4: zgoda → odmowa (`FakeAdProvider.personalized == false`, `set_personalized_calls` +1); odmowa → zgoda (`true`); 1 event `consent:ump:*` na zamknięcie; Settings po `consent_finished` pokazuje przycisk wg `is_privacy_options_required`. `make check` zielone. ≤ ~80 linii.
-  Skill: `ads-iap`
-
 - [ ] T-101 `review` Refaktor: oferty rewarded i boostery z `Level` do klasy `LevelOffers` (`RefCounted`, bez `Node`), usunięcie `# gdlint: disable=max-public-methods` (przeniesione z Inbox T-090; zależy od T-093, T-094, T-095, T-096, T-097 — te same pliki) → PR #89
   KA: `watch_*`, `buy_*`, `can_double_coins`, `double_coins_bonus` przeniesione do `game/src/levels/level_offers.gd` (`class_name LevelOffers`, zależności przez konstruktor/`bind`: `GameState`, `GameRound`, `RewardedPlacements`); `Level` wystawia `offers: LevelOffers`, HUD/StuckPanel/LevelComplete łączą się z `level.offers`; grep `max-public-methods` w `level.gd` = 0 i `make lint` zielone; liczba testów gdUnit4 nie maleje, asercje istniejących testów bez zmian (dozwolona tylko zmiana ścieżki wywołania `level.x()` → `level.offers.x()`); `make playtest` 200/200 bez softlocka. Zachowanie bez zmian (refaktor). ≤ ~200 linii zmienionych (głównie przeniesienie).
   Skill: `godot-dev`
-
-- [ ] T-102 `review` Lokalizacja PL: anglicyzm „streak” → „seria” we wszystkich tekstach PL (`btn_save_streak` „Uratuj serię”) + test (przeniesione z Inbox T-088) → PR #85
-  KA: w kolumnie PL `strings.csv` żadna wartość nie zawiera „streak” (case-insensitive; klucze nie liczone) — test gdUnit4 w suicie lokalizacji; `btn_save_streak` PL „Uratuj serię” mieści się w `MAX_BTN_LEN`; inne wystąpienia odmienione poprawnie („serii”, „serię”). Kadr 04 PL (`make screenshots`) odświeżony, jeśli zawiera zmieniony tekst. `make check` zielone. ≤ ~20 linii + PNG.
-  Skill: `aso`
 
 <!-- Refill 2026-10-24 (continuous-dev #9, refill #6, P2): Faza 5 prep IV — higiena testów i kodu Level/App po refaktorze, dostępność, generator w GameConfig — czysty log runnera i testy brzegowe ekonomii zmniejszają ryzyko crashy (crash-free ≥ 99,5 %) przed SDK, symbole kolorów zdejmują barierę 12 kolorów (D1/D7), a budżety generatora w GameConfig pozwalają stroić czas generacji remote configiem. Kolejność = zależności (T-113 po T-101, T-114 po T-109, T-116 po T-107). -->
 
@@ -159,11 +139,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - Refill #6 (T-111): kadr sklepowy 02 — przyjęto: panel LevelComplete kompaktowy przy dolnej krawędzi także w grze (nie tylko w fixture kadru), żeby screenshot pokazywał prawdziwy ekran; do zmiany (alternatywa: specjalny układ tylko w trybie `--screenshot` — szybciej, ale kadr przestaje odpowiadać grze, ryzyko odrzucenia za mylące screenshoty).
 
 ## Done (ostatnie 30)
-- [x] T-060 `done` UI: nieprzezroczyste tło paneli nakładkowych (LevelComplete, DailyRewardPopup, StuckPanel, karta Poziomu dnia na Home) + regeneracja screenshotów sklepowych → PR #50 (zmergowany 2026-10-24)
-- [x] T-051 `done` Metadata sklepowe EN/PL/DE w `fastlane/metadata` (Android + iOS) z `docs/ASO.md` → PR #51 (zmergowany 2026-10-24)
-- [x] T-052 `done` Polityka prywatności (EN/PL) + odpowiedzi do Play Data Safety i App Store Privacy Labels → PR #52 (zmergowany 2026-10-24)
-- [x] T-034 `done` Bramka: `make test-tools` (uruchamia `tools/test_tools.py`) dołączony do `make check` + Pillow w `make setup` (przeniesione z Inbox) → PR #54 (zmergowany 2026-10-24)
-- [x] T-062 `done` Consent: `ConsentProvider` (interfejs) + `FakeConsentProvider` + `ConsentFlow` (czysta klasa, UMP → ATT) wg GDD → Mechaniki „Zgoda UMP/ATT” → PR #55 (zmergowany 2026-10-24)
 - [x] T-063 `done` Consent w UI: `Boot` czeka na `ConsentFlow.finished` przed pierwszym `Ads` load + przycisk „Opcje prywatności” w Settings (zależy od T-062) → PR #56 (zmergowany 2026-10-24)
 - [x] T-064 `done` iOS: `game/ios/PrivacyInfo.xcprivacy` jako plik źródłowy (plist) zgodny z tabelą Privacy Labels w `docs/RELEASE_CHECKLIST.md` + test (bez zmian w `export_presets.cfg` — podpięcie w T-053) → PR #57 (zmergowany 2026-10-24)
 - [x] T-057 `done` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox) → PR #58 (zmergowany 2026-10-24)
@@ -189,3 +164,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-095 `done` Analityka: lejek FTUE → PR #80 (zmergowany 2026-10-24)
 - [x] T-096 `done` LevelComplete: komunikat „Następny poziom: +1 kolor” albo postęp do następnego motywu → PR #81 (zmergowany 2026-10-24)
 - [x] T-098 `done` Odporność zapisu: zły typ `schema_version` w `GameState.migrate` i nie-liczbowe `payload.min_moves` w `GameRound.from_dict` → PR #82 (zmergowany 2026-10-24)
+- [x] GH-83 `done` Nightly sanity: `make setup` instaluje szablon Android build (gradle) — export Android w nightly-sanity (issue #83) → PR #86 (zmergowany 2026-10-24)
+- [x] T-097 `done` Konfetti na wygranej w kolorach motywu, wyłączone w `--screenshot` → PR #84 (zmergowany 2026-10-24)
+- [x] T-099 `done` Ads/Audio: watchdog odciszenia (`ad_unmute_timeout_seconds`, `ads:watchdog:unmute`) → PR #87 (zmergowany 2026-10-24)
+- [x] T-100 `done` Consent: re-personalizacja po „Opcjach prywatności”, `consent_finished` dla Settings, `Ads` PROCESS_MODE_ALWAYS → PR #88 (zmergowany 2026-10-24)
+- [x] T-102 `done` Lokalizacja PL: „Uratuj serię” zamiast „Uratuj streak” + test → PR #85 (zmergowany 2026-10-24)
