@@ -6,10 +6,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P0 — fundamenty (Faza 1–2)
 
-
-
-
-
 ## P1 — core loop i retencja (z GDD v1.0, R-003)
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->
@@ -28,57 +24,9 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #5, refill #3): Faza 4 — prace bez kont, bez workflowów i bez pobierania binarek (ograniczenia sesji scheduled). Kolejność = zależności. -->
 
-- [ ] T-062 `review` Consent: `ConsentProvider` (interfejs) + `FakeConsentProvider` + `ConsentFlow` (czysta klasa, UMP → ATT) wg GDD → Mechaniki „Zgoda UMP/ATT” → PR #55
-  KA: `game/src/systems/consent_provider.gd`, `fake_consent_provider.gd` (skryptowane odpowiedzi: `region_eea`, `form_required`, `ump_status`, `att_status`, `privacy_options_required`, opóźnienie), `consent_flow.gd` bez `Node` (zegar wstrzykiwany). Klucz `consent_timeout_seconds` = 8 w `GameConfig`. Test gdUnit4 ≥ 6 przypadków: EEA+zgoda → `personalized=true`; EEA+odmowa → `can_request_ads=true`, `personalized=false`; poza EEA → bez formularza; timeout → `finished` z `personalized=false`; iOS ATT denied → `personalized=false`; ATT nie pytany po odmowie UMP. Każdy przypadek: dokładnie jedno `report_consent("ump", …)` (i `"att"` na iOS) zarejestrowane w `FakeAnalyticsProvider` przez `Ads.report_consent`. Bez SDK i bez zależności. `make check` zielone. ≤ ~220 linii.
-  Skill: `ads-iap`
-
-- [ ] T-063 `review` Consent w UI: `Boot` czeka na `ConsentFlow.finished` przed pierwszym `Ads` load + przycisk „Opcje prywatności” w Settings (zależy od T-062) → PR #56
-  KA: `App`/Boot uruchamia `ConsentFlow` z `FakeConsentProvider` (domyślnie „poza EEA”, natychmiast), `AdService` odrzuca `request_rewarded`/interstitial, dopóki flow nie skończył (test gdUnit4: wywołanie przed `finished` → `false`, po → zgodnie z fake); `personalized` przekazywane do `AdProvider` (pole/metoda w interfejsie, fake je zapisuje — test). Settings: przycisk `set_privacy_options` (klucz w `strings.csv` EN/PL/DE, ≤ 18 znaków, przechodzi test fontu z T-040) widoczny tylko gdy `privacy_options_required`; tap woła `ConsentProvider.show_privacy_options()` (test na fake: licznik wywołań = 1; ukrycie przy `false`). Polityka prywatności (`docs/privacy/*.md`) — usunąć `ZWERYFIKUJ` przy „Settings → privacy options”, jeśli ścieżka w UI zgodna. Screenshot Settings odświeżony w `tools/screens.txt`. `make check` zielone. ≤ ~200 linii.
-  Skill: `ads-iap`
-
-- [ ] T-064 `review` iOS: `game/ios/PrivacyInfo.xcprivacy` jako plik źródłowy (plist) zgodny z tabelą Privacy Labels w `docs/RELEASE_CHECKLIST.md` + test (bez zmian w `export_presets.cfg` — podpięcie w T-053) → PR #57
-  KA: plist z `NSPrivacyTracking` (true — AdMob z ATT), `NSPrivacyTrackingDomains`, `NSPrivacyCollectedDataTypes` (typy z tabeli T-052), `NSPrivacyAccessedAPITypes` (UserDefaults / FileTimestamp / SystemBootTime z kodami powodów — każdy kod z linkiem do dokumentacji Apple w komentarzu PR albo `ZWERYFIKUJ`). Test w `tools/test_tools.py`: `plistlib.load` parsuje plik, 4 klucze główne istnieją, każdy typ danych z tabeli Privacy Labels występuje w `NSPrivacyCollectedDataTypes` (i odwrotnie). Domeny trackingu SDK: tylko potwierdzone w dokumentacji Google, inaczej pusta lista + `ZWERYFIKUJ` w `docs/RELEASE_CHECKLIST.md`. `make check` zielone (po T-034 test wchodzi w bramkę). ≤ ~120 linii.
-  Skill: `store-release`
-
-- [ ] T-057 `review` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox) → PR #58
-  KA: fixture kadru LevelComplete w `ScreenshotFixtures` ustawia `show_result` z wartościami z ekonomii (`win_reward_coins` + premia „idealnie” z `GameConfig`, nie literały) — test gdUnit4: etykieta monet po fixture ≠ „+0” i równa `Economy`-wyliczonej kwocie; `perfect_label` widoczny. `make screenshots` → kadr 02 ×3 języki odświeżony. `make check` zielone. ≤ ~60 linii + PNG.
-  Skill: `godot-dev`
-
-- [ ] T-056 `review` BoardView/TubeView: warstwy płynu przycięte do kształtu probówki (dolna warstwa nie wystaje poza zaokrąglenie) (przeniesione z Inbox) → PR #59
-  KA: rysowanie warstw w `tube_view.gd` ograniczone do wnętrza probówki (np. dolna warstwa jako prostokąt + zaokrąglony spód o promieniu z sprite'a, albo `clip_children` z maską) dla obu kształtów z T-018; stałe proporcji jako nazwane `const`/klucze. Test gdUnit4: dla probówki pełnej i z 1 warstwą prostokąt/obrys dolnej warstwy mieści się w `Rect2` wnętrza probówki (z tolerancją 1 px) w obu kształtach. Kadr Level (01) obejrzany po `make screenshots`. `make check` zielone. ≤ ~100 linii.
-  Skill: `godot-dev`
-
-- [ ] T-061 `review` Home: odstęp nad przyciskiem „Graj” w karcie Poziomu dnia + regeneracja 15 screenshotów sklepowych (zależy od T-056, T-057, T-063) (przeniesione z Inbox) → PR #60
-  KA: `separation` VBox karty z nazwanej stałej/stylu (≥ 12 px przy 1080×1920); test gdUnit4: odstęp między etykietą stanu a przyciskiem „Graj” ≥ stała. `make screenshots` → 15 PNG (5 kadrów × EN/PL/DE) odświeżonych i zacommitowanych, test rozmiarów z T-050 zielony; kadry 01–05 obejrzane, lista uwag w opisie PR. `make check` zielone. ≤ ~40 linii + PNG.
-  Skill: `aso`
-
-- [ ] T-049 `review` Shop jako overlay nad Level — powrót bez utraty rundy i do właściwego trybu (campaign/daily) (przeniesione z Inbox; zastępuje przyjęcie z T-027) → PR #62
-  KA: `App.show_shop` ze StuckPanel/HUD w trybie `daily` i `campaign` otwiera Shop nad Level (Level nie jest zwalniany, runda zachowuje ruchy); zamknięcie Shop wraca do tej samej rundy; wejście z Home → powrót do Home. Testy gdUnit4: (a) daily → shop → zamknij → `level.mode == "daily"` i liczba ruchów bez zmian; (b) campaign jw.; (c) Home → shop → zamknij → Home. Pytanie T-027 w „Pytania do Huberta” zaktualizowane. `make check` zielone. ≤ ~120 linii.
-  Skill: `godot-dev`
-
-- [ ] T-041 `review` Audio: `click` na przyciskach UI, `tube_full` po przelewie zamykającym probówkę, wyciszenie na czas reklamy (przeniesione z Inbox) → PR #63
-  KA: `click` przez jeden punkt (np. sygnał z Theme/helper w `App`, nie per-scena kopiuj-wklej); `tube_full` gdy po `pour` probówka docelowa pełna jednego koloru (test gdUnit4 na `GameRound`/`Level` z fake `AudioService`: dokładnie 1 odtworzenie na zamknięcie); `AdService` woła `Audio.set_app_muted(true)` przed pokazem i `false` po zamknięciu/błędzie (test z `FakeAdProvider`: granted, skipped, unavailable → zawsze odciszone na końcu). `HAPTIC_MS` jako `const`. `make check` zielone. ≤ ~100 linii.
-  Skill: `godot-dev`
-
-- [ ] T-065 `review` Docs: `docs/SETUP_HUBERT.md` — lista kroków ręcznych Fazy 4 + `CLAUDE.md` (tabela komend i lekcja o workflowach) → PR #61
-  KA: `SETUP_HUBERT.md` ma nową sekcję „Faza 4 — do zrobienia w sesji interaktywnej” z checklistą: (1) workflowy T-002b, T-005, T-053, T-055 (link do KA w BACKLOG), (2) pluginy IAP T-047/T-048 — pobranie release zip + SHA-256, (3) publikacja polityki prywatności (`docs/privacy/`, hosting, `__PRIVACY_CONTACT__`, przegląd prawny), (4) przegląd wszystkich `ZWERYFIKUJ` w `docs/` (liczba podana z `grep`, dziś 85), (5) sprawdzenie nazwy „Vialo” w EUIPO/UPRP i dostępności w Play/ASC; każdy punkt z numerem zadania i kryterium „zrobione”. `CLAUDE.md`: wiersz `make screenshots-smoke` w tabeli „Komendy” (opis z `Makefile`) i `make test-tools` (po T-034), w „Tryb ciągły” 1–2 zdania: sesja scheduled nie edytuje `.github/workflows/**` ani nie pobiera z GitHub Releases → takie zadania od razu `blocked` z powodem. Bez zmian w `.claude/*`. ≤ ~80 linii tekstu.
-  Skill: `store-release`
-
-
-
-
-
-
-
-
 <!-- Refill 2026-10-24 (continuous-dev #6, refill #4): Faza 5 prep II — jakość zapisu, polish core loopu, FTUE, czysty log CI. Bez workflowów, binarek z Releases, kont i SDK. Kolejność = zależności / wpływ na D1. -->
 
-- [ ] T-074 `todo` GameState.from_dict: zły typ/zakres pojedynczego klucza → reset tego klucza do domyślnej zamiast odrzucenia całego zapisu; górny limit dla `_as_int` (przeniesione z Inbox T-032)
-- [ ] T-074 `review` GameState.from_dict: zły typ/zakres pojedynczego klucza → reset tego klucza do domyślnej zamiast odrzucenia całego zapisu; górny limit dla `_as_int` (przeniesione z Inbox T-032) → PR #65
-  KA: `from_dict` przy złym typie klucza w `settings` (np. `"music": "x"`) lub pola głównego (`coins: "abc"`, `coins: 1e30`, `NaN`) zwraca stan z wartością domyślną tylko tego klucza, reszta postępu (`level`, `coins`, `streak_days`, `owned_themes`) zachowana. Limit górny jako nazwana `const` (np. `MAX_SAVE_INT = 1_000_000_000`), wartość ponad limit → przycięta do limitu. Odrzucenie całego zapisu tylko dla `schema_version` > obecny lub nie-Dictionary (istniejący test zostaje). Test gdUnit4 ≥ 5 przypadków (zły typ w settings, string w coins, 1e30, NaN, ujemne) — każdy sprawdza, że `level` z zapisu przetrwał. `make check` zielone. ≤ ~100 linii.
-  Skill: `godot-dev`
-
-- [ ] T-075 `todo` Czysty log `make test`/`make test-tools`: SaveSystem bez `ERROR: Parse JSON failed`, FNV bez `Cannot represent ... 64-bit`, `Image.open` w `with` (przeniesione z Inbox T-028, T-036, T-067)
+- [ ] T-075 `in_progress` Czysty log `make test`/`make test-tools`: SaveSystem bez `ERROR: Parse JSON failed`, FNV bez `Cannot represent ... 64-bit`, `Image.open` w `with` (przeniesione z Inbox T-028, T-036, T-067)
   KA: `SaveSystem.load` używa `JSON.new().parse()` + kod błędu (uszkodzony plik → stan domyślny, bez `ERROR:` w stdout); `FNV_OFFSET` w `test_content_generator.gd` jako literał ze znakiem (-3750763034362895579) — golden hashe bez zmian (test zielony bez edycji oczekiwanych wartości); `tools/test_tools.py` otwiera obrazy przez `with Image.open(...) as im`. Weryfikacja: `make test 2>&1 | grep -cE "Parse JSON failed|Cannot represent"` = 0 i `python3 -W error::ResourceWarning tools/test_tools.py` exit 0. `make check` zielone. ≤ ~40 linii.
   Skill: `godot-test`
 
@@ -225,3 +173,13 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-051 `done` Metadata sklepowe EN/PL/DE w `fastlane/metadata` (Android + iOS) z `docs/ASO.md` → PR #51 (zmergowany 2026-10-24)
 - [x] T-052 `done` Polityka prywatności (EN/PL) + odpowiedzi do Play Data Safety i App Store Privacy Labels → PR #52 (zmergowany 2026-10-24)
 - [x] T-034 `done` Bramka: `make test-tools` (uruchamia `tools/test_tools.py`) dołączony do `make check` + Pillow w `make setup` (przeniesione z Inbox) → PR #54 (zmergowany 2026-10-24)
+- [x] T-062 `done` Consent: `ConsentProvider` (interfejs) + `FakeConsentProvider` + `ConsentFlow` (czysta klasa, UMP → ATT) wg GDD → Mechaniki „Zgoda UMP/ATT” → PR #55 (zmergowany 2026-10-24)
+- [x] T-063 `done` Consent w UI: `Boot` czeka na `ConsentFlow.finished` przed pierwszym `Ads` load + przycisk „Opcje prywatności” w Settings (zależy od T-062) → PR #56 (zmergowany 2026-10-24)
+- [x] T-064 `done` iOS: `game/ios/PrivacyInfo.xcprivacy` jako plik źródłowy (plist) zgodny z tabelą Privacy Labels w `docs/RELEASE_CHECKLIST.md` + test (bez zmian w `export_presets.cfg` — podpięcie w T-053) → PR #57 (zmergowany 2026-10-24)
+- [x] T-057 `done` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox) → PR #58 (zmergowany 2026-10-24)
+- [x] T-056 `done` BoardView/TubeView: warstwy płynu przycięte do kształtu probówki (dolna warstwa nie wystaje poza zaokrąglenie) (przeniesione z Inbox) → PR #59 (zmergowany 2026-10-24)
+- [x] T-061 `done` Home: odstęp nad przyciskiem „Graj” w karcie Poziomu dnia + regeneracja 15 screenshotów sklepowych (zależy od T-056, T-057, T-063) (przeniesione z Inbox) → PR #60 (zmergowany 2026-10-24)
+- [x] T-049 `done` Shop jako overlay nad Level — powrót bez utraty rundy i do właściwego trybu (campaign/daily) (przeniesione z Inbox; zastępuje przyjęcie z T-027) → PR #62 (zmergowany 2026-10-24)
+- [x] T-041 `done` Audio: `click` na przyciskach UI, `tube_full` po przelewie zamykającym probówkę, wyciszenie na czas reklamy (przeniesione z Inbox) → PR #63 (zmergowany 2026-10-24)
+- [x] T-065 `done` Docs: `docs/SETUP_HUBERT.md` — lista kroków ręcznych Fazy 4 + `CLAUDE.md` (tabela komend i lekcja o workflowach) → PR #61 (zmergowany 2026-10-24)
+- [x] T-074 `done` GameState.from_dict: zły typ/zakres pojedynczego klucza → reset tego klucza do domyślnej zamiast odrzucenia całego zapisu; górny limit dla `_as_int` (przeniesione z Inbox T-032) → PR #65 (zmergowany 2026-10-24)
