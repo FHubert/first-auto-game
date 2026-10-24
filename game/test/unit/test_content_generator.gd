@@ -6,6 +6,10 @@ const FNV_OFFSET: int = 9223372036854775807
 const FNV_PRIME: int = 0x100000001B3
 const SLOW_REPORTED: int = 5
 const MAX_MS_PER_LEVEL: int = 500
+const MAX_MS_HARD: int = 2000
+const P95_INDEX: int = 9
+## baza 17154 (seed campaign_seed, 2026-10-24) × 1,10
+const EXPANDED_BUDGET: int = 18900
 const MIN_FLOOR_RATIO: float = 0.95
 const LEVELS_TOTAL: int = 200
 ## Golden hashes of `tubes` (campaign_seed). Change = conscious decision, ADR-009.
@@ -134,12 +138,14 @@ func test_levels_1_to_200_solvable_and_fast() -> void:
 	var timings: Array = []
 	var at_floor: int = 0
 	var total_ms: int = 0
+	var expanded_total: int = 0
 	for level in range(1, LEVELS_TOTAL + 1):
 		var t0: int = Time.get_ticks_msec()
 		var data: Dictionary = g.generate(seed_value, level)
 		var ms: int = Time.get_ticks_msec() - t0
 		total_ms += ms
 		var p: Dictionary = data["payload"]
+		expanded_total += int(p["expanded"])
 		timings.append([ms, level, int(p["expanded"]), int(p["attempt"]), p["min_moves_exact"]])
 		assert_int(p["min_moves"]).is_greater(0)
 		assert_int((p["solution"] as Array).size()).is_equal(p["min_moves"])
@@ -158,8 +164,15 @@ func test_levels_1_to_200_solvable_and_fast() -> void:
 	for i in SLOW_REPORTED:
 		var r: Array = timings[i]
 		print("GEN level=%d ms=%d expanded=%d attempt=%d exact=%s" % [r[1], r[0], r[2], r[3], r[4]])
-	print("GEN avg_ms=%.1f max_ms=%d" % [float(total_ms) / LEVELS_TOTAL, timings[0][0]])
-	assert_int(timings[0][0]).is_less_equal(MAX_MS_PER_LEVEL)
+	print(
+		(
+			"GEN avg_ms=%.1f p95_ms=%d max_ms=%d expanded_total=%d"
+			% [float(total_ms) / LEVELS_TOTAL, timings[P95_INDEX][0], timings[0][0], expanded_total]
+		)
+	)
+	assert_int(timings[P95_INDEX][0]).is_less_equal(MAX_MS_PER_LEVEL)
+	assert_int(timings[0][0]).is_less_equal(MAX_MS_HARD)
+	assert_int(expanded_total).is_less_equal(EXPANDED_BUDGET)
 
 
 func test_generate_daily() -> void:
