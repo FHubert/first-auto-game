@@ -60,7 +60,7 @@ func _new_app() -> App:
 	app.clock = TestClock.ticking(_t)
 	app.effects_enabled = false
 	app.notifications = _notif
-	app.state = GameState.new()
+	app.state = SaveSystem.fresh_state()  # jak nowy gracz (starting_coins, T-173)
 	add_child(app)
 	return app
 
@@ -130,7 +130,10 @@ func test_first_win_pays_reward() -> void:
 	var app := _play_first_session()
 	var reward: int = int(GameConfig.get_value("win_reward_coins"))
 	var bonus: int = int(GameConfig.get_value("par_bonus_coins"))
-	var gained: int = _first_win_coins - _start_coins
+	var start: int = int(GameConfig.get_value("starting_coins"))
+	# T-173: nowy gracz startuje z starting_coins (wczesniej martwy klucz, saldo 0).
+	assert_int(_start_coins).is_equal(start)
+	var gained: int = _first_win_coins - start
 	assert_bool(gained == reward or gained == reward + bonus).is_true()
 	assert_int(app.state.levels_completed).is_equal(FIRST_SESSION_LEVELS)
 

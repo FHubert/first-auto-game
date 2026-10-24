@@ -35,7 +35,8 @@ func test_save_and_load_round_trip() -> void:
 
 func test_load_missing_file_returns_new_state() -> void:
 	var loaded: GameState = _sys.load()
-	assert_int(loaded.coins).is_equal(0)
+	assert_int(loaded.coins).is_equal(int(GameConfig.get_value("starting_coins")))
+	assert_str(_sys.last_load_source).is_equal("none")
 	assert_int(loaded.level).is_equal(1)
 
 
@@ -45,7 +46,7 @@ func test_load_corrupted_file_returns_new_state() -> void:
 	f.close()
 	var loaded: GameState = _sys.load()
 	assert_object(loaded).is_not_null()
-	assert_int(loaded.coins).is_equal(0)
+	assert_int(loaded.coins).is_equal(int(GameConfig.get_value("starting_coins")))
 
 
 func test_load_invalid_content_returns_new_state() -> void:
@@ -102,7 +103,7 @@ func test_corrupted_main_loads_backup() -> void:
 func test_both_corrupted_returns_fresh() -> void:
 	_write_raw(TEST_PATH, '{"coins": ')
 	_write_raw(_sys.backup_path(), "garbage")
-	assert_int(_sys.load().coins).is_equal(0)
+	assert_int(_sys.load().coins).is_equal(int(GameConfig.get_value("starting_coins")))
 	assert_str(_sys.last_load_source).is_equal("fresh")
 
 
