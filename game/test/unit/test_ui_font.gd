@@ -55,3 +55,41 @@ func test_settings_language_label_above_option() -> void:
 	assert_object(s.language_label).is_not_null()
 	assert_str(s.language_label.text).is_equal(tr("set_language"))
 	assert_bool(s.language_label.get_index() < s.locale_option.get_index()).is_true()
+
+
+func test_theme_panel_is_opaque() -> void:
+	var theme := load(THEME_PATH) as Theme
+	assert_bool(theme.has_stylebox("panel", "PanelContainer")).is_true()
+	var sb := theme.get_stylebox("panel", "PanelContainer") as StyleBoxFlat
+	assert_object(sb).is_not_null()
+	assert_float(sb.bg_color.a).is_equal(1.0)
+
+
+func test_level_complete_panel_inherits_opaque_style() -> void:
+	var root: Control = auto_free(Control.new())
+	root.theme = load(THEME_PATH) as Theme
+	add_child(root)
+	var lc: Control = auto_free(
+		(load("res://src/ui/level_complete.tscn") as PackedScene).instantiate()
+	)
+	root.add_child(lc)
+	var sb := lc.get_node("Panel").get_theme_stylebox("panel") as StyleBoxFlat
+	assert_object(sb).is_not_null()
+	assert_float(sb.bg_color.a).is_equal(1.0)
+
+
+func test_daily_popup_panel_inherits_opaque_style() -> void:
+	var root: Control = auto_free(Control.new())
+	root.theme = load(THEME_PATH) as Theme
+	add_child(root)
+	var popup: Control = auto_free(DailyRewardPopup.new())
+	root.add_child(popup)
+	popup.show_sample()
+	var found: PanelContainer = null
+	for c in popup.find_children("*", "PanelContainer", true, false):
+		found = c
+		break
+	assert_object(found).is_not_null()
+	var sb := found.get_theme_stylebox("panel") as StyleBoxFlat
+	assert_object(sb).is_not_null()
+	assert_float(sb.bg_color.a).is_equal(1.0)

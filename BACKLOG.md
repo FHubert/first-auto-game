@@ -41,11 +41,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: parser argumentów jako czysta funkcja z testem gdUnit4 (poprawne argumenty, brak `--out`, nieznana scena → kod wyjścia ≠ 0); scena ładuje się ze stanem z fixture (in-memory `GameState`, bez zapisu do save'a gracza), po 2 klatkach zapisuje PNG i kończy exit 0; zły argument → exit ≠ 0. `make screenshots` lokalnie pod `xvfb-run` daje 1 PNG na każdą linię `tools/screens.txt` (lista plików w opisie PR). `make check` zielone. ≤ ~150 linii.
   Skill: `godot-dev`
 
-- [ ] T-050 `review` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` (zależy od T-003) → PR #__PR__
+- [ ] T-050 `review` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` (zależy od T-003) → PR #49
   KA: fixtures dla 5 kadrów z ASO (Level ~20 / 6 kolorów w trakcie gry, LevelComplete z „idealnie”, Home z kartą Poziomu dnia, DailyRewardPopup dzień 5 streaka, Themes z 4 motywami); `gen_screenshots.sh` iteruje po `en-US`/`pl-PL`/`de-DE` z `--lang`, captiony z ASO przetłumaczone (PL/DE natywnie) w `frame_screenshots.py`. Test w `tools/test_tools.py`: 15 plików PNG, każdy 1080×1920 (proporcja ≤ 2:1, wymóg Play). Wersja iOS (rozmiar 6,9") — tylko jeśli wymagany rozmiar zweryfikowany w dokumentacji ASC, inaczej wpis do Inbox. Zadanie wprost dotyczy `fastlane/metadata`. ≤ ~200 linii (bez PNG).
   Skill: `aso`
 
-- [ ] T-060 `todo` UI: nieprzezroczyste tło paneli nakładkowych (LevelComplete, DailyRewardPopup, StuckPanel, karta Poziomu dnia na Home) + regeneracja screenshotów sklepowych (zależy od T-050)
+- [ ] T-060 `in_progress` UI: nieprzezroczyste tło paneli nakładkowych (LevelComplete, DailyRewardPopup, StuckPanel, karta Poziomu dnia na Home) + regeneracja screenshotów sklepowych (zależy od T-050)
   KA: `PanelContainer` w `level_complete.tscn`, `stuck_panel.tscn`, `daily_reward_popup.tscn` i panele budowane w kodzie (`home.gd`) dostają `StyleBoxFlat` (tło `background_alt` z `tools/palette.json` alfa 1.0, promień rogów, margines) przez `ui_theme.tres` (styl `PanelContainer/styles/panel`) albo `theme_override_styles/panel` — spód ekranu nie prześwituje przez tekst (dziś domyślny panel Godota ma alfa ~0,6 → kadry 02/04 nieczytelne). Pod popupem przyciemnienie `ColorRect` (alfa z klucza w `GameConfig` lub stała w scenie). Test gdUnit4: `LevelComplete`/`DailyRewardPopup` po `show_*` mają stylebox panelu z `bg_color.a == 1.0`. `make screenshots` → 15 PNG odświeżone i zacommitowane; kadry 02 i 04 obejrzane (tekst czytelny). `make check` zielone. ≤ ~120 linii + PNG.
   Skill: `godot-dev`
 
