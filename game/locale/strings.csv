@@ -69,6 +69,7 @@ shop_desc_starter,+%d coins + Neon theme,+%d monet + motyw Neon,+%d Münzen + Ne
 shop_offer_left,Offer ends in %d h,Oferta kończy się za %d h,Angebot endet in %d h
 shop_price_unknown,…,…,…
 btn_owned,Owned,Posiadane,Gekauft
+set_privacy_options,Privacy options,Opcje prywatności,Datenschutz
 btn_restore,Restore purchases,Przywróć zakupy,Käufe wiederherst.
 shop_restored,Restored: %d,Przywrócono: %d,Wiederhergestellt: %d
 shop_restore_none,Nothing to restore,Brak zakupów do przywrócenia,Nichts wiederherzustellen

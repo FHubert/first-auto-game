@@ -34,7 +34,7 @@ Dane są przekazywane tym dostawcom, którzy działają według własnych polity
 ## 5. Zgoda
 - EOG/Wielka Brytania/Szwajcaria: Google UMP pyta o zgodę na reklamy przy pierwszym uruchomieniu.
 - iOS 14.5+: komunikat App Tracking Transparency (ATT) przed jakimkolwiek śledzeniem.
-- Wycofanie zgody: Ustawienia → opcje prywatności w grze albo ustawienia systemu (reset lub ograniczenie identyfikatora reklamowego, przełącznik ATT). ZWERYFIKUJ (nazwa menu po wdrożeniu).
+- Wycofanie zgody: Ustawienia → „Opcje prywatności” w grze (widoczne tylko tam, gdzie wymaga tego SDK zgody) albo ustawienia systemu (reset lub ograniczenie identyfikatora reklamowego, przełącznik ATT).
 
 ## 6. Okres przechowywania
 Zależy od polityk dostawców SDK. ZWERYFIKUJ. Na naszych serwerach gra nie przechowuje danych osobowych.
