@@ -57,7 +57,7 @@ func refresh() -> void:
 			var now: int = int(clock.call())
 			panel.visible = Purchases.starter_offer_visible(state.level, now)
 			if panel.visible:
-				var window_s: int = int(GameConfig.get_value("starter_offer_hours", 72)) * 3600
+				var window_s: int = int(GameConfig.get_value("starter_offer_hours")) * 3600
 				var left_s: int = state.starter_offer_start_day + window_s - now
 				extra.text = tr("shop_offer_left") % int(ceil(left_s / 3600.0))
 				extra.visible = true
@@ -90,13 +90,13 @@ func _on_restore_done(restored: Array) -> void:
 func _desc(sku: String) -> String:
 	match sku:
 		"starter_pack":
-			return tr("shop_desc_starter") % int(GameConfig.get_value("iap_starter_coins", 800))
+			return tr("shop_desc_starter") % int(GameConfig.get_value("iap_starter_coins"))
 		"remove_ads":
 			return tr("shop_desc_remove_ads")
 		"coins_small":
-			return tr("shop_desc_coins") % int(GameConfig.get_value("iap_coins_small", 500))
+			return tr("shop_desc_coins") % int(GameConfig.get_value("iap_coins_small"))
 		_:
-			return tr("shop_desc_coins") % int(GameConfig.get_value("iap_coins_large", 1500))
+			return tr("shop_desc_coins") % int(GameConfig.get_value("iap_coins_large"))
 
 
 func _label(parent: Control, text: String = "") -> Label:

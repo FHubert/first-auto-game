@@ -310,7 +310,7 @@ func _solve_cached() -> Dictionary:
 	var limit: int = _cfg_int("hint_solver_max_states")
 	var r: Dictionary = SortSolver.solve(_board, limit, 1.0)
 	if int(r["moves"]) <= 0 and not _board.is_won():
-		var w: float = float(GameConfig.get_value("solver_fallback_weight", 3.0))
+		var w: float = float(GameConfig.get_value("solver_fallback_weight"))
 		r = SortSolver.solve(_board, limit, w)
 	var out: Dictionary = {"moves": int(r["moves"]), "path": r["path"]}
 	_solver_cache[key] = out

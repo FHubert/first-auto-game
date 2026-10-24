@@ -61,7 +61,7 @@ func _ready() -> void:
 		boosters, tr("btn_extra_tube") % Economy.extra_tube_cost(), extra_tube_pressed
 	)
 	extra_tube_ad_button = _make_button(boosters, tr("btn_extra_tube_ad"), extra_tube_ad_pressed)
-	var amount: int = int(GameConfig.get_value("undo_refill_amount", 3))
+	var amount: int = int(GameConfig.get_value("undo_refill_amount"))
 	undo_refill_ad_button = _make_button(
 		boosters, tr("btn_undo_refill_ad") % amount, undo_refill_ad_pressed
 	)
