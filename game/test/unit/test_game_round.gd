@@ -193,3 +193,75 @@ func test_config_keys_present() -> void:
 	for k: String in want:
 		assert_bool(GameConfig.DEFAULTS.has(k)).is_true()
 		assert_int(GameConfig.DEFAULTS[k]).is_equal(want[k])
+
+
+func _three_moves_one_undo() -> GameRound:
+	var r := _round_for(3)
+	for i in 3:
+		var m: Vector2i = r.board().legal_moves()[0]
+		r.try_move(m.x, m.y)
+	r.undo()
+	return r
+
+
+func _same_state(a: GameRound, b: GameRound) -> void:
+	assert_array(b.board().tubes).is_equal(a.board().tubes)
+	assert_int(b.moves()).is_equal(a.moves())
+	assert_int(b.undo_charges()).is_equal(a.undo_charges())
+	assert_dict(b.result()).is_equal(a.result())
+	assert_int(b.min_moves()).is_equal(a.min_moves())
+
+
+func test_to_from_dict_round_trip_then_undo() -> void:
+	var r := _three_moves_one_undo()
+	var c: GameRound = GameRound.from_dict(r.to_dict())
+	assert_object(c).is_not_null()
+	_same_state(r, c)
+	assert_bool(c.undo()).is_true()
+	assert_bool(r.undo()).is_true()
+	_same_state(r, c)
+
+
+func test_to_from_dict_keeps_extra_tube() -> void:
+	var r := _three_moves_one_undo()
+	assert_bool(r.add_extra_tube()).is_true()
+	var c: GameRound = GameRound.from_dict(r.to_dict())
+	assert_object(c).is_not_null()
+	_same_state(r, c)
+	assert_int(c.board().tube_count()).is_equal(r.board().tube_count())
+	assert_bool(c.can_add_extra_tube()).is_equal(r.can_add_extra_tube())
+
+
+func test_from_dict_json_round_trip() -> void:
+	var r := _three_moves_one_undo()
+	var parsed: Variant = JSON.parse_string(JSON.stringify(r.to_dict()))
+	var c: GameRound = GameRound.from_dict(parsed)
+	assert_object(c).is_not_null()
+	_same_state(r, c)
+	assert_bool(c.undo()).is_true()
+
+
+func test_from_dict_corrupt_returns_null(
+	field: String,
+	value: Variant,
+	test_parameters := [
+		["level_data", "x"],
+		["payload.tubes", "x"],
+		["payload.capacity", "abc"],
+		["capacity", 3],
+		["tubes", "abc"],
+		["tubes", [[99, 0, 0, 0]]],
+		["tubes", [[0, 0, 0, 0, 0]]],
+		["moves", 5],
+		["history", "x"],
+		["undo_charges", -1],
+	]
+) -> void:
+	var d: Dictionary = _three_moves_one_undo().to_dict()
+	if field.begins_with("payload."):
+		d["level_data"]["payload"][field.substr(8)] = value
+	else:
+		d[field] = value
+	assert_object(GameRound.from_dict(d)).is_null()
+	assert_object(GameRound.from_dict({})).is_null()
+	assert_that(test_parameters).is_not_null()

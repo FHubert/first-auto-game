@@ -2,7 +2,7 @@ class_name GameState
 extends RefCounted
 ## Pure persistent player state (no Node). Serialised by SaveSystem.
 
-const SCHEMA_VERSION: int = 2
+const SCHEMA_VERSION: int = 3
 const DEFAULT_THEME: String = "classic"
 ## Upper bound for any persisted int; larger saved values are clamped to it.
 const MAX_SAVE_INT: int = 1_000_000_000
@@ -48,6 +48,8 @@ var level_restarts: int = 0
 var starter_offer_start_day: int = 0
 var purchases: Dictionary = {}
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate(true)
+## Snapshot rundy w toku (round_snapshot); pusty = brak rundy do wznowienia.
+var round_in_progress: Dictionary = {}
 
 
 ## Upgrades an older save dict to SCHEMA_VERSION. Returns a copy.
@@ -65,8 +67,19 @@ static func migrate(d: Dictionary) -> Dictionary:
 			merged.merge(old_settings, true)
 			out["settings"] = merged
 		version = 2
+	if version < 3:
+		if typeof(out.get("round_in_progress")) != TYPE_DICTIONARY:
+			out["round_in_progress"] = {}
+		version = 3
 	out["schema_version"] = version
 	return out
+
+
+## Metadane wrappera + GameRound.to_dict() do zapisu w round_in_progress.
+static func round_snapshot(
+	mode: String, level_no: int, utc_day: int, round: GameRound
+) -> Dictionary:
+	return {"mode": mode, "level_no": level_no, "utc_day": utc_day, "round": round.to_dict()}
 
 
 ## Returns a GameState, or null only for a newer schema_version.
@@ -88,6 +101,9 @@ static func from_dict(d: Dictionary) -> GameState:
 	var active_v: Variant = data.get("theme_active", state.theme_active)
 	if typeof(active_v) == TYPE_STRING and state.themes_owned.has(active_v):
 		state.theme_active = active_v
+	var rip: Variant = data.get("round_in_progress", {})
+	if typeof(rip) == TYPE_DICTIONARY:
+		state.round_in_progress = (rip as Dictionary).duplicate(true)
 	return state
 
 
@@ -107,6 +123,7 @@ func to_dict() -> Dictionary:
 	out["theme_active"] = theme_active
 	out["purchases"] = purchases.duplicate(true)
 	out["settings"] = settings.duplicate(true)
+	out["round_in_progress"] = round_in_progress.duplicate(true)
 	return out
 
 

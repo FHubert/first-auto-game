@@ -323,6 +323,7 @@ func _on_round_won() -> void:
 		state.level += 1
 		state.levels_completed += 1
 		DailyRewards.register_play(state, DailyRewards.utc_day_from_unix(int(clock.call())))
+	state.round_in_progress = {}
 	SaveSystem.save(state)
 	_last_win_coins = coins
 	_last_win_perfect = bool(result.get("perfect", false))

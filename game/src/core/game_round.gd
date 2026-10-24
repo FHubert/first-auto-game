@@ -51,6 +51,118 @@ func start(level_data: Dictionary) -> void:
 	_won = _done
 
 
+func to_dict() -> Dictionary:
+	return {
+		"level_data": _level_data.duplicate(true),
+		"tubes": _board.to_tubes(),
+		"capacity": _board.capacity,
+		"history": _history.duplicate(true),
+		"moves": _moves,
+		"undo_charges": _undo_charges,
+		"undos_used": _undos_used,
+		"extra_tubes_added": _extra_tubes_added,
+		"boosters_used": _boosters_used,
+		"restarts": _restarts,
+	}
+
+
+## Odtwarza rundę z to_dict() (także po JSON); null przy KAŻDEJ niespójności.
+static func from_dict(d: Dictionary) -> GameRound:
+	var ld: Variant = d.get("level_data")
+	if typeof(ld) != TYPE_DICTIONARY or not _valid_payload((ld as Dictionary).get("payload")):
+		return null
+	var r := GameRound.new()
+	r.start((ld as Dictionary).duplicate(true))
+	var cap: Variant = GameState._as_int(d.get("capacity"))
+	var extra: Variant = GameState._as_int(d.get("extra_tubes_added", 0))
+	var moves: Variant = GameState._as_int(d.get("moves"))
+	var hist: Variant = d.get("history")
+	if cap == null or extra == null or moves == null or typeof(hist) != TYPE_ARRAY:
+		return null
+	if int(cap) != r._board.capacity or int(cap) < 1:
+		return null
+	if int(extra) < 0 or int(extra) > r._cfg_int("extra_tube_max_per_level"):
+		return null
+	if int(moves) != (hist as Array).size():
+		return null
+	var count: int = r._start_tubes.size() + int(extra)
+	var want: Dictionary = _color_counts(r._start_tubes)
+	var snaps: Array = (hist as Array).duplicate()
+	snaps.append(d.get("tubes"))
+	for snap: Variant in snaps:
+		if not _valid_tubes(snap, int(cap), count, want):
+			return null
+	var ints: Array = []
+	for key: String in ["undo_charges", "undos_used", "boosters_used", "restarts"]:
+		var fallback: Variant = r._undo_charges if key == "undo_charges" else 0
+		var v: Variant = GameState._as_int(d.get(key, fallback))
+		if v == null or int(v) < 0:
+			return null
+		ints.append(int(v))
+	r._start_tubes = _norm(r._start_tubes)
+	r._board = SortBoard.new(_norm(snaps.pop_back()), int(cap))
+	r._history = snaps.map(_norm)
+	r._moves = int(moves)
+	r._extra_tubes_added = int(extra)
+	r._undo_charges = ints[0]
+	r._undos_used = ints[1]
+	r._boosters_used = ints[2]
+	r._restarts = ints[3]
+	r._done = r._board.is_won()
+	r._won = r._done
+	return r
+
+
+## Payload bezpieczny dla SortBoard.from_payload (typy tubes/capacity).
+static func _valid_payload(p: Variant) -> bool:
+	if typeof(p) != TYPE_DICTIONARY or typeof(p.get("tubes")) != TYPE_ARRAY:
+		return false
+	for t: Variant in p["tubes"]:
+		if typeof(t) != TYPE_ARRAY:
+			return false
+		for c: Variant in t:
+			var v: Variant = GameState._as_int(c)
+			if v == null or int(v) < 0:
+				return false
+	if p.has("capacity"):
+		var cap: Variant = GameState._as_int(p["capacity"])
+		return cap != null and int(cap) >= 1
+	return true
+
+
+static func _norm(tubes: Array) -> Array:
+	var out: Array = []
+	for t: Array in tubes:
+		out.append(t.map(func(c: Variant) -> int: return int(c)))
+	return out
+
+
+static func _color_counts(tubes: Array) -> Dictionary:
+	var out: Dictionary = {}
+	for t: Array in tubes:
+		for c: Variant in t:
+			out[int(c)] = int(out.get(int(c), 0)) + 1
+	return out
+
+
+## Kształt, pojemność, liczba probówek i zachowanie masy każdego koloru.
+static func _valid_tubes(tubes: Variant, cap: int, count: int, want: Dictionary) -> bool:
+	if typeof(tubes) != TYPE_ARRAY or (tubes as Array).size() != count:
+		return false
+	var norm: Array = []
+	for t: Variant in tubes:
+		if typeof(t) != TYPE_ARRAY or (t as Array).size() > cap:
+			return false
+		var row: Array = []
+		for c: Variant in t:
+			var v: Variant = GameState._as_int(c)
+			if v == null or int(v) < 0 or not want.has(int(v)):
+				return false
+			row.append(int(v))
+		norm.append(row)
+	return _color_counts(norm) == want and SortBoard.new(norm, cap).is_valid()
+
+
 ## Zwraca true gdy runda skończona.
 func step(action: int) -> bool:
 	var m: Vector2i = decode_action(action)
