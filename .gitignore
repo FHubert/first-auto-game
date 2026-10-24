@@ -27,3 +27,6 @@ __pycache__/
 # Godot CSV import artifacts (Locale loads the CSV itself)
 game/locale/*.translation
 game/locale/*.csv.import
+# Ruby / bundler
+vendor/bundle/
+.bundle/

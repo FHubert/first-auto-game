@@ -14,11 +14,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->
 
-- [ ] T-011 `review` CI: podbić wersje akcji w `.github/workflows/*` (checkout, setup-python, cache, upload/download-artifact, setup-java, setup-android, ruby/setup-ruby, google-github-actions/auth) i gemów w `Gemfile` → PR #44 (częściowo: 5/12 akcji; reszta → T-055)
-  KA: każda akcja przypięta do najnowszego majora sprawdzonego na stronie releases w dniu zadania (tabela akcja → stara → nowa wersja + link w opisie PR, nie z pamięci). `actionlint` = 0 błędów na wszystkich plikach workflow; `make check` zielone; run `test.yml` na PR zielony. Po merge: `gh api "repos/FHubert/first-auto-game/pulls?state=open"` nie zwraca PR-ów dependabota #1–#5 (wg LOG z 2026-10-23 już zamknięte; jeśli któryś jest otwarty → zamknąć z komentarzem „superseded by T-011”). ≤ ~60 linii.
-  Skill: `godot-build`
-
-- [ ] T-004 `todo` `Gemfile.lock` wygenerowany i zacommitowany (zależy od T-011)
+- [ ] T-004 `review` `Gemfile.lock` wygenerowany i zacommitowany (zależy od T-011) → PR #45
   KA: `bundle lock --add-platform x86_64-linux arm64-darwin` → `Gemfile.lock` w repo z obiema platformami; na Linuksie `bundle install` + `bundle exec fastlane lanes` kończą się exit 0 i listują lane'y z `fastlane/Fastfile` (Fastfile bez zmian); `ruby/setup-ruby` z `bundler-cache: true` w workflowach używa locka (log runu lub `actionlint`). ≤ ~20 linii poza lock-file.
   Skill: `store-release`
 
@@ -65,38 +61,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 
 ## P2 — monetyzacja i meta (z GDD v1.0, R-003)
-
-- [ ] G-010 `review` Rewarded: 6 placementów przez Ads.request_rewarded (zależy od T-021, G-008) → PR #35
-  KA: `double_coins` (LevelComplete, od poziomu 2), `extra_tube`, `undo_refill` (max 2 na poziom), `skip_level`, `daily_x2`, `streak_save` z id zgodnymi z `docs/MONETIZATION.md`. Kwota nagrody widoczna na przycisku przed reklamą, przycisk ukryty, gdy reklama nie jest gotowa. Testy z `FakeAdProvider`: granted przyznaje nagrodę dokładnie raz; skipped i unavailable nie przyznają nic; cap per poziom/dzień jest respektowany. `make check` zielone. ~260 linii.
-  Skill: `ads-iap`
-
-- [ ] G-010b `review` Rewarded: przyciski UI dla 6 placementów (zależy od G-010) → PR #36
-  KA: `LevelComplete` ma przycisk „×2" z kwotą premii (`Economy.rewarded_bonus`) obok „Dalej", widoczny od poziomu `rewarded_double_coins_min_level` i tylko gdy `Ads.is_rewarded_ready()`; znika po przyznaniu. `StuckPanel` i HUD mają warianty „obejrzyj reklamę" dla +probówka / +3 cofnięcia (obok wersji za monety) i „Pomiń (reklama)"; `DailyRewardPopup` pokazuje „Odbierz ×2" z kwotą i „Uratuj streak" tylko gdy reklama gotowa. Testy headless: przy `FakeAdProvider.always_ready=false` przyciski ukryte; tap „×2" dokłada premię dokładnie raz. Nowe klucze w `strings.csv` (EN/PL/DE). `make check` zielone. ~250 linii.
-  Skill: `ads-iap`
-
-- [ ] G-011 `review` balance_sim pod sort puzzle (zależy od G-004, G-006) → PR #37
-  KA: `tools/balance_sim.py` czyta nowe klucze (`theme_cost_base/growth`, koszty boosterów, `par_bonus_coins`, `daily_reward_multipliers`, `daily_challenge_coins`, `interstitial_min_seconds`, `interstitial_min_level`). `make sim` kończy się exit 0. W PR tabela: mediany monet d1/d7/d30, dzień zakupu 1. i 3. motywu (cel ~2 i ~12–14), impresje/DAU (interstitial ≤ 2,5, łącznie ≥ 3,0). `tools/test_tools.py` zielone. ~200 linii.
-  Skill: `game-economy`
-
-- [ ] G-001 `review` Balans: cap interstitiali (zależy od G-011) → PR #38
-  KA: `interstitial_every_n_rounds`=5, `interstitial_min_seconds`=120, nowy klucz `interstitial_min_level`=8. `Ads.maybe_show_interstitial` nie pokazuje reklamy przy `ads_removed` ani po rewarded w tej samej przerwie. Testy w `test_ad_service.gd`; `make sim` pokazuje ≤ 2,5 interstitiala/DAU (poprzednio ~8,6 przy co 3 rundy). ~120 linii.
-  Skill: `game-economy` + `ads-iap`
-
-- [ ] G-013 `review` Kalibracja ekonomii wg `make sim` (zależy od G-001) → PR #39
-  KA: `game-designer` dobiera wartości w `GameConfig` (np. `win_reward_coins`, `par_bonus_coins`, `daily_reward_base`, `daily_challenge_coins`, `theme_cost_base/growth`) tak, by `make sim` dawał: 1. motyw ≤ 2. dnia aktywnego, 3. motyw w 12–14. dniu aktywnym u graczy grających codziennie (dziś: 3. dzień / nikt), interstitial ≤ 2,5/DAU, bez „explodes" (d30/d1 < 100×). Tabela przed/po w PR, aktualizacja tabeli kluczy i „Szacunku przepływu" w GDD (Ekonomia). Zmienia tylko `config.gd` + GDD + ewentualnie testy wartości. ~80 linii.
-  Skill: `game-economy`
-
-- [ ] T-025 `review` Analityka: eventy z GDD → Analityka (zależy od G-010) → PR #40
-  KA: wszystkie 16 eventów z GDD wysyłane przez `Analytics` w opisanych momentach i z parametrami. `FakeAnalyticsProvider` zapisuje wywołania. Test: sekwencja start → complete (perfect) → ×2 → interstitial daje oczekiwaną listę wywołań z parametrami. Wpis do `docs/RELEASE_CHECKLIST.md`: lista do Data Safety/Privacy Labels. `make check` zielone. ~250 linii.
-  Skill: `ads-iap`
-
-- [ ] T-026 `review` ADR-010 IAP + IapProvider/FakeIapProvider + logika przyznawania → PR #41
-  KA: ADR-010 w `docs/DECISIONS.md`: wybór GodotGooglePlayBilling (wersja z Billing Library 8+, zweryfikowana) oraz pluginu StoreKit dla iOS, wraz ze statusem zgodności z Godot 4.7.2. Interfejs `IapProvider` (connect/products/purchase/restore, sygnały) i `FakeIapProvider`. Logika `Purchases.grant(sku)`: `remove_ads` ustawia `settings.ads_removed`, `coins_*` daje +500/+1500, `starter_pack` daje +800 i motyw „neon" jednorazowo. Testy: PURCHASED przyznaje, PENDING nie przyznaje, restore przywraca `remove_ads`, starter pack przyznawany tylko raz. `make check` zielone. Bez dodawania pluginów. ~250 linii.
-  Skill: `ads-iap`
-
-- [ ] T-027 `review` Ekran Shop + „Przywróć zakupy" + okno starter packa (zależy od T-026, G-009) → PR #42
-  KA: Shop pokazuje 4 sku z cenami z `IapProvider` (nigdy z kodu). „Przywróć zakupy" jest w Shop i Settings. `starter_pack` jest widoczny od `starter_offer_min_level`=12 przez `starter_offer_hours`=72 h. Wejście ze StuckPanel przy braku monet. Testy z `FakeIapProvider`: okno oferty (dzień startu, przed i po 72 h) oraz restore. Wpis w `screens.txt`. `make check` zielone. ~250 linii.
-  Skill: `ads-iap`
 
 - [ ] T-047 `todo` Build Android: instalacja GodotGooglePlayBilling 3.3.0 w `make setup` (tag + SHA-256) i `gradle/use_gradle_build=true` w `export_presets.cfg` (zależy od T-026, Faza 4)
   KA: `make setup` pobiera release zip pluginu do `game/addons/GodotGooglePlayBilling/` i weryfikuje SHA-256; preset Android ma Gradle build; `make check` (w tym dry-run exportu) zielone; wpis w `docs/LICENSES.md`. ~80 linii. Zadanie wprost dotyczy `export_presets.cfg`.
@@ -157,13 +121,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - Faza 4 (T-051): kategoria sklepowa — przyjęto: Play „Puzzle”, App Store Games → Puzzle (drugorzędna: Casual), do zmiany.
 
 ## Done (ostatnie 30)
-- [x] T-009 `done` CLAUDE.md/skille: gh pr → gh api REST (GraphQL 403 w CCR) → PR #7 (zmergowany)
-- [x] T-010 `done` CI: dependabot nie otwiera PR-ów (open-pull-requests-limit: 0); aktualizacje zależności robi pętla → PR #8 (zmergowany)
-- [x] T-008 `done` build-android/build-ios: trigger push usunięty do czasu konfiguracji sekretów (Faza 4); przywrócić w zadaniu T-002. → PR #6 (zmergowany)
-- [x] T-012 `done` Docs: tryb ciągły (continuous-dev co 2 h) w CLAUDE.md/AUTOMATION.md/game-designer → PR #9 (zmergowany)
-- [x] R-001 `done` Research rynku i wybór gatunku → PR #10 (zmergowany 2026-10-23)
-- [x] R-002 `done` GDD v1 dla wybranego gatunku → PR #11 (zmergowany 2026-10-23)
-- [x] R-003 `done` Backlog MVP z GDD → PR #12 (zmergowany 2026-10-23)
 - [x] T-001 `done` Smoke: środowisko i pętla działają end-to-end → PR #13 (zmergowany 2026-10-23)
 - [x] T-013 `done` SortBoard: model planszy water sort (czysta klasa) → PR #14 (zmergowany 2026-10-23)
 - [x] T-014 `done` SortSolver: A* z heurystyką granic kolorów i limitem stanów (zależy od T-013) → PR #15 (zmergowany 2026-10-23)
@@ -185,3 +142,12 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-024 `done` Audio: generowane SFX + muzyka ambient + AudioService → PR #32 (zmergowany 2026-10-23)
 - [x] G-008 `done` UI dzienne: DailyRewardPopup + karta Poziomu dnia na Home + tryb daily w Level (zależy od G-006, G-007, T-022) → PR #33 (zmergowany 2026-10-23)
 - [x] G-009 `done` ThemeCatalog + ekran Themes (zależy od G-004, T-018, T-022) → PR #34 (zmergowany 2026-10-23)
+- [x] G-010 `done` Rewarded: 6 placementów przez Ads.request_rewarded → PR #35 (zmergowany 2026-10-23)
+- [x] G-010b `done` Rewarded: przyciski UI dla 6 placementów → PR #36 (zmergowany 2026-10-23)
+- [x] G-011 `done` balance_sim pod sort puzzle → PR #37 (zmergowany 2026-10-23)
+- [x] G-001 `done` Balans: cap interstitiali → PR #38 (zmergowany 2026-10-23)
+- [x] G-013 `done` Kalibracja ekonomii wg make sim → PR #39 (zmergowany 2026-10-23)
+- [x] T-025 `done` Analityka: eventy z GDD → Analityka → PR #40 (zmergowany 2026-10-23)
+- [x] T-026 `done` ADR-010 IAP + IapProvider/FakeIapProvider + Purchases.grant → PR #41 (zmergowany 2026-10-23)
+- [x] T-027 `done` Ekran Shop + Przywróć zakupy + okno starter packa → PR #42 (zmergowany 2026-10-23)
+- [x] T-011 `done` CI: podbicie wersji akcji (częściowo 5/12; reszta → T-055) → PR #44 (zmergowany 2026-10-23)
