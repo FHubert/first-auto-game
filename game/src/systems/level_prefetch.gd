@@ -30,7 +30,11 @@ func take(seed_value: int, level: int) -> Dictionary:
 		WorkerThreadPool.wait_for_task_completion(_task_id)
 		var out: Dictionary = _result
 		_reset()
-		return out
+		if not out.is_empty():
+			return out
+		# Watek mogl nie zapisac wyniku - zamiast pustego slownika generujemy synchronicznie.
+		sync_generations += 1
+		return ContentGenerator.new().generate(seed_value, level)
 	cancel_all()
 	sync_generations += 1
 	return ContentGenerator.new().generate(seed_value, level)

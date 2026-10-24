@@ -47,20 +47,38 @@ func test_cache_is_consumed_once() -> void:
 	assert_int(_prefetch.sync_generations).is_equal(1)
 
 
-## Pomiar (T-136): mediana z 5 load-ek, bez asercji progu czasowego.
-func test_measure_take_time() -> void:
-	for level in [2, 26, 50, 120]:
-		var cold: Array = []
-		var warm: Array = []
-		for _i in 5:
-			var t0: int = Time.get_ticks_usec()
-			_prefetch.take(1, level)
-			cold.append(Time.get_ticks_usec() - t0)
-			_prefetch.request(1, level)
-			OS.delay_msec(150)
-			t0 = Time.get_ticks_usec()
-			_prefetch.take(1, level)
-			warm.append(Time.get_ticks_usec() - t0)
-		cold.sort()
-		warm.sort()
-		print("PREFETCH_MEASURE level=%d sync_us=%d prefetched_us=%d" % [level, cold[2], warm[2]])
+func test_cancel_all_after_request_then_take_is_sync() -> void:
+	_prefetch.request(1, 5)
+	_prefetch.cancel_all()
+	assert_int(_prefetch._task_id).is_equal(-1)
+	_same(_prefetch.take(1, 5), ContentGenerator.new().generate(1, 5))
+	assert_int(_prefetch.sync_generations).is_equal(1)
+
+
+func test_level_exit_tree_leaves_no_task() -> void:
+	var level: Level = load("res://src/levels/level.tscn").instantiate()
+	level.state = GameState.new()
+	level.clock = TestClock.fixed()
+	add_child(level)
+	var pf: LevelPrefetch = LevelPrefetch.new()
+	level.prefetch = pf
+	pf.request(1, 3)
+	remove_child(level)
+	level.free()
+	assert_int(pf._task_id).is_equal(-1)
+
+
+func test_empty_thread_result_falls_back_to_sync() -> void:
+	var pf: NoWorkPrefetch = NoWorkPrefetch.new()
+	pf.request(1, 4)
+	var got: Dictionary = pf.take(1, 4)
+	assert_bool(got.is_empty()).is_false()
+	_same(got, ContentGenerator.new().generate(1, 4))
+	assert_int(pf.sync_generations).is_equal(1)
+
+
+class NoWorkPrefetch:
+	extends LevelPrefetch
+
+	func _work(_seed_value: int, _level: int) -> void:
+		pass
