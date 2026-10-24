@@ -28,7 +28,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #5, refill #3): Faza 4 — prace bez kont, bez workflowów i bez pobierania binarek (ograniczenia sesji scheduled). Kolejność = zależności. -->
 
-- [ ] T-062 `in_progress` Consent: `ConsentProvider` (interfejs) + `FakeConsentProvider` + `ConsentFlow` (czysta klasa, UMP → ATT) wg GDD → Mechaniki „Zgoda UMP/ATT”
+- [ ] T-062 `review` Consent: `ConsentProvider` (interfejs) + `FakeConsentProvider` + `ConsentFlow` (czysta klasa, UMP → ATT) wg GDD → Mechaniki „Zgoda UMP/ATT” → PR #55
   KA: `game/src/systems/consent_provider.gd`, `fake_consent_provider.gd` (skryptowane odpowiedzi: `region_eea`, `form_required`, `ump_status`, `att_status`, `privacy_options_required`, opóźnienie), `consent_flow.gd` bez `Node` (zegar wstrzykiwany). Klucz `consent_timeout_seconds` = 8 w `GameConfig`. Test gdUnit4 ≥ 6 przypadków: EEA+zgoda → `personalized=true`; EEA+odmowa → `can_request_ads=true`, `personalized=false`; poza EEA → bez formularza; timeout → `finished` z `personalized=false`; iOS ATT denied → `personalized=false`; ATT nie pytany po odmowie UMP. Każdy przypadek: dokładnie jedno `report_consent("ump", …)` (i `"att"` na iOS) zarejestrowane w `FakeAnalyticsProvider` przez `Ads.report_consent`. Bez SDK i bez zależności. `make check` zielone. ≤ ~220 linii.
   Skill: `ads-iap`
 
@@ -89,6 +89,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
+- [ ] T-068 `todo` ConsentFlow: brak limitu czasu po `show_consent_form`/`request_att` (gdy SDK zawiesi się po otwarciu formularza flow nie kończy się) — rozważyć osobny długi limit `consent_form_timeout_seconds` w Fazie 5 (SDK). Skill: ads-iap
+- [ ] T-069 `todo` ConsentFlow: `ok=false` z `request_consent_info_update` idzie dalej ze statusem providera (`unknown`) — rozważyć osobny event `consent:ump:error` + test; `FakeConsentProvider` nie umie zwrócić `ok=false`. Skill: ads-iap
 - [ ] T-067 `todo` tools/test_tools.py: `Image.open` bez `with` → ResourceWarning: unclosed file w logu testów; użyć `with Image.open(...) as im`. Skill: godot-test
 - [ ] T-058 `todo` Screenshoty iOS 6,9" (1320×2868) w `fastlane/metadata/ios/<locale>/` — tylko po weryfikacji wymaganego rozmiaru w dokumentacji App Store Connect (link w zadaniu). Skill: aso
 - [ ] T-059 `todo` `export/screenshots_raw/` jest ignorowane, ale `fastlane/metadata/android/*/images/` nie — ustalić politykę (commitowane tylko kadry sklepowe z T-050; smoke-screenshoty z `screens.txt` do `export/`). Skill: aso
