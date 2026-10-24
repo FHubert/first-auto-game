@@ -45,6 +45,10 @@ const DEFAULTS: Dictionary = {
 	"min_moves_factor_easy": 1.2,
 	"min_moves_factor_hard": 2.0,
 	"gen_max_attempts": 20,
+	# Solver stages: states in the quick pass / exact A* budget / exact only up to N colors
+	"gen_quick_state_budget": 250,
+	"gen_exact_state_budget": 1000,
+	"gen_exact_max_colors": 6,
 	"solver_max_states": 50000,
 	"solver_fallback_weight": 3.0,
 	"campaign_seed": 1,

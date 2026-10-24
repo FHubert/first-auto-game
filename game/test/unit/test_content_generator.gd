@@ -95,6 +95,32 @@ func test_level_params_follow_remote_config() -> void:
 	assert_int(capacity).is_equal(5)
 
 
+func after_test() -> void:
+	GameConfig.reset()
+
+
+func test_exact_max_colors_zero_disables_exact_solve() -> void:
+	var seed_value: int = int(GameConfig.get_value("campaign_seed"))
+	GameConfig.apply_remote({"gen_exact_max_colors": 0})
+	var payload: Dictionary = ContentGenerator.new().generate(seed_value, 2)["payload"]
+	assert_bool(payload["min_moves_exact"]).is_false()
+
+
+func test_exact_solve_restored_after_reset() -> void:
+	var seed_value: int = int(GameConfig.get_value("campaign_seed"))
+	GameConfig.apply_remote({"gen_exact_max_colors": 0})
+	GameConfig.reset()
+	var payload: Dictionary = ContentGenerator.new().generate(seed_value, 2)["payload"]
+	assert_bool(payload["min_moves_exact"]).is_true()
+
+
+func test_tiny_quick_budget_still_yields_solvable_level() -> void:
+	var seed_value: int = int(GameConfig.get_value("campaign_seed"))
+	GameConfig.apply_remote({"gen_quick_state_budget": 1})
+	var gen := ContentGenerator.new()
+	assert_bool(gen.is_solvable(gen.generate(seed_value, 2))).is_true()
+
+
 func test_daily_params() -> void:
 	var p: Dictionary = ContentGenerator.new().daily_params(20750)
 	assert_int(p["utc_day"]).is_equal(20750)

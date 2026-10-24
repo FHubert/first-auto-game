@@ -11,12 +11,6 @@ const MIX_MUL_C: int = 0xC2B2AE35
 const MIX_MASK: int = 0x7FFFFFFF
 const MIX_SHIFT: int = 15
 const MIN_COLORS: int = 2
-## States spent on the exact solve before switching to the weighted one.
-## States per solve in the first (quick) pass over the attempts.
-const QUICK_STATE_BUDGET: int = 250
-const EXACT_STATE_BUDGET: int = 1000
-## Exact A* only on small boards (colors <=); bigger ones go straight to weighted.
-const EXACT_MAX_COLORS: int = 6
 
 
 ## Level for (seed, level) in the ADR-009 contract: {seed, level, difficulty, payload}.
@@ -85,7 +79,8 @@ func _generate_with_params(level_seed: int, params: Dictionary, level: int) -> D
 func _search(level_seed: int, params: Dictionary) -> Dictionary:
 	var max_states: int = int(GameConfig.get_value("solver_max_states", 50000))
 	# Cheap pass first: boards the solver cannot crack quickly are skipped (reshuffled).
-	var quick: Dictionary = _search_pass(level_seed, params, mini(max_states, QUICK_STATE_BUDGET))
+	var quick_budget: int = int(GameConfig.get_value("gen_quick_state_budget"))
+	var quick: Dictionary = _search_pass(level_seed, params, mini(max_states, quick_budget))
 	if not quick.is_empty():
 		return quick
 	return _search_pass(level_seed, params, max_states)
@@ -105,8 +100,9 @@ func _search_pass(level_seed: int, params: Dictionary, max_states: int) -> Dicti
 			continue
 		# Exact A* is too slow on big boards (~0.4 ms/state), so try a small budget first.
 		var res: Dictionary = {"moves": SortSolver.NO_SOLUTION, "exact": false}
-		if int(params["colors"]) <= EXACT_MAX_COLORS:
-			res = SortSolver.solve(board, mini(max_states, EXACT_STATE_BUDGET))
+		if int(params["colors"]) <= int(GameConfig.get_value("gen_exact_max_colors")):
+			var exact_budget: int = int(GameConfig.get_value("gen_exact_state_budget"))
+			res = SortSolver.solve(board, mini(max_states, exact_budget))
 		if int(res["moves"]) == SortSolver.NO_SOLUTION and not res["exact"]:
 			res = SortSolver.solve(board, max_states, weight)
 		var moves: int = int(res["moves"])

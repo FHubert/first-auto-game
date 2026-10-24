@@ -141,7 +141,7 @@ Potwierdzone `make sim` (G-011/G-013, seed 1, 1000 graczy): gracz zaangażowany 
 | `tube_full_pulse_seconds` | 0.25 | UI, nie balans |
 | `confetti_seconds` | 1.2 | UI, nie balans; czas życia konfetti na wygranej (T-097) |
 | `ad_unmute_timeout_seconds` | 90 | watchdog: po tylu sekundach bez zamknięcia reklamy dźwięk wraca, a przerwa reklamowa się kończy (T-099); > najdłuższej reklamy rewarded (~30 s + karta końcowa) |
-| `gen_quick_state_budget` / `gen_exact_state_budget` / `gen_exact_max_colors` | 250 / 1000 / 6 | etapy generatora (Generator contentu, krok 5); dziś stałe w `content_generator.gd` → klucze w T-116, wartości bez zmian (golden hashe bez zmian) |
+| `gen_quick_state_budget` / `gen_exact_state_budget` / `gen_exact_max_colors` | 250 / 1000 / 6 | etapy generatora (Generator contentu, krok 5); klucze `GameConfig` (T-116), wartości bez zmian (golden hashe bez zmian) |
 
 ## Meta
 *Daily reward (wartości dni 1–7), streak (co go resetuje, czy jest grace period) i cele 7- oraz 30-dniowe.*
