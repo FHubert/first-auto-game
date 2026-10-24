@@ -140,3 +140,34 @@ func test_timeout_ios_reports_both_once() -> void:
 
 func test_timeout_config_default() -> void:
 	assert_int(int(GameConfig.get_value("consent_timeout_seconds"))).is_equal(8)
+
+
+func test_user_reading_form_is_not_timeout() -> void:
+	_eea("obtained")
+	_provider.hold_form = true
+	_flow.start()
+	_now = 200.0
+	_flow.poll()
+	assert_bool(_flow.is_finished).is_false()
+	_provider.pending_form_callback.call("obtained")
+	assert_bool(_flow.is_finished).is_true()
+	assert_bool(_flow.result["personalized"]).is_true()
+	assert_bool(_flow.result["timed_out"]).is_false()
+	assert_bool(_has("consent:ump:timeout")).is_false()
+	assert_int(_count("consent:ump:")).is_equal(1)
+
+
+func test_late_callback_after_timeout_ignored() -> void:
+	_eea("obtained")
+	_provider.respond = false
+	_flow.start()
+	_now = 120.0
+	_flow.poll()
+	_flow.poll()
+	var before: Dictionary = _flow.result.duplicate()
+	_provider.pending_info_callback.call(true)
+	assert_dict(_flow.result).is_equal(before)
+	assert_int(_finished_count).is_equal(1)
+	assert_int(_provider.form_shown).is_equal(0)
+	assert_int(_count("consent:ump:")).is_equal(1)
+	assert_bool(_has("consent:ump:timeout")).is_true()

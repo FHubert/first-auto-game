@@ -12,6 +12,10 @@ var att_status: String = ATT_NOT_DETERMINED
 var privacy_options_required: bool = false
 ## When false the SDK "hangs": no callback is ever called.
 var respond: bool = true
+## When true the form stays open: its callback is stored, not called.
+var hold_form: bool = false
+var pending_form_callback: Callable
+var pending_info_callback: Callable
 var info_update_calls: int = 0
 var form_shown: int = 0
 var att_requests: int = 0
@@ -24,6 +28,7 @@ var _att_current: String = ATT_NOT_DETERMINED
 func request_consent_info_update(on_done: Callable) -> void:
 	info_update_calls += 1
 	if not respond:
+		pending_info_callback = on_done
 		return
 	if region_eea and form_required:
 		_current_ump = UMP_REQUIRED
@@ -38,6 +43,11 @@ func is_form_required() -> bool:
 
 func show_consent_form(on_closed: Callable) -> void:
 	form_shown += 1
+	if hold_form:
+		pending_form_callback = func(status: String) -> void:
+			_current_ump = status
+			on_closed.call(status)
+		return
 	if not respond:
 		return
 	_current_ump = ump_status

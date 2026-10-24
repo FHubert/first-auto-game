@@ -17,6 +17,7 @@ var is_finished: bool = false
 var _started_at: float = 0.0
 var _ump_reported: bool = false
 var _att_reported: bool = false
+var _awaiting_user: bool = false
 
 
 func _init(p_provider: ConsentProvider = null) -> void:
@@ -30,9 +31,10 @@ func start() -> void:
 
 ## Call every frame from Boot; finishes the flow once the timeout elapsed.
 func poll() -> void:
-	if is_finished:
+	# Timeout only covers waiting for the SDK, not the user reading a form/dialog.
+	if is_finished or _awaiting_user:
 		return
-	var timeout: float = float(GameConfig.get_value("consent_timeout_seconds", 8))
+	var timeout: float = float(GameConfig.get_value("consent_timeout_seconds"))
 	if clock.call() - _started_at < timeout:
 		return
 	_report("ump", UMP_TIMEOUT)
@@ -45,6 +47,7 @@ func _on_info_updated(ok: bool) -> void:
 	if is_finished:
 		return
 	if ok and provider.is_form_required():
+		_awaiting_user = true
 		provider.show_consent_form(_after_ump)
 	else:
 		_after_ump(provider.get_ump_status())
@@ -60,6 +63,7 @@ func _after_ump(status: String) -> void:
 		_report("att", ATT_SKIPPED)
 		_finish(status, ATT_SKIPPED, false)
 	elif provider.get_att_status() == ConsentProvider.ATT_NOT_DETERMINED:
+		_awaiting_user = true
 		provider.request_att(
 			func(att: String) -> void:
 				if is_finished:
