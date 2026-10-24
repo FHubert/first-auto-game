@@ -17,7 +17,7 @@ const CARD_SEPARATION: int = 16
 const CARD_PADDING: int = 20
 const STREAK_BEST_MIN_VISIBLE: int = 2
 const STREAK_BEST_GAP: int = 24
-const DAILY_INTRO_SEEN_KEY: String = "daily_intro_seen"
+const DAILY_INTRO_SEEN_KEY: String = GameState.SETTING_DAILY_INTRO_SEEN
 const DAILY_NEW_COLOR: Color = Color("#FFD166")
 
 var state: GameState

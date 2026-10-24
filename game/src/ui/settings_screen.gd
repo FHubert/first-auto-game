@@ -65,11 +65,14 @@ func _on_restore_done(restored: Array) -> void:
 
 
 func apply_from_state() -> void:
-	music_toggle.set_pressed_no_signal(bool(state.settings.get("music_on", true)))
-	sfx_toggle.set_pressed_no_signal(bool(state.settings.get("sfx_on", true)))
-	haptics_toggle.set_pressed_no_signal(bool(state.settings.get("haptics_on", true)))
+	music_toggle.set_pressed_no_signal(bool(state.settings.get(GameState.SETTING_MUSIC_ON, true)))
+	sfx_toggle.set_pressed_no_signal(bool(state.settings.get(GameState.SETTING_SFX_ON, true)))
+	haptics_toggle.set_pressed_no_signal(
+		bool(state.settings.get(GameState.SETTING_HAPTICS_ON, true))
+	)
 	symbols_toggle.set_pressed_no_signal(ColorSymbols.enabled(state.settings))
-	notifications_toggle.set_pressed_no_signal(bool(state.settings.get("notifications_on", true)))
+	var notif_on: bool = bool(state.settings.get(GameState.SETTING_NOTIFICATIONS_ON, true))
+	notifications_toggle.set_pressed_no_signal(notif_on)
 	privacy_button.visible = Ads.is_privacy_options_required()
 	var code: String = str(state.settings.get("locale", ""))
 	for i in LOCALES.size():
@@ -86,11 +89,11 @@ func _build() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 24)
 	margin.add_child(box)
-	music_toggle = _toggle(box, tr("set_music"), "music_on")
-	sfx_toggle = _toggle(box, tr("set_sfx"), "sfx_on")
-	haptics_toggle = _toggle(box, tr("set_haptics"), "haptics_on")
+	music_toggle = _toggle(box, tr("set_music"), GameState.SETTING_MUSIC_ON)
+	sfx_toggle = _toggle(box, tr("set_sfx"), GameState.SETTING_SFX_ON)
+	haptics_toggle = _toggle(box, tr("set_haptics"), GameState.SETTING_HAPTICS_ON)
 	symbols_toggle = _toggle(box, tr("set_symbols"), ColorSymbols.SETTING_KEY)
-	notifications_toggle = _toggle(box, tr("set_notifications"), "notifications_on")
+	notifications_toggle = _toggle(box, tr("set_notifications"), GameState.SETTING_NOTIFICATIONS_ON)
 	language_label = Label.new()
 	language_label.text = tr("set_language")
 	language_label.add_theme_font_size_override("font_size", FONT_SIZE)

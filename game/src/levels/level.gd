@@ -151,7 +151,7 @@ func _bind_round(theme_id: String) -> void:
 	hud.bind(round, level_no)
 	stuck_panel.visible = false
 	tutorial = null
-	if level_no == 1 and not bool(state.settings.get("tutorial_done", false)):
+	if level_no == 1 and not bool(state.settings.get(GameState.SETTING_TUTORIAL_DONE, false)):
 		_tutorial_max_step = 0
 		tutorial = TutorialFlow.new()
 		tutorial.start(_solver_first_move())
@@ -277,7 +277,7 @@ func _update_tutorial_overlay() -> void:
 		return
 	tutorial_overlay.hide_hand()
 	if tutorial != null:
-		state.settings["tutorial_done"] = true
+		state.settings[GameState.SETTING_TUTORIAL_DONE] = true
 		SaveSystem.save(state)
 		Analytics.track_design("tutorial:done")
 		tutorial = null

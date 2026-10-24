@@ -6,15 +6,23 @@ const SCHEMA_VERSION: int = 3
 const DEFAULT_THEME: String = "classic"
 ## Upper bound for any persisted int; larger saved values are clamped to it.
 const MAX_SAVE_INT: int = 1_000_000_000
+## Klucze `settings` (wartości = nazwy zapisane w save; nie zmieniać bez migracji).
+const SETTING_MUSIC_ON: String = "music_on"
+const SETTING_SFX_ON: String = "sfx_on"
+const SETTING_HAPTICS_ON: String = "haptics_on"
+const SETTING_TUTORIAL_DONE: String = "tutorial_done"
+const SETTING_COLORBLIND_SYMBOLS: String = "colorblind_symbols"
+const SETTING_DAILY_INTRO_SEEN: String = "daily_intro_seen"
+const SETTING_NOTIFICATIONS_ON: String = "notifications_on"
 const DEFAULT_SETTINGS: Dictionary = {
-	"music_on": true,
-	"sfx_on": true,
-	"haptics_on": true,
+	SETTING_MUSIC_ON: true,
+	SETTING_SFX_ON: true,
+	SETTING_HAPTICS_ON: true,
 	"ads_removed": false,
-	"tutorial_done": false,
+	SETTING_TUTORIAL_DONE: false,
 	"locale": "",
-	"daily_intro_seen": false,
-	"notifications_on": true,
+	SETTING_DAILY_INTRO_SEEN: false,
+	SETTING_NOTIFICATIONS_ON: true,
 }
 ## Int fields as [name, minimum]; default is the initial value of the member.
 const INT_FIELDS: Array = [

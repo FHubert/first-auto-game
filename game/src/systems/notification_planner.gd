@@ -9,9 +9,9 @@ const SECONDS_PER_HOUR: int = 3600
 ## Returns entries {kind, fire_unix, title_key, body_key} sorted by fire_unix.
 static func plan(now_unix: int, tz_offset_minutes: int, state: GameState) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if not bool(state.settings.get("notifications_on", true)):
+	if not bool(state.settings.get(GameState.SETTING_NOTIFICATIONS_ON, true)):
 		return out
-	if not bool(state.settings.get("tutorial_done", false)):
+	if not bool(state.settings.get(GameState.SETTING_TUTORIAL_DONE, false)):
 		return out
 	var local: int = now_unix + tz_offset_minutes * 60
 	var local_day: int = floori(float(local) / SECONDS_PER_DAY)

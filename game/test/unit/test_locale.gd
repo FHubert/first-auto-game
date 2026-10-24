@@ -111,3 +111,27 @@ func test_ensure_installed_is_idempotent() -> void:
 	Locale.ensure_installed()
 	TranslationServer.set_locale("de")
 	assert_str(tr("btn_back")).is_equal("Zurück")
+
+
+func _placeholders(s: String) -> Array:
+	var out: Array = []
+	for m: RegExMatch in RegEx.create_from_string("%[ds]").search_all(s):
+		out.append(m.get_string())
+	out.sort()
+	return out
+
+
+func test_format_placeholders_match_en() -> void:
+	var ts: Array[Translation] = Locale.load_csv(CSV)
+	var en: Translation = ts[0]
+	assert_str(en.locale).is_equal("en")
+	for t in ts:
+		for key: String in en.get_message_list():
+			var expected: Array = _placeholders(str(en.get_message(key)))
+			if expected.is_empty():
+				continue
+			(
+				assert_array(_placeholders(str(t.get_message(key))))
+				. override_failure_message("%s/%s: inne znaczniki formatu niż EN" % [t.locale, key])
+				. is_equal(expected)
+			)
