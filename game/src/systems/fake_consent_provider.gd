@@ -14,6 +14,8 @@ var privacy_options_required: bool = false
 var respond: bool = true
 ## When true the form stays open: its callback is stored, not called.
 var hold_form: bool = false
+## When false request_consent_info_update reports a failure (ok=false).
+var info_update_ok: bool = true
 var pending_form_callback: Callable
 var pending_info_callback: Callable
 var info_update_calls: int = 0
@@ -29,6 +31,10 @@ func request_consent_info_update(on_done: Callable) -> void:
 	info_update_calls += 1
 	if not respond:
 		pending_info_callback = on_done
+		return
+	if not info_update_ok:
+		_current_ump = UMP_UNKNOWN
+		on_done.call(false)
 		return
 	if region_eea and form_required:
 		_current_ump = UMP_REQUIRED
