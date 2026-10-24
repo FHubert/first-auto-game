@@ -12,6 +12,9 @@ const MODE_CAMPAIGN: String = "campaign"
 const MODE_DAILY: String = "daily"
 ## Haptic length on tube close (2x AudioService.HAPTIC_MS).
 const TUBE_FULL_HAPTIC_MS: int = 40
+## Odstep probowek od panelu wygranej i dozwolone wejscie pustego pasa HUD (px).
+const FIT_GAP_PX: float = 8.0
+const HUD_OVERLAP_PX: float = 40.0
 const CONFETTI_AMOUNT: int = 48
 const CONFETTI_COLORS: int = 6
 const CONFETTI_EMIT_HEIGHT: float = 4.0
@@ -131,6 +134,7 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 ## Podpina biezaca runde do widokow (plansza, HUD, tutorial, oferty).
 func _bind_round(theme_id: String) -> void:
 	_stop_confetti()
+	_reset_board_fit()
 	offers.bind(state, round, rewarded, mode, level_no)
 	_round_bound_at = int(clock.call())
 	board.setup(round, theme_id)
@@ -340,8 +344,25 @@ func _on_round_won() -> void:
 		LevelComplete.progress_message(level_no, mode, state)
 	)
 	level_complete.set_double_offer(offers.double_coins_bonus(), offers.can_double_coins())
+	fit_board_above_panel()
 	_start_confetti()
 	level_won.emit(level_no, coins)
+
+
+## Przesuwa plansze nad panel wygranej (dolna krawedz probowek tuz nad panelem).
+## Gdy zawartosc sie nie miesci (3 rzedy) - zostawia plansze bez zmian.
+func fit_board_above_panel() -> void:
+	var bottom: float = level_complete.panel_height()
+	var tubes_top: float = size.y - bottom - FIT_GAP_PX - board.content_height()
+	if tubes_top < hud.offset_bottom - HUD_OVERLAP_PX:
+		return
+	board.offset_top = tubes_top - BoardView.LIFT_PX
+	board.offset_bottom = -bottom
+
+
+func _reset_board_fit() -> void:
+	board.offset_top = 0.0
+	board.offset_bottom = 0.0
 
 
 func _start_confetti() -> void:
