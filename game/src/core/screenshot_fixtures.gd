@@ -13,6 +13,19 @@ const ASO_STREAK: int = 4  # claiming on the next day lands on cycle day 5
 const ASO_THEMES: Array = ["classic", "pastel", "neon", "ocean"]
 
 
+## Pre-win LevelComplete values, derived from Economy (never literals).
+static func win_result() -> Dictionary:
+	var coins: int = Economy.win_reward({"won": true, "perfect": true})
+	return {"perfect": true, "coins": coins, "double_bonus": Economy.rewarded_bonus(coins)}
+
+
+## Fills the LevelComplete overlay of `level` with the pre-win values.
+static func apply_win(level: Level) -> void:
+	var result: Dictionary = win_result()
+	level.level_complete.show_result(int(result["coins"]), true, level.level_no, "")
+	level.level_complete.set_double_offer(int(result["double_bonus"]), true)
+
+
 ## Returns a fresh state for the fixture name, or null when unknown.
 ## `utc_day` (today) is only used by fixtures that depend on the calendar (aso_daily).
 static func make(fixture: String, utc_day: int = 0) -> GameState:

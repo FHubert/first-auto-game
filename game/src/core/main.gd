@@ -68,11 +68,7 @@ func _show_screenshot_screen(app: App, action: String) -> void:
 			app.show_shop()
 		"level_complete":
 			app.show_level()
-			var won := app.current_screen() as Level
-			var coins: int = int(GameConfig.get_value("win_reward_coins"))
-			coins += int(GameConfig.get_value("par_bonus_coins"))
-			won.level_complete.show_result(coins, true, won.level_no, "")
-			won.level_complete.set_double_offer(Economy.rewarded_bonus(coins), true)
+			ScreenshotFixtures.apply_win(app.current_screen() as Level)
 		"stuck_panel":
 			app.show_level()
 			var level := app.current_screen() as Level
