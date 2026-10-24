@@ -22,6 +22,8 @@ var notifications: NotificationProvider = NotificationProvider.new()
 var tz_offset: Callable = func() -> int: return int(Time.get_time_zone_from_system()["bias"])
 var effects_enabled: bool = true
 var shop_overlay: ShopScreen
+## Generacja poziomu kampanii w tle od wejscia na Home (T-167); null = brak.
+var home_prefetch: LevelPrefetch
 var _screen: Node
 var _screen_name: String = ""
 var _popup: DailyRewardPopup
@@ -52,6 +54,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	_drop_home_prefetch()
 	if Ads.ad_about_to_show.is_connected(_on_ad_about_to_show):
 		Ads.ad_about_to_show.disconnect(_on_ad_about_to_show)
 
@@ -172,6 +175,7 @@ func show_home() -> void:
 	)
 	home.daily_pressed.connect(_on_home_daily_pressed)
 	add_child(home)
+	_request_home_prefetch()
 	_maybe_show_daily_popup(home)
 
 
@@ -205,7 +209,11 @@ func _close_popup(_amount: int = 0) -> void:
 
 
 func show_level() -> void:
+	var pf: LevelPrefetch = home_prefetch
+	home_prefetch = null  # wlasnosc przechodzi na Level (cancel_all w jego _exit_tree)
 	var level: Level = _swap(SCENE_LEVEL, SCREEN_LEVEL)
+	if pf != null:
+		level.prefetch = pf  # takze przy wznowieniu: Level i tak sprzata instancje
 	level.clock = clock
 	level.effects_enabled = effects_enabled
 	level.pause_requested.connect(show_home)
@@ -313,8 +321,24 @@ func _on_setting_changed(key: String) -> void:
 		show_settings()
 
 
+## Wznawialna runda kampanii nie generuje poziomu, wiec bez zadania.
+func _request_home_prefetch() -> void:
+	_drop_home_prefetch()
+	if str(state.round_in_progress.get("mode", "")) == Level.MODE_CAMPAIGN:
+		return
+	home_prefetch = LevelPrefetch.new()
+	home_prefetch.request(int(GameConfig.get_value("campaign_seed")), state.level)
+
+
+func _drop_home_prefetch() -> void:
+	if home_prefetch != null:
+		home_prefetch.cancel_all()
+	home_prefetch = null
+
+
 ## Zwalnia biezacy ekran, tworzy nowy ze stanem (przed add_child).
 func _swap(path: String, screen_name: String) -> Node:
+	_drop_home_prefetch()
 	_close_popup()
 	if shop_overlay_visible():
 		remove_child(shop_overlay)
