@@ -153,6 +153,11 @@ func _flush_elapsed() -> void:
 	_round_bound_at = now
 
 
+## Wznowienie liczenia czasu rundy po powrocie z tla - czas w tle nie wchodzi do elapsed_s.
+func resume_clock() -> void:
+	_round_bound_at = int(clock.call())
+
+
 ## Snapshot biezacej rundy do round_in_progress; {} gdy brak rundy lub ukonczona.
 func snapshot() -> Dictionary:
 	if round == null or round.is_done():
