@@ -11,6 +11,10 @@ signal panel_height_changed
 const SAMPLE_COINS: int = 15
 const SAMPLE_LEVEL: int = 2
 
+var btn_copy_result: Button
+var clipboard_setter: Callable = DisplayServer.clipboard_set
+var _share_text: String = ""
+
 @onready var title_label: Label = $Panel/Box/TitleLabel
 @onready var coins_label: Label = $Panel/Box/CoinsLabel
 @onready var perfect_label: Label = $Panel/Box/PerfectLabel
@@ -41,6 +45,11 @@ func _ready() -> void:
 	double_button.pressed.connect(func() -> void: double_pressed.emit())
 	home_button.text = tr("btn_menu")
 	home_button.pressed.connect(func() -> void: home_pressed.emit())
+	btn_copy_result = Button.new()
+	btn_copy_result.visible = false
+	btn_copy_result.pressed.connect(_on_copy_pressed)
+	$Panel/Box.add_child(btn_copy_result)
+	$Panel/Box.move_child(btn_copy_result, $Panel/Box/Buttons.get_index())
 	if get_parent() == get_tree().root:
 		show_result(SAMPLE_COINS, true, SAMPLE_LEVEL, "", {"key": "lc_new_color", "args": []})
 		set_double_offer(SAMPLE_COINS, true)
@@ -75,7 +84,27 @@ func show_result(
 			tr(str(progress["key"])) % args if not args.is_empty() else tr(str(progress["key"]))
 		)
 	double_button.visible = false
+	hide_share()
 	visible = true
+
+
+func set_share(share_text: String) -> void:
+	_share_text = share_text
+	btn_copy_result.text = tr("btn_copy_result")
+	btn_copy_result.disabled = false
+	btn_copy_result.visible = true
+
+
+func hide_share() -> void:
+	_share_text = ""
+	btn_copy_result.visible = false
+
+
+func _on_copy_pressed() -> void:
+	clipboard_setter.call(_share_text)
+	btn_copy_result.text = tr("btn_copied")
+	btn_copy_result.disabled = true
+	Analytics.track_design("daily:share")
 
 
 func set_double_offer(bonus: int, offered: bool) -> void:

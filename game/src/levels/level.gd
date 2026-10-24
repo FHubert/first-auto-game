@@ -348,6 +348,10 @@ func _on_round_won() -> void:
 		LevelComplete.progress_message(level_no, mode, state)
 	)
 	level_complete.set_double_offer(offers.double_coins_bonus(), offers.can_double_coins())
+	if mode == MODE_DAILY:
+		level_complete.set_share(
+			DailyShare.text(utc_day, round.moves(), round.min_moves(), state.streak_days)
+		)
 	fit_board_above_panel()
 	_start_confetti()
 	level_won.emit(level_no, coins)
