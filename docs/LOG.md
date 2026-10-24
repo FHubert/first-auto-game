@@ -76,3 +76,8 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 - P1: T-011 CI podbicie akcji — częściowo (5/12 wg Dependabot #1–#5; 7 akcji nie do zweryfikowania bez dostępu do stron releases, actionlint bez pobierania binarek → T-055) → PR #44 (auto-merge). Po merge zamknąć Dependabot #1–#5.
 - Podsumowanie: 10 PR-ów (#35–#44), 9 zmergowanych w trakcie sesji, #44 z uzbrojonym auto-merge. P2 z GDD v1.0 w całości zrealizowane (rewarded ×6 + UI, sim, cap interstitiali, kalibracja ekonomii, analityka, IAP logika + ADR-010, Shop). Testy: 190 → 231. Blokery: brak (poza kontami Huberta dla Fazy 4/5). Następne: T-004 Gemfile.lock, T-002 version_code, T-005 debug build; T-047/T-048 pluginy IAP; T-055.
 - Lekcje: (1) edycja `.claude/skills/*` wymaga zadania wprost — cofnięto zmianę skilla w G-011 i dodano T-044; (2) sesja CCR nie ma dostępu do github.com/<obce repo>/releases (403/PROVENANCE) ani do pobierania binarek — zadania „zweryfikuj na stronie releases" rozbijać na to, co da się potwierdzić (np. PR-y Dependabota) i follow-up; (3) orkiestrator może szybko kalibrować ekonomię przez `balance_sim.py --config <wariant>` w scratchpadzie (8 wariantów w ~1 min) zamiast angażować designera bez Bash.
+
+## 2026-10-24 — sesja continuous-dev #5 (00:12– UTC)
+
+- Start: brak otwartych PR task/*; #35–#44 zmergowane → 9 zadań `review` przeniesione do Done.
+- P1: T-004 `Gemfile.lock` (fastlane 2.241.1, bundler 2.5.22, platformy x86_64-linux + arm64-darwin; `bundle exec fastlane lanes` exit 0; w CCR `bundle` z PATH to bundler 4.x — lock generować przez `bundle _2.5.22_` z `/opt/rbenv/versions/3.3.6/bin` w PATH), `make check` zielone (231 testów) → PR #45 (auto-merge).

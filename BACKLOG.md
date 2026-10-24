@@ -14,7 +14,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->
 
-- [ ] T-004 `in_progress` `Gemfile.lock` wygenerowany i zacommitowany (zależy od T-011)
+- [ ] T-004 `review` `Gemfile.lock` wygenerowany i zacommitowany (zależy od T-011) → PR #45
   KA: `bundle lock --add-platform x86_64-linux arm64-darwin` → `Gemfile.lock` w repo z obiema platformami; na Linuksie `bundle install` + `bundle exec fastlane lanes` kończą się exit 0 i listują lane'y z `fastlane/Fastfile` (Fastfile bez zmian); `ruby/setup-ruby` z `bundler-cache: true` w workflowach używa locka (log runu lub `actionlint`). ≤ ~20 linii poza lock-file.
   Skill: `store-release`
 
