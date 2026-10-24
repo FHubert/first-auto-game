@@ -35,6 +35,7 @@ func _cleanup() -> void:
 
 func _make_level(done: bool) -> void:
 	_level = load("res://src/levels/level.tscn").instantiate()
+	_level.clock = TestClock.fixed()
 	_level.state = GameState.new()
 	_level.state.settings["tutorial_done"] = done
 	add_child(_level)

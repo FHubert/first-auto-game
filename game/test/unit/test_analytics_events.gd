@@ -1,7 +1,6 @@
 extends GdUnitTestSuite
 
 const SAVE_PATH: String = "user://test_analytics_events.json"
-const FAKE_UNIX: int = 20750 * 86400 + 100
 
 var _level: Level
 var _fake: FakeAnalyticsProvider
@@ -39,7 +38,7 @@ func before_test() -> void:
 	_level = _new_level()
 	_level.state = GameState.new()
 	_level.state.settings["tutorial_done"] = true
-	_level.clock = func() -> int: return FAKE_UNIX
+	_level.clock = TestClock.fixed()
 	add_child(_level)
 
 
@@ -240,8 +239,8 @@ func test_complete_counts_undos_and_boosters() -> void:
 
 
 func test_complete_reports_round_seconds() -> void:
-	var t: Array[int] = [FAKE_UNIX]
-	_level.clock = func() -> int: return t[0]
+	var t: Array[int] = [TestClock.FIXED_UNIX]
+	_level.clock = TestClock.ticking(t)
 	_level.load_level(2)
 	t[0] += 37
 	_fake.events.clear()
@@ -252,8 +251,8 @@ func test_complete_reports_round_seconds() -> void:
 
 
 func test_complete_time_sums_across_resume() -> void:
-	var t: Array[int] = [FAKE_UNIX]
-	_level.clock = func() -> int: return t[0]
+	var t: Array[int] = [TestClock.FIXED_UNIX]
+	_level.clock = TestClock.ticking(t)
 	_level.load_level(2)
 	t[0] += 20
 	var snap: Dictionary = _level.snapshot()
@@ -262,7 +261,7 @@ func test_complete_time_sums_across_resume() -> void:
 	var l2: Level = _new_level()
 	l2.state = _level.state
 	l2.state.level = 2
-	l2.clock = func() -> int: return t[0]
+	l2.clock = TestClock.ticking(t)
 	add_child(l2)
 	assert_bool(l2.resume(snap, 0)).is_true()
 	_level.free()

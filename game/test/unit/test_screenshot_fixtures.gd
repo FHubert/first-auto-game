@@ -60,6 +60,7 @@ func test_win_result_matches_economy() -> void:
 
 func test_apply_win_shows_real_coins_and_perfect() -> void:
 	var level: Level = load("res://src/levels/level.tscn").instantiate()
+	level.clock = TestClock.fixed()
 	level.state = ScreenshotFixtures.make("aso_win")
 	add_child(level)
 	ScreenshotFixtures.apply_win(level)
