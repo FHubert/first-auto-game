@@ -44,9 +44,11 @@ func _ready() -> void:
 			_check_stuck()
 	)
 	board.pour_finished.connect(
-		func(_from: int, _to: int) -> void:
+		func(_from: int, to: int) -> void:
 			Audio.play_sfx("pour")
 			Audio.haptic()
+			if Level.closes_tube(round.board(), to) and not round.is_done():
+				Audio.play_sfx("tube_full")
 	)
 	board.illegal_move.connect(func(_from: int, _to: int) -> void: Audio.play_sfx("error"))
 	board.tube_selected.connect(_on_tutorial_selected)
@@ -70,6 +72,11 @@ func _ready() -> void:
 	level_complete.home_pressed.connect(func() -> void: home_requested.emit())
 	if round == null:
 		load_level(state.level, state.theme_active)
+
+
+## True when tube `to` is full and single-coloured after a pour.
+static func closes_tube(sort_board: SortBoard, to: int) -> bool:
+	return sort_board.is_full(to) and sort_board.is_uniform(to)
 
 
 func load_level(level_in: int, theme_id: String = "classic") -> void:

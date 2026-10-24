@@ -97,3 +97,18 @@ func test_rewarded_unavailable_returns_false() -> void:
 	var calls: Array[int] = [0]
 	assert_bool(_ads.request_rewarded("x", func() -> void: calls[0] += 1)).is_false()
 	assert_int(calls[0]).is_equal(0)
+
+
+func test_rewarded_always_unmuted_at_end() -> void:
+	for reward: bool in [true, false]:
+		_provider.reward_on_show = reward
+		_ads.request_rewarded("x", func() -> void: pass)
+		assert_bool(Audio.is_app_muted()).is_false()
+	_provider.always_ready = false
+	_ads.request_rewarded("x", func() -> void: pass)
+	assert_bool(Audio.is_app_muted()).is_false()
+
+
+func test_interstitial_unmuted_after_close() -> void:
+	assert_bool(_ads.maybe_show_interstitial(10)).is_true()
+	assert_bool(Audio.is_app_muted()).is_false()

@@ -1,6 +1,9 @@
 extends Node
 ## Autoload "Audio": SFX pool, ambient music, haptics. Respects settings, focus and ad mute.
 
+## Emitted on every play_sfx call (even when muted); observation point for tests.
+signal sfx_requested(sfx_name: String)
+
 const SFX: Dictionary = {
 	"pour":
 	[
@@ -18,6 +21,7 @@ const MUSIC_PATH: String = "res://assets/audio/ambient_loop.ogg"
 const MUSIC_DB: float = -6.0
 const SFX_DB: float = 0.0
 const POOL_SIZE: int = 6
+const HAPTIC_MS: int = 20
 
 var music_on: bool = true
 var sfx_on: bool = true
@@ -37,6 +41,9 @@ var _cache: Dictionary = {}
 
 
 func _ready() -> void:
+	# One single point for UI click sound: every BaseButton entering the tree
+	# (scenes and code-built) gets it, so scenes never wire "click" themselves.
+	get_tree().node_added.connect(_on_node_added)
 	rng.seed = Time.get_ticks_usec()
 	for i in POOL_SIZE:
 		var p: AudioStreamPlayer = AudioStreamPlayer.new()
@@ -57,6 +64,7 @@ func apply_settings(settings: Dictionary) -> void:
 
 ## Plays a named SFX (random variant). True when playback was actually requested.
 func play_sfx(sfx_name: String) -> bool:
+	sfx_requested.emit(sfx_name)
 	if not sfx_on or not SFX.has(sfx_name):
 		return false
 	var paths: Array = SFX[sfx_name]
@@ -99,12 +107,16 @@ func set_app_muted(muted: bool) -> void:
 	_update_music()
 
 
+func is_app_muted() -> bool:
+	return muted_by_ads
+
+
 func set_focused(f: bool) -> void:
 	focused = f
 	_update_music()
 
 
-func haptic(duration_ms: int = 20) -> bool:
+func haptic(duration_ms: int = HAPTIC_MS) -> bool:
 	if not haptics_on:
 		return false
 	last_haptic_ms = duration_ms
@@ -119,6 +131,11 @@ func _notification(what: int) -> void:
 		set_focused(false)
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
 		set_focused(true)
+
+
+func _on_node_added(node: Node) -> void:
+	if node is BaseButton:
+		(node as BaseButton).pressed.connect(func() -> void: play_sfx("click"))
 
 
 func _update_music() -> void:
