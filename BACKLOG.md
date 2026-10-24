@@ -14,13 +14,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->
 
-- [ ] T-004 `review` `Gemfile.lock` wygenerowany i zacommitowany (zależy od T-011) → PR #45
-  KA: `bundle lock --add-platform x86_64-linux arm64-darwin` → `Gemfile.lock` w repo z obiema platformami; na Linuksie `bundle install` + `bundle exec fastlane lanes` kończą się exit 0 i listują lane'y z `fastlane/Fastfile` (Fastfile bez zmian); `ruby/setup-ruby` z `bundler-cache: true` w workflowach używa locka (log runu lub `actionlint`). ≤ ~20 linii poza lock-file.
-  Skill: `store-release`
-
-- [ ] T-002 `review` CI: wspólne, monotoniczne źródło `version_code` — część 1: `tools/version_code.sh` + testy (zależy od T-011) → PR #46
-  KA: jeden skrypt (np. `tools/version_code.sh`, minuty od 2026-01-01 UTC) używany przez wszystkie 3 workflowy zamiast `github.run_number`; jawny input `version_code` nadal ma pierwszeństwo. Test w `tools/test_tools.py`: dwa wywołania z rosnącym czasem dają rosnące wartości, wynik < 2 100 000 000 (limit Play) dla dat do 2100 r., wynik jest liczbą całkowitą. `actionlint` 0 błędów, `make check` zielone. Trigger `push` w build-* zostaje wyłączony (T-008) do czasu sekretów. ≤ ~80 linii.
-  Skill: `godot-build`
 - [ ] T-002b `blocked` CI: podpięcie `tools/version_code.sh` w `build-android.yml`, `build-ios.yml` (krok „Resolve version”: `code="${INPUT_CODE:-$(bash tools/version_code.sh)}"` + `bash tools/version_code.sh --check "$code"`, opisy inputów w cudzysłowie) i `release.yml` (job `prepare`: dodać `actions/checkout@v7`, kod ze skryptu) (zależy od T-002) — powód: sesja scheduled (auto-mode) nie może edytować `.github/workflows/**`; wymaga sesji interaktywnej Huberta lub zmiany uprawnień
   KA: w 3 workflowach brak `GITHUB_RUN_NUMBER + 100`; jawny input `version_code` ma pierwszeństwo; YAML parsuje się (`python3 -c "import yaml,glob;[yaml.safe_load(open(f)) for f in glob.glob('.github/workflows/*.yml')]"`); `actionlint` 0 błędów; `make check` zielone. ≤ ~30 linii.
   Skill: `godot-build`
@@ -33,37 +26,9 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: workflow tylko `workflow_dispatch` + `pull_request` z filtrem ścieżek (`game/export_presets.cfg`, `game/ios/**`) — minuty macOS są drogie; `--export-release iOS` tworzy projekt Xcode, `xcodebuild … -sdk iphoneos CODE_SIGNING_ALLOWED=NO build` kończy się exit 0. Preset iOS ma uzupełnione opcje privacy manifestu (tracking, tracking domains, collected data types zgodne z listą w `docs/RELEASE_CHECKLIST.md`, required-reason APIs) — nazwy kluczy zweryfikowane w źródle Godot 4.7.2 (link w PR); krok joba sprawdza, że wygenerowany `PrivacyInfo.xcprivacy` istnieje i zawiera `NSPrivacyTracking` i `NSPrivacyCollectedDataTypes`. ≤ ~150 linii.
   Skill: `godot-build`
 
-- [ ] T-040 `review` UI: font OFL z diakrytykami (ą ć ę ł ń ó ś ź ż ä ö ü ß) jako domyślny font UI + etykieta `set_language` nad wyborem języka w Settings → PR #47
-  KA: plik `.ttf` z Google Fonts (OFL 1.1) w `game/assets/fonts/` + `OFL.txt` + wiersz w `docs/LICENSES.md`; font ustawiony przez zasób `Theme` w scenach UI (bez zmian w `project.godot` poza dozwolonymi sekcjami). Test gdUnit4: każdy znak każdego tekstu z `strings.csv` (EN/PL/DE) przechodzi `font.has_char()`. Etykieta nad wyborem języka w `SettingsScreen` z kluczem w CSV (EN/PL/DE). `make check` zielone. ≤ ~120 linii.
-  Skill: `asset-gen`
-
-- [ ] T-003 `review` Tryb `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]` w `main.gd`, żeby `tools/gen_screenshots.sh` produkował obrazy (zależy od T-040) → PR #48
-  KA: parser argumentów jako czysta funkcja z testem gdUnit4 (poprawne argumenty, brak `--out`, nieznana scena → kod wyjścia ≠ 0); scena ładuje się ze stanem z fixture (in-memory `GameState`, bez zapisu do save'a gracza), po 2 klatkach zapisuje PNG i kończy exit 0; zły argument → exit ≠ 0. `make screenshots` lokalnie pod `xvfb-run` daje 1 PNG na każdą linię `tools/screens.txt` (lista plików w opisie PR). `make check` zielone. ≤ ~150 linii.
-  Skill: `godot-dev`
-
-- [ ] T-050 `review` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` (zależy od T-003) → PR #49
-  KA: fixtures dla 5 kadrów z ASO (Level ~20 / 6 kolorów w trakcie gry, LevelComplete z „idealnie”, Home z kartą Poziomu dnia, DailyRewardPopup dzień 5 streaka, Themes z 4 motywami); `gen_screenshots.sh` iteruje po `en-US`/`pl-PL`/`de-DE` z `--lang`, captiony z ASO przetłumaczone (PL/DE natywnie) w `frame_screenshots.py`. Test w `tools/test_tools.py`: 15 plików PNG, każdy 1080×1920 (proporcja ≤ 2:1, wymóg Play). Wersja iOS (rozmiar 6,9") — tylko jeśli wymagany rozmiar zweryfikowany w dokumentacji ASC, inaczej wpis do Inbox. Zadanie wprost dotyczy `fastlane/metadata`. ≤ ~200 linii (bez PNG).
-  Skill: `aso`
-
-- [ ] T-060 `review` UI: nieprzezroczyste tło paneli nakładkowych (LevelComplete, DailyRewardPopup, StuckPanel, karta Poziomu dnia na Home) + regeneracja screenshotów sklepowych (zależy od T-050) → PR #50
-  KA: `PanelContainer` w `level_complete.tscn`, `stuck_panel.tscn`, `daily_reward_popup.tscn` i panele budowane w kodzie (`home.gd`) dostają `StyleBoxFlat` (tło `background_alt` z `tools/palette.json` alfa 1.0, promień rogów, margines) przez `ui_theme.tres` (styl `PanelContainer/styles/panel`) albo `theme_override_styles/panel` — spód ekranu nie prześwituje przez tekst (dziś domyślny panel Godota ma alfa ~0,6 → kadry 02/04 nieczytelne). Pod popupem przyciemnienie `ColorRect` (alfa z klucza w `GameConfig` lub stała w scenie). Test gdUnit4: `LevelComplete`/`DailyRewardPopup` po `show_*` mają stylebox panelu z `bg_color.a == 1.0`. `make screenshots` → 15 PNG odświeżone i zacommitowane; kadry 02 i 04 obejrzane (tekst czytelny). `make check` zielone. ≤ ~120 linii + PNG.
-  Skill: `godot-dev`
-
-- [ ] T-051 `review` Metadata sklepowe EN/PL/DE w `fastlane/metadata` (Android + iOS) z `docs/ASO.md` → PR #51
-  KA: Android `en-US`/`pl-PL`/`de-DE`: `title.txt`, `short_description.txt`, `full_description.txt`, `changelogs/default.txt`; iOS `en-US`/`pl`/`de-DE`: `name.txt`, `subtitle.txt`, `keywords.txt`, `description.txt`, `privacy_url.txt` (URL z T-052 albo placeholder `__PRIVACY_URL__`). Opis zawiera informację o reklamach i IAP (jak w ASO). Test w `tools/test_tools.py`: limity (tytuł/name/subtitle ≤ 30 znaków, short ≤ 80, full/description ≤ 4000, keywords ≤ 100 bajtów, brak słów z tytułu w keywords), żaden plik nie zawiera „TBD”. Zadanie wprost dotyczy `fastlane/metadata` (bez `Fastfile`). ≤ ~200 linii tekstu.
-  Skill: `aso`
-
-- [ ] T-052 `review` Polityka prywatności (EN/PL) + odpowiedzi do Play Data Safety i App Store Privacy Labels (zależy od T-025) → PR #52
-  KA: `docs/privacy/index.md` (EN) i `docs/privacy/pl.md` — administrator All In IT sp. z o.o., kontakt `__PRIVACY_CONTACT__` do uzupełnienia przez Huberta, sekcje: dane zbierane przez GameAnalytics i AdMob (linki do dokumentacji SDK), IAP, zgoda UMP/ATT, prawa RODO, brak kont i danych wpisywanych przez gracza, 13+. W `docs/RELEASE_CHECKLIST.md` tabela odpowiedzi Data Safety (typ danych → zbierane/udostępniane/cel/opcjonalne) i Privacy Labels (kategoria → linked/tracking). Test w `tools/test_tools.py`: każdy z 16 eventów z `docs/GDD.md` → Analityka jest zmapowany w tabeli. Fakty o SDK z linkiem i datą, inaczej `ZWERYFIKUJ`. Treść do przeglądu prawnego przez Huberta przed publikacją. ≤ ~200 linii.
-  Skill: `store-release`
-
 <!-- Refill 2026-10-24 (continuous-dev #5, refill #3): Faza 4 — prace bez kont, bez workflowów i bez pobierania binarek (ograniczenia sesji scheduled). Kolejność = zależności. -->
 
-- [ ] T-034 `review` Bramka: `make test-tools` (uruchamia `tools/test_tools.py`) dołączony do `make check` + Pillow w `make setup` (przeniesione z Inbox) → PR #54
-  KA: nowy cel `test-tools` w `Makefile` (`python3 tools/test_tools.py`, exit ≠ 0 przy błędzie), `check` zależy od `lint test test-tools export-check`; `make setup` instaluje Pillow przez pip idempotentnie (bez pobierania binarek z GitHub); celowo zepsuty test lokalnie → `make check` czerwone (opis w PR), po cofnięciu zielone; 25+ testów tools przechodzi w `make check`. Bez zmian w `.github/workflows/**` (podpięcie w `test.yml` → Inbox dla Huberta, jeśli `test.yml` nie woła `make check`). Kształt `flask` w gen_assets — poza zakresem (Inbox T-066). ≤ ~20 linii.
-  Skill: `godot-test`
-
-- [ ] T-062 `todo` Consent: `ConsentProvider` (interfejs) + `FakeConsentProvider` + `ConsentFlow` (czysta klasa, UMP → ATT) wg GDD → Mechaniki „Zgoda UMP/ATT”
+- [ ] T-062 `in_progress` Consent: `ConsentProvider` (interfejs) + `FakeConsentProvider` + `ConsentFlow` (czysta klasa, UMP → ATT) wg GDD → Mechaniki „Zgoda UMP/ATT”
   KA: `game/src/systems/consent_provider.gd`, `fake_consent_provider.gd` (skryptowane odpowiedzi: `region_eea`, `form_required`, `ump_status`, `att_status`, `privacy_options_required`, opóźnienie), `consent_flow.gd` bez `Node` (zegar wstrzykiwany). Klucz `consent_timeout_seconds` = 8 w `GameConfig`. Test gdUnit4 ≥ 6 przypadków: EEA+zgoda → `personalized=true`; EEA+odmowa → `can_request_ads=true`, `personalized=false`; poza EEA → bez formularza; timeout → `finished` z `personalized=false`; iOS ATT denied → `personalized=false`; ATT nie pytany po odmowie UMP. Każdy przypadek: dokładnie jedno `report_consent("ump", …)` (i `"att"` na iOS) zarejestrowane w `FakeAnalyticsProvider` przez `Ads.report_consent`. Bez SDK i bez zależności. `make check` zielone. ≤ ~220 linii.
   Skill: `ads-iap`
 
@@ -201,3 +166,12 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-026 `done` ADR-010 IAP + IapProvider/FakeIapProvider + Purchases.grant → PR #41 (zmergowany 2026-10-23)
 - [x] T-027 `done` Ekran Shop + Przywróć zakupy + okno starter packa → PR #42 (zmergowany 2026-10-23)
 - [x] T-011 `done` CI: podbicie wersji akcji (częściowo 5/12; reszta → T-055) → PR #44 (zmergowany 2026-10-23)
+- [x] T-004 `done` `Gemfile.lock` wygenerowany i zacommitowany → PR #45 (zmergowany 2026-10-24)
+- [x] T-002 `done` CI: wspólne, monotoniczne źródło `version_code` — część 1: `tools/version_code.sh` + testy → PR #46 (zmergowany 2026-10-24)
+- [x] T-040 `done` UI: font OFL z diakrytykami (ą ć ę ł ń ó ś ź ż ä ö ü ß) jako domyślny font UI + etykieta `set_language` nad wyborem języka w Settings → PR #47 (zmergowany 2026-10-24)
+- [x] T-003 `done` Tryb `--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]` w `main.gd`, żeby `tools/gen_screenshots.sh` produkował obrazy → PR #48 (zmergowany 2026-10-24)
+- [x] T-050 `done` Screenshoty sklepowe: 5 kadrów z `docs/ASO.md` × EN/PL/DE do `fastlane/metadata/android/<locale>/images/phoneScreenshots` → PR #49 (zmergowany 2026-10-24)
+- [x] T-060 `done` UI: nieprzezroczyste tło paneli nakładkowych (LevelComplete, DailyRewardPopup, StuckPanel, karta Poziomu dnia na Home) + regeneracja screenshotów sklepowych → PR #50 (zmergowany 2026-10-24)
+- [x] T-051 `done` Metadata sklepowe EN/PL/DE w `fastlane/metadata` (Android + iOS) z `docs/ASO.md` → PR #51 (zmergowany 2026-10-24)
+- [x] T-052 `done` Polityka prywatności (EN/PL) + odpowiedzi do Play Data Safety i App Store Privacy Labels → PR #52 (zmergowany 2026-10-24)
+- [x] T-034 `done` Bramka: `make test-tools` (uruchamia `tools/test_tools.py`) dołączony do `make check` + Pillow w `make setup` (przeniesione z Inbox) → PR #54 (zmergowany 2026-10-24)
