@@ -68,10 +68,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #9, refill #6, P2): Faza 5 prep IV — higiena testów i kodu Level/App po refaktorze, dostępność, generator w GameConfig — czysty log runnera i testy brzegowe ekonomii zmniejszają ryzyko crashy (crash-free ≥ 99,5 %) przed SDK, symbole kolorów zdejmują barierę 12 kolorów (D1/D7), a budżety generatora w GameConfig pozwalają stroić czas generacji remote configiem. Kolejność = zależności (T-113 po T-101, T-114 po T-109, T-116 po T-107). -->
 
-- [ ] T-112 `review` `make test`: usunąć wycieki `ObjectDB instances were leaked` / `resources still in use at exit` po zakończeniu runnera (przeniesione z Inbox T-087) → PR #102
-  KA: źródło ustalone przez `--verbose` (lista klas/zasobów w PR); poprawki w testach (`after()`/`after_test()`, `auto_free`, `queue_free` + `await`) albo w kodzie (np. autoload trzymający referencję); log `make test` zawiera 0 wystąpień `ObjectDB instances were leaked` i 0 `resources still in use at exit`. Jeśli część wycieku pochodzi z samego addonu gdUnit4 (dowód: ta sama liczba przy uruchomieniu jednej pustej suity) — opis w PR, wpis do Inbox, a wycieki z naszego kodu = 0. Liczba testów gdUnit4 nie maleje, żadna asercja nie osłabiona. `make check` zielone. ≤ ~60 linii.
-  Skill: `godot-test`
-
 <!-- Refill 2026-10-24 (continuous-dev #10, refill #7, P2): Faza 5 prep V — testy niezależne od daty systemowej (fałszywe czerwone o północy UTC blokują auto-merge), dostępność zweryfikowana liczbą (kontrast symboli), porządki GameRound, viralowa pętla Poziomu dnia bez SDK. Kolejność = zależności (T-125 po T-114, T-126 po T-115, T-127 po T-122). -->
 
 - [ ] T-125 `todo` Testy: każda instancja `App`/`Home` w suitach dostaje stały zegar — wynik `make test` niezależny od daty i godziny systemowej (obejmuje Inbox T-119; zależy od T-114 — helper zegara w `test_app.gd`)
@@ -143,7 +139,6 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - Refill #7 (T-129, Inbox): dokładność `min_moves` w trudnych poziomach — przyjęto: po przyspieszeniu solvera (T-124) dopuszczamy podniesienie `gen_exact_max_colors` 6 → 8, co zmienia poziomy kampanii od ~26 (golden hashe) — przed soft launchem bez skutków dla graczy; do zmiany (alternatywa: zamrozić poziomy już teraz).
 
 ## Done (ostatnie 30)
-- [x] T-076 `done` Lokalizacja PL/DE + test „PL/DE ≠ EN” + karta Poziomu dnia ukryta pod popupem → PR #67 (zmergowany 2026-10-24)
 - [x] T-077 `done` BoardView: sygnał `tube_deselected` + test cofnięcia kroku tutorialu → PR #68 (zmergowany 2026-10-24)
 - [x] T-078 `done` BoardView: animacja przelewu w 3 fazach + ochrona tweenów → PR #69 (zmergowany 2026-10-24)
 - [x] T-079 `done` BoardView: puls zamkniętej probówki + haptyka (zależy od T-078) → PR #70 (zmergowany 2026-10-24)
@@ -173,3 +168,4 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [x] T-116 `done` Generator: budżety etapów solvera jako klucze `GameConfig` (`gen_*`) → PR #99 (zmergowany 2026-10-24)
 - [x] T-114 `done` App: flaga `Level.autoload_level` zamiast `GameRound.new()` + `test_app.gd` ze stałym zegarem → PR #100 (zmergowany 2026-10-24)
 - [x] T-115 `done` Dostępność: symbole kolorów na warstwach płynu (`ColorSymbols`) + przełącznik w Settings → PR #101 (zmergowany 2026-10-24)
+- [x] T-112 `done` `make test` bez wycieków ObjectDB/zasobów — cykl `ConsentFlow` ↔ `FakeConsentProvider` w `test_consent_flow.gd` → PR #102 (zmergowany 2026-10-24)
