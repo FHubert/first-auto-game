@@ -57,7 +57,13 @@ func _ready() -> void:
 
 ## Jeden komunikat po wygranej kampanii: "+1 kolor" (priorytet) albo postep do motywu.
 ## `level_no` = numer ukonczonego poziomu. Zwraca {"key", "args"} albo {}.
-static func progress_message(level_no: int, game_mode: String, state: GameState) -> Dictionary:
+static func progress_message(
+	level_no: int, game_mode: String, state: GameState, month_goal_hit: bool = false
+) -> Dictionary:
+	if game_mode == Level.MODE_DAILY and month_goal_hit:
+		return {
+			"key": "lc_month_goal", "args": [int(GameConfig.get_value("daily_month_goal_coins"))]
+		}
 	if game_mode != Level.MODE_CAMPAIGN:
 		return {}
 	var gen := ContentGenerator.new()

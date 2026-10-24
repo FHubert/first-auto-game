@@ -40,6 +40,7 @@ var _tutorial_max_step: int = 0
 var _last_win_coins: int = 0
 var _last_win_perfect: bool = false
 var _last_win_title: String = ""
+var _last_month_goal_hit: bool = false
 
 @onready var board: BoardView = $Board
 @onready var hud: Hud = $Hud
@@ -326,8 +327,14 @@ func _on_round_won() -> void:
 	var result: Dictionary = round.result()
 	var coins: int
 	var title: String = ""
+	_last_month_goal_hit = false
 	if mode == MODE_DAILY:
+		var goal: int = int(GameConfig.get_value("daily_month_goal"))
+		var before: int = DailyChallenge.month_progress(state, utc_day)
 		coins = DailyChallenge.complete(state, utc_day, result)
+		_last_month_goal_hit = (
+			before < goal and DailyChallenge.month_progress(state, utc_day) >= goal
+		)
 		title = tr("lc_daily_title")
 	else:
 		coins = Economy.apply_win(state, result)
@@ -352,7 +359,7 @@ func _on_round_won() -> void:
 		_last_win_perfect,
 		level_no,
 		title,
-		LevelComplete.progress_message(level_no, mode, state)
+		LevelComplete.progress_message(level_no, mode, state, _last_month_goal_hit)
 	)
 	level_complete.set_double_offer(offers.double_coins_bonus(), offers.can_double_coins())
 	if mode == MODE_DAILY:
@@ -434,7 +441,7 @@ func _on_double_coins_granted(bonus: int) -> void:
 		_last_win_perfect,
 		level_no,
 		_last_win_title,
-		LevelComplete.progress_message(level_no, mode, state)
+		LevelComplete.progress_message(level_no, mode, state, _last_month_goal_hit)
 	)
 	level_complete.set_double_offer(0, false)
 	hud.refresh()

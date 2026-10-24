@@ -37,6 +37,7 @@ var daily_new_badge: Label
 var daily_status_label: Label
 var daily_timer_label: Label
 var daily_total_label: Label
+var daily_month_label: Label
 var daily_button: Button
 
 var _timer_acc: float = 0.0
@@ -94,6 +95,13 @@ func _refresh_daily() -> void:
 	daily_timer_label.text = tr("daily_next_in") % hms
 	daily_total_label.text = tr("home_daily_total") % state.daily_completed_total
 	daily_total_label.visible = state.daily_completed_total > 0
+	var progress: int = DailyChallenge.month_progress(state, day)
+	var goal: int = int(GameConfig.get_value("daily_month_goal"))
+	if progress >= goal:
+		daily_month_label.text = tr("home_daily_month_done")
+	else:
+		daily_month_label.text = tr("home_daily_month") % [progress, goal]
+	daily_month_label.visible = unlocked and progress >= 1
 	daily_button.text = tr("btn_play_daily")
 	daily_button.disabled = not unlocked or done
 	daily_new_badge.visible = unlocked and not done and not daily_intro_seen()
@@ -162,8 +170,14 @@ func _build_daily_card(parent: Control) -> void:
 	daily_status_label = Label.new()
 	daily_timer_label = Label.new()
 	daily_total_label = Label.new()
+	daily_month_label = Label.new()
 	for l: Label in [
-		daily_title_label, daily_new_badge, daily_status_label, daily_timer_label, daily_total_label
+		daily_title_label,
+		daily_new_badge,
+		daily_status_label,
+		daily_timer_label,
+		daily_total_label,
+		daily_month_label,
 	]:
 		l.add_theme_font_size_override("font_size", FONT_SIZE)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
