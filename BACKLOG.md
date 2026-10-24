@@ -42,7 +42,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: przelew animowany w 3 fazach (uniesienie+przechył → transfer warstw → powrót) o łącznym czasie = `pour_anim_seconds` z `GameConfig` (proporcje faz jako nazwane `const`); `_rebuild`/`resized` w trakcie animacji zabija aktywne tweeny i rysuje stan końcowy (bez błędów „freed instance” w logu). Testy gdUnit4 przez `scene_runner` z `animate=true` i symulowanym czasem: `pour_finished` emitowane dokładnie raz po ≥ `pour_anim_seconds`; `resized` w połowie animacji → stan widoku = stan `SortBoard`; tap w trakcie animacji ignorowany (input zablokowany do `pour_finished`). Kadr Level (01) obejrzany. `make check` zielone. ≤ ~150 linii.
   Skill: `godot-dev`
 
-- [ ] T-079 `review` BoardView: animacja cz. 2 — pulsowanie probówki zamkniętej jednym kolorem + krótka haptyka przy zamknięciu, spójnie z `tube_full` z T-041 (zależy od T-078) → PR #__N__
+- [ ] T-079 `review` BoardView: animacja cz. 2 — pulsowanie probówki zamkniętej jednym kolorem + krótka haptyka przy zamknięciu, spójnie z `tube_full` z T-041 (zależy od T-078) → PR #70
   KA: po przelewie zamykającym probówkę widok odtwarza puls (skala z nazwanej `const`, czas z klucza `tube_full_pulse_seconds` w `GameConfig`, propozycja 0,25) i wywołuje haptykę przez istniejący `AudioService` (respektuje ustawienia). Test gdUnit4 z fake serwisem: 1 zamknięcie → 1 puls + 1 haptyka; przelew niezamykający → 0; restart/undo w trakcie pulsu → skala wraca do 1.0. `make check` zielone. ≤ ~70 linii.
   Skill: `godot-dev`
 
