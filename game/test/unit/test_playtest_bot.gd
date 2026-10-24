@@ -240,6 +240,19 @@ func test_stay_lost_attempt_repeats_same_level() -> void:
 		PlaytestBot.STAY_MAX_ATTEMPTS, 42, PlaytestBot.MODE_RANDOM
 	)
 	assert_int(rep_skip["skips_by_bracket"]["1-7"]).is_equal(1)
+	# start_level hook: plateau level 56 without playing 1..55.
+	var plateau := PlaytestBot.new()
+	plateau.start_level = 56
+	plateau.stay_on_level = true
+	plateau.use_campaign_seed = true
+	plateau.attempt_steps_limit = 1
+	var rep_plateau: Dictionary = plateau.run(3, 42, PlaytestBot.MODE_GREEDY)
+	var expected_plateau: Dictionary = ContentGenerator.new().generate(
+		int(GameConfig.get_value("campaign_seed")), 56
+	)
+	var tubes: Array = plateau.last_level_data["payload"]["tubes"]
+	assert_array(tubes).is_equal(expected_plateau["payload"]["tubes"])
+	assert_int(rep_plateau["rounds_by_bracket"]["56+"]).is_equal(3)
 
 
 func _stay_report() -> Dictionary:

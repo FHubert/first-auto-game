@@ -25,6 +25,8 @@ var last_level_data: Dictionary = {}
 var stay_on_level: bool = false
 ## Moves per attempt before the bot gives up (the whole attempt when `stay_on_level`).
 var attempt_steps_limit: int = ATTEMPT_STEPS
+## Starting `state.level` (measurement hook, e.g. plateau 56+ without playing 1..55).
+var start_level: int = 1
 
 
 func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
@@ -33,6 +35,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 	rng.seed = run_seed
 	var generator := ContentGenerator.new()
 	var state := GameState.new()
+	state.level = start_level
 	state.coins = int(GameConfig.get_value("starting_coins", 0))
 	var win_reward: int = int(GameConfig.get_value("win_reward_coins"))
 	var report: Dictionary = {
