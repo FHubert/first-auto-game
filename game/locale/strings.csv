@@ -33,6 +33,7 @@ btn_settings,Settings,Ustawienia,Einstellungen
 set_music,Music,Muzyka,Musik
 set_sfx,Sound effects,Dźwięki,Geräusche
 set_haptics,Vibration,Wibracje,Vibration
+set_symbols,Color symbols,Symbole kolorów,Farbsymbole
 set_language,Language,Język,Sprache
 set_lang_system,System,Systemowy,System
 set_lang_en,English,English,English

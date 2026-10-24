@@ -13,11 +13,16 @@ const LIQUID_MARGIN_BOTTOM: float = 13.0
 const LIQUID_MARGIN_TOP: float = 40.0
 const BOTTOM_RADIUS: float = 36.0
 const ARC_SEGMENTS: int = 8
+const SYMBOL_LIGHT: Color = Color("#FFFFFF", 0.85)
+const SYMBOL_DARK: Color = Color("#14213D")
+const SYMBOL_DARK_LUMINANCE: float = 0.6
 
 var index: int = 0
 var capacity: int = 4
 var layers: Array = []
 var liquids: Array = []
+var show_symbols: bool = false
+var symbols_drawn: int = 0
 
 var _body: NinePatchRect
 
@@ -97,10 +102,22 @@ static func layer_polygon(rect: Rect2, rounded_bottom: bool, radius: float) -> P
 	return pts
 
 
+func set_symbols(on: bool) -> void:
+	show_symbols = on
+	queue_redraw()
+
+
 func _draw() -> void:
+	symbols_drawn = 0
 	if liquids.is_empty():
 		return
 	for i: int in layers.size():
 		var c: int = int(layers[i]) % liquids.size()
 		var rect: Rect2 = layer_rect(size, capacity, i)
 		draw_colored_polygon(layer_polygon(rect, i == 0, BOTTOM_RADIUS), liquids[c])
+		if show_symbols:
+			var tint: Color = SYMBOL_LIGHT
+			if (liquids[c] as Color).get_luminance() > SYMBOL_DARK_LUMINANCE:
+				tint = SYMBOL_DARK
+			draw_colored_polygon(ColorSymbols.polygon(c, rect), tint)
+			symbols_drawn += 1
