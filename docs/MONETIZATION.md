@@ -68,3 +68,16 @@ Ceny lokalne (PLN, EUR) pobierane ze sklepu (`IapProvider`), nigdy z kodu. Integ
 | H3 | Wcześniejsza oferta `starter_pack` (po poziomie 6 zamiast 12) podnosi konwersję IAP | IAP conversion | ≥ 1,5 % | `starter_offer_min_level` = 12 | `starter_offer_min_level` = 6 |
 
 **Paczki remote configu:** [`default.json`](remote_config/default.json), [`h1_b.json`](remote_config/h1_b.json), [`h2_b.json`](remote_config/h2_b.json), [`h3_b.json`](remote_config/h3_b.json). Nowy eksperyment = nowy plik w `docs/remote_config/` (`remote_config_variant` = nazwa pliku) + zielony `test_remote_config_packages.gd` PRZED wpisaniem wartości do Firebase Remote Config; wartości wariantu B w tabeli i w pliku muszą być identyczne.
+
+### Przewidywanie `make sim` (seed 1, 1000 graczy, 30 dni)
+
+`python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 --overlay docs/remote_config/<wariant>.json` (klucze nieznane symulacji, np. `starter_offer_min_level`, są ignorowane).
+
+| wariant | impresje/DAU (rewarded + interstitial = total) | 1. motyw (dzień, mediana) | 3. motyw (dzień) | mediana monet d30 / d1 | exit code |
+|---|---|---|---|---|---|
+| default | 2.722 + 1.350 = 4.072 | 4 | 24 | 560 / 335 | 0 |
+| h1_b (`rewarded_multiplier` 3.0) | 2.697 + 1.323 = 4.020 | 3 | 25 | 610 / 350 | 0 |
+| h2_b (interstitial co 4 rundy, od lvl 5) | 2.722 + 1.780 = 4.502 | 4 | 24 | 560 / 335 | 0 |
+| h3_b (`starter_offer_min_level` 6) | 2.722 + 1.350 = 4.072 | 4 | 24 | 560 / 335 | 0 |
+
+H2 podnosi interstitiale z 1.35 do 1.78/DAU (total 4.50), bez wpływu na ekonomię monet. H1 podnosi monety tylko nieznacznie (d30 560 -> 610), 3. motyw nadal ok. 25. dnia - brak ryzyka inflacji w modelu; H3 nie jest modelowany przez symulację (wynik identyczny z default).
