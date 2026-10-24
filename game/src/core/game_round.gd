@@ -4,6 +4,8 @@ extends RefCounted
 ## Kontrakt dla bota/UI: start(level_data) / step(action) / result().
 ## action = from * ACTION_BASE + to.
 
+## Limit 16 probówek (action = from*16 + to); suma colors_max + empty_tubes +
+## extra_tube_max_per_level musi się mieścić (pilnuje test_game_round).
 const ACTION_BASE: int = 16
 const NO_HINT: Vector2i = Vector2i(-1, -1)
 
@@ -217,7 +219,7 @@ func undo_charges() -> int:
 func add_extra_tube() -> bool:
 	if not can_add_extra_tube():
 		return false
-	_board.tubes.append([])
+	_board.add_empty_tube()
 	for snap: Array in _history:
 		snap.append([])
 	_extra_tubes_added += 1
@@ -308,7 +310,7 @@ func _solve_cached() -> Dictionary:
 	if _solver_cache.has(key):
 		return _solver_cache[key]
 	var limit: int = _cfg_int("hint_solver_max_states")
-	var r: Dictionary = SortSolver.solve(_board, limit, 1.0)
+	var r: Dictionary = SortSolver.solve(_board, limit, SortSolver.EXACT_WEIGHT)
 	if int(r["moves"]) <= 0 and not _board.is_won():
 		var w: float = float(GameConfig.get_value("solver_fallback_weight"))
 		r = SortSolver.solve(_board, limit, w)

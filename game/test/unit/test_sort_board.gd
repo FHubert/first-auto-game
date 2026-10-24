@@ -104,3 +104,14 @@ func test_helpers() -> void:
 	assert_bool(b.is_valid()).is_true()
 	assert_bool(SortBoard.new([[0, 0, 0, 0, 0]]).is_valid()).is_false()
 	assert_bool(SortBoard.new([[-1]]).is_valid()).is_false()
+
+
+func test_add_empty_tube_appends_empty_and_keeps_won_state() -> void:
+	for tubes: Array in [[[0, 0, 0, 0], [1, 1, 1, 1]], [[0, 1], [1, 0]]]:
+		var b := SortBoard.new(tubes)
+		var won: bool = b.is_won()
+		var n: int = b.tube_count()
+		b.add_empty_tube()
+		assert_int(b.tube_count()).is_equal(n + 1)
+		assert_bool(b.is_empty(n)).is_true()
+		assert_bool(b.is_won()).is_equal(won)
