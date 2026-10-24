@@ -57,6 +57,7 @@ static func make(fixture: String, utc_day: int = 0) -> GameState:
 				state.streak_days = ASO_HOME_STREAK_DAYS
 				state.streak_best = ASO_HOME_STREAK_BEST
 				state.daily_completed_total = ASO_HOME_DAILY_TOTAL
+				state.settings[Home.DAILY_INTRO_SEEN_KEY] = true
 		"aso_daily":
 			state.level = ASO_LEVEL
 			state.levels_completed = ASO_LEVEL - 1

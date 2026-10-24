@@ -17,6 +17,8 @@ const CARD_SEPARATION: int = 16
 const CARD_PADDING: int = 20
 const STREAK_BEST_MIN_VISIBLE: int = 2
 const STREAK_BEST_GAP: int = 24
+const DAILY_INTRO_SEEN_KEY: String = "daily_intro_seen"
+const DAILY_NEW_COLOR: Color = Color("#FFD166")
 
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
@@ -31,6 +33,7 @@ var shop_button: Button
 var settings_button: Button
 var daily_card: PanelContainer
 var daily_title_label: Label
+var daily_new_badge: Label
 var daily_status_label: Label
 var daily_timer_label: Label
 var daily_total_label: Label
@@ -93,6 +96,13 @@ func _refresh_daily() -> void:
 	daily_total_label.visible = state.daily_completed_total > 0
 	daily_button.text = tr("btn_play_daily")
 	daily_button.disabled = not unlocked or done
+	daily_new_badge.visible = unlocked and not done and not daily_intro_seen()
+
+
+## Czy gracz wszedl juz w Poziom dnia z karty (zly typ / brak klucza = false).
+func daily_intro_seen() -> bool:
+	var v: Variant = state.settings.get(DAILY_INTRO_SEEN_KEY, false)
+	return typeof(v) == TYPE_BOOL and v
 
 
 func _build() -> void:
@@ -146,10 +156,15 @@ func _build_daily_card(parent: Control) -> void:
 	pad.add_child(col)
 	daily_title_label = Label.new()
 	daily_title_label.text = tr("daily_challenge_title")
+	daily_new_badge = Label.new()
+	daily_new_badge.text = tr("home_daily_new")
+	daily_new_badge.add_theme_color_override("font_color", DAILY_NEW_COLOR)
 	daily_status_label = Label.new()
 	daily_timer_label = Label.new()
 	daily_total_label = Label.new()
-	for l: Label in [daily_title_label, daily_status_label, daily_timer_label, daily_total_label]:
+	for l: Label in [
+		daily_title_label, daily_new_badge, daily_status_label, daily_timer_label, daily_total_label
+	]:
 		l.add_theme_font_size_override("font_size", FONT_SIZE)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(l)
