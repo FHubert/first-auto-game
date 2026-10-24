@@ -250,5 +250,5 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 
 **Konsekwencje:**
 - Logika w pełni testowalna headless; podpięcie w `Main` i ustawienia — kolejne zadania.
-- Klucze tłumaczeń (`notif_*`) dopisuje T-151; do tego czasu planner zwraca tylko nazwy kluczy.
+- Klucze tłumaczeń `notif_*` i podpięcie w `App` (FOCUS_OUT → `cancel_all` + `schedule`, FOCUS_IN/`_ready` → `cancel_all`, stałe ID 1/2/3, event `notif:scheduled:<kind>`) — T-151; provider niedostępny (`is_available() == false`) → zero wywołań.
 - ZWERYFIKUJ: nazwa pluginu dla Godot 4.7 (kompatybilność z eksportem Android/iOS).
