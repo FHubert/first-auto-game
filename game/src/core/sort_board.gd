@@ -27,6 +27,11 @@ func tube_count() -> int:
 	return tubes.size()
 
 
+## Dodaje pustą probówkę na końcu.
+func add_empty_tube() -> void:
+	tubes.append([])
+
+
 ## Kolor na górze probówki lub -1 gdy pusta.
 func top_color(i: int) -> int:
 	var t: Array = tubes[i]
