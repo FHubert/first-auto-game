@@ -44,7 +44,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: fixture kadru LevelComplete w `ScreenshotFixtures` ustawia `show_result` z wartościami z ekonomii (`win_reward_coins` + premia „idealnie” z `GameConfig`, nie literały) — test gdUnit4: etykieta monet po fixture ≠ „+0” i równa `Economy`-wyliczonej kwocie; `perfect_label` widoczny. `make screenshots` → kadr 02 ×3 języki odświeżony. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `godot-dev`
 
-- [ ] T-056 `todo` BoardView/TubeView: warstwy płynu przycięte do kształtu probówki (dolna warstwa nie wystaje poza zaokrąglenie) (przeniesione z Inbox)
+- [ ] T-056 `review` BoardView/TubeView: warstwy płynu przycięte do kształtu probówki (dolna warstwa nie wystaje poza zaokrąglenie) (przeniesione z Inbox) → PR #59
   KA: rysowanie warstw w `tube_view.gd` ograniczone do wnętrza probówki (np. dolna warstwa jako prostokąt + zaokrąglony spód o promieniu z sprite'a, albo `clip_children` z maską) dla obu kształtów z T-018; stałe proporcji jako nazwane `const`/klucze. Test gdUnit4: dla probówki pełnej i z 1 warstwą prostokąt/obrys dolnej warstwy mieści się w `Rect2` wnętrza probówki (z tolerancją 1 px) w obu kształtach. Kadr Level (01) obejrzany po `make screenshots`. `make check` zielone. ≤ ~100 linii.
   Skill: `godot-dev`
 
