@@ -68,6 +68,24 @@ func _save_round() -> void:
 	SaveSystem.save(state)
 
 
+## Odrzuca niepusty snapshot rundy: raz loguje Fail + level:fail:abandon i czysci pole.
+func _discard_snapshot() -> void:
+	var snap: Dictionary = state.round_in_progress
+	if snap.is_empty():
+		return
+	var lvl: int = _snap_int(snap, "level_no")
+	var day: int = _snap_int(snap, "utc_day")
+	var mode_in: String = str(snap.get("mode", ""))
+	Analytics.track_progression("Fail", mode_in, Level.level_id_for(mode_in, lvl, day))
+	Analytics.track_design("level:fail:abandon")
+	state.round_in_progress = {}
+
+
+func _snap_int(snap: Dictionary, key: String) -> int:
+	var v: Variant = GameState._as_int(snap.get(key))
+	return 0 if v == null else int(v)
+
+
 func _today() -> int:
 	return DailyRewards.utc_day_from_unix(int(clock.call()))
 
@@ -151,9 +169,10 @@ func show_level() -> void:
 		level.round = GameRound.new()  # pomija autoload w _ready; resume/load_level ustawi
 		add_child(level)
 		if not level.resume(snap, _today()):
-			state.round_in_progress = {}
+			_discard_snapshot()
 			level.load_level(state.level, state.theme_active)
 		return
+	_discard_snapshot()
 	add_child(level)
 
 
@@ -168,7 +187,7 @@ func show_daily_level() -> void:
 	if str(state.round_in_progress.get("mode", "")) == Level.MODE_DAILY:
 		if level.resume(state.round_in_progress, _today()):
 			return
-		state.round_in_progress = {}
+	_discard_snapshot()
 	level.start_daily(_today())
 
 

@@ -81,6 +81,14 @@ func _find(type: String, key: String, value: String, from: int = 0) -> int:
 	return -1
 
 
+func _count(type: String, key: String, value: String) -> int:
+	var n: int = 0
+	for e in _fake.events:
+		if e["type"] == type and str(e.get(key, "")) == value:
+			n += 1
+	return n
+
+
 func _has_design(id: String) -> bool:
 	return _find("design", "event_id", id) >= 0
 
@@ -134,17 +142,19 @@ func test_next_without_double_shows_interstitial() -> void:
 	assert_float(_fake.events[i]["value"]).is_equal(2.0)
 
 
-func test_quit_mid_round_is_fail() -> void:
+func test_quit_mid_round_is_pause_not_fail() -> void:
 	_fake.events.clear()
 	_level.quit_level()
-	assert_str(_fake.events[0]["status"]).is_equal("Fail")
-	assert_bool(_has_design("level:fail:quit")).is_true()
+	assert_int(_count("progression", "status", "Fail")).is_equal(0)
+	assert_int(_count("design", "event_id", "level:pause")).is_equal(1)
+	assert_bool(_has_design("level:fail:quit")).is_false()
 
 
-func test_pause_reports_quit() -> void:
+func test_pause_reports_pause() -> void:
 	_fake.events.clear()
 	_level.pause()
-	assert_bool(_has_design("level:fail:quit")).is_true()
+	assert_int(_count("progression", "status", "Fail")).is_equal(0)
+	assert_int(_count("design", "event_id", "level:pause")).is_equal(1)
 
 
 func test_quit_after_win_is_silent() -> void:
