@@ -40,7 +40,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: plist z `NSPrivacyTracking` (true — AdMob z ATT), `NSPrivacyTrackingDomains`, `NSPrivacyCollectedDataTypes` (typy z tabeli T-052), `NSPrivacyAccessedAPITypes` (UserDefaults / FileTimestamp / SystemBootTime z kodami powodów — każdy kod z linkiem do dokumentacji Apple w komentarzu PR albo `ZWERYFIKUJ`). Test w `tools/test_tools.py`: `plistlib.load` parsuje plik, 4 klucze główne istnieją, każdy typ danych z tabeli Privacy Labels występuje w `NSPrivacyCollectedDataTypes` (i odwrotnie). Domeny trackingu SDK: tylko potwierdzone w dokumentacji Google, inaczej pusta lista + `ZWERYFIKUJ` w `docs/RELEASE_CHECKLIST.md`. `make check` zielone (po T-034 test wchodzi w bramkę). ≤ ~120 linii.
   Skill: `store-release`
 
-- [ ] T-057 `todo` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox)
+- [ ] T-057 `review` Screenshoty: fixture „pre-win” dla LevelComplete — realne wartości zamiast „+0 coins” (przeniesione z Inbox) → PR #58
   KA: fixture kadru LevelComplete w `ScreenshotFixtures` ustawia `show_result` z wartościami z ekonomii (`win_reward_coins` + premia „idealnie” z `GameConfig`, nie literały) — test gdUnit4: etykieta monet po fixture ≠ „+0” i równa `Economy`-wyliczonej kwocie; `perfect_label` widoczny. `make screenshots` → kadr 02 ×3 języki odświeżony. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `godot-dev`
 
