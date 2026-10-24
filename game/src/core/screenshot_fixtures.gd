@@ -22,7 +22,10 @@ static func win_result() -> Dictionary:
 ## Fills the LevelComplete overlay of `level` with the pre-win values.
 static func apply_win(level: Level) -> void:
 	var result: Dictionary = win_result()
-	level.level_complete.show_result(int(result["coins"]), true, level.level_no, "")
+	var progress: Dictionary = LevelComplete.progress_message(
+		level.level_no, level.mode, level.state
+	)
+	level.level_complete.show_result(int(result["coins"]), true, level.level_no, "", progress)
 	level.level_complete.set_double_offer(int(result["double_bonus"]), true)
 
 

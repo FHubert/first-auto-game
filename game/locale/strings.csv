@@ -22,6 +22,8 @@ tut_pick_target,Now tap where to pour,"Teraz stuknij, gdzie przelać",Tippe jetz
 tut_finish,Finish it - sort the colors!,Dokończ — posortuj kolory!,Mach weiter - sortiere die Farben!
 home_play,Play: level %d,Graj: poziom %d,Spielen: Level %d
 home_streak,Streak: %d,Seria: %d,Serie: %d
+lc_new_color,Next level: +1 color,Następny poziom: +1 kolor,Nächstes Level: +1 Farbe
+lc_theme_progress,Next theme: %d / %d,Następny motyw: %d / %d,Nächstes Thema: %d / %d
 home_theme_progress,to next theme: %d / %d,do następnego motywu: %d / %d,bis zum nächsten Thema: %d / %d
 btn_themes,Themes,Motywy,Themen
 btn_shop,Shop,Sklep,Shop

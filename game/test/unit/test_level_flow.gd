@@ -175,6 +175,17 @@ func test_double_coins_once_on_level_two() -> void:
 	assert_int(_level.state.coins).is_equal(before + bonus)
 
 
+func test_double_coins_updates_progress_label() -> void:
+	_win_level_two()
+	var label: Label = _level.level_complete.progress_label
+	assert_bool(label.visible).is_true()
+	assert_bool(_level.watch_double_coins()).is_true()
+	var expected: Dictionary = LevelComplete.progress_message(2, _level.mode, _level.state)
+	if expected["key"] == "lc_theme_progress":
+		assert_str(label.text).is_equal(tr("lc_theme_progress") % expected["args"])
+		assert_int(expected["args"][0]).is_equal(_level.state.coins)
+
+
 func test_double_coins_not_on_level_one() -> void:
 	_win()
 	assert_bool(_level.can_double_coins()).is_false()
