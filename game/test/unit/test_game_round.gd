@@ -265,3 +265,33 @@ func test_from_dict_corrupt_returns_null(
 	assert_object(GameRound.from_dict(d)).is_null()
 	assert_object(GameRound.from_dict({})).is_null()
 	assert_that(test_parameters).is_not_null()
+
+
+func test_elapsed_s_round_trips_and_is_in_result() -> void:
+	var r := _round_for(3)
+	r.elapsed_s = 12.5
+	var c: GameRound = GameRound.from_dict(JSON.parse_string(JSON.stringify(r.to_dict())))
+	assert_float(c.elapsed_s).is_equal_approx(12.5, 0.001)
+	assert_float(c.result()["elapsed_s"]).is_equal_approx(12.5, 0.001)
+
+
+func test_elapsed_s_missing_negative_or_wrong_type_is_zero() -> void:
+	var r := _round_for(3)
+	var d: Dictionary = r.to_dict()
+	d.erase("elapsed_s")
+	assert_float(GameRound.from_dict(d).elapsed_s).is_zero()
+	# Ujemna lub nie-liczba: runda nadal poprawna, czas 0 (jak brak klucza).
+	for bad: Variant in [-3, "abc", null]:
+		d["elapsed_s"] = bad
+		var c: GameRound = GameRound.from_dict(d)
+		assert_object(c).is_not_null()
+		assert_float(c.elapsed_s).is_zero()
+
+
+func test_restart_keeps_elapsed_start_resets() -> void:
+	var r := _round_for(3)
+	r.elapsed_s = 5.0
+	r.restart()
+	assert_float(r.elapsed_s).is_equal_approx(5.0, 0.001)
+	r.start(r._level_data)
+	assert_float(r.elapsed_s).is_zero()

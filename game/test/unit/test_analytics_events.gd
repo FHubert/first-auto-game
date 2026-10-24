@@ -36,7 +36,7 @@ func before_test() -> void:
 	_old_path = SaveSystem.save_path
 	SaveSystem.save_path = SAVE_PATH
 	_cleanup()
-	_level = load("res://src/levels/level.tscn").instantiate()
+	_level = _new_level()
 	_level.state = GameState.new()
 	_level.state.settings["tutorial_done"] = true
 	_level.clock = func() -> int: return FAKE_UNIX
@@ -56,6 +56,10 @@ func after_test() -> void:
 	GameConfig.reset()
 
 
+func _new_level() -> Level:
+	return load("res://src/levels/level.tscn").instantiate()
+
+
 func _cleanup() -> void:
 	for p in [SAVE_PATH, SAVE_PATH + ".tmp"]:
 		if FileAccess.file_exists(p):
@@ -71,6 +75,23 @@ func _win_level(no: int) -> void:
 	var last: Vector2i = sol[sol.size() - 1]
 	_level.board.tap(last.x)
 	_level.board.tap(last.y)
+
+
+func _solve_all(no: int) -> void:
+	var seed_value: int = int(GameConfig.get_value("campaign_seed", 1))
+	var sol: Array = ContentGenerator.new().generate(seed_value, no)["payload"]["solution"]
+	for i in sol.size() - 1:
+		_level.round.try_move(sol[i].x, sol[i].y)
+	_level.board.tap(sol[sol.size() - 1].x)
+	_level.board.tap(sol[sol.size() - 1].y)
+
+
+func _design_values(prefix: String) -> Array:
+	var out: Array = []
+	for e in _fake.events:
+		if e["type"] == "design" and str(e["event_id"]).begins_with(prefix):
+			out.append([e["event_id"], e["value"]])
+	return out
 
 
 func _find(type: String, key: String, value: String, from: int = 0) -> int:
@@ -185,3 +206,76 @@ func test_report_consent() -> void:
 	_fake.events.clear()
 	Ads.report_consent("ump", "granted")
 	assert_str(_fake.events[0]["event_id"]).is_equal("consent:ump:granted")
+
+
+func test_complete_without_boosters_is_perfect_with_zero_counts() -> void:
+	_fake.events.clear()
+	_win_level(2)
+	assert_int(_count("design", "event_id", "level:complete:perfect")).is_equal(1)
+	assert_int(_count("design", "event_id", "level:complete:normal")).is_equal(0)
+	var i_u: int = _find("design", "event_id", "level:complete:undos")
+	var i_b: int = _find("design", "event_id", "level:complete:boosters")
+	assert_float(_fake.events[i_u]["value"]).is_equal(0.0)
+	assert_float(_fake.events[i_b]["value"]).is_equal(0.0)
+	assert_int(_count("design", "event_id", "level:complete:undos")).is_equal(1)
+	assert_int(_count("design", "event_id", "level:complete:boosters")).is_equal(1)
+
+
+func test_complete_counts_undos_and_boosters() -> void:
+	_level.load_level(2)
+	var seed_value: int = int(GameConfig.get_value("campaign_seed", 1))
+	var sol: Array = ContentGenerator.new().generate(seed_value, 2)["payload"]["solution"]
+	for i in 2:
+		_level.round.try_move(sol[0].x, sol[0].y)
+		assert_bool(_level.round.undo()).is_true()
+	assert_bool(_level.round.hint() != GameRound.NO_HINT).is_true()
+	_fake.events.clear()
+	_solve_all(2)
+	var kind: String = "perfect" if bool(_level.round.result()["perfect"]) else "normal"
+	assert_int(_count("design", "event_id", "level:complete:" + kind)).is_equal(1)
+	var i_u: int = _find("design", "event_id", "level:complete:undos")
+	var i_b: int = _find("design", "event_id", "level:complete:boosters")
+	assert_float(_fake.events[i_u]["value"]).is_equal(2.0)
+	assert_float(_fake.events[i_b]["value"]).is_equal(1.0)
+
+
+func test_complete_reports_round_seconds() -> void:
+	var t: Array[int] = [FAKE_UNIX]
+	_level.clock = func() -> int: return t[0]
+	_level.load_level(2)
+	t[0] += 37
+	_fake.events.clear()
+	_solve_all(2)
+	var vals: Array = _design_values("level:complete:p")
+	assert_int(vals.size()).is_equal(1)
+	assert_float(vals[0][1]).is_equal_approx(37.0, 1.0)
+
+
+func test_complete_time_sums_across_resume() -> void:
+	var t: Array[int] = [FAKE_UNIX]
+	_level.clock = func() -> int: return t[0]
+	_level.load_level(2)
+	t[0] += 20
+	var snap: Dictionary = _level.snapshot()
+	assert_float(float(snap["round"]["elapsed_s"])).is_equal_approx(20.0, 1.0)
+	assert_dict(_level.snapshot()).is_equal(snap)
+	var l2: Level = _new_level()
+	l2.state = _level.state
+	l2.state.level = 2
+	l2.clock = func() -> int: return t[0]
+	add_child(l2)
+	assert_bool(l2.resume(snap, 0)).is_true()
+	_level.free()
+	_level = l2
+	t[0] += 10
+	_fake.events.clear()
+	var seed_value: int = int(GameConfig.get_value("campaign_seed", 1))
+	var sol: Array = ContentGenerator.new().generate(seed_value, 2)["payload"]["solution"]
+	var done: int = _level.round.moves()
+	for i in range(done, sol.size() - 1):
+		_level.round.try_move(sol[i].x, sol[i].y)
+	_level.board.tap(sol[sol.size() - 1].x)
+	_level.board.tap(sol[sol.size() - 1].y)
+	var vals: Array = _design_values("level:complete:p")
+	assert_int(vals.size()).is_equal(1)
+	assert_float(vals[0][1]).is_equal_approx(30.0, 1.0)
