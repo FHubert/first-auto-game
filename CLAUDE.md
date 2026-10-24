@@ -44,6 +44,7 @@ Patrz `KPI.md`. Skrót: D1 retention ≥ 35 %, D7 ≥ 12 %, ARPDAU ≥ 0,05 USD,
   mechaniki/meta/polish w kolejności zależności.
 - Decyzje produktowe NIE blokują: zapisz w „Pytania do Huberta” jako `przyjęto: X, do zmiany` i kontynuuj.
   Blokuj tylko przy braku sekretów/kont.
+- Sesja scheduled (auto-mode) NIE może edytować `.github/workflows/**` ani pobierać binarek z GitHub Releases (403) — zadanie, które tego wymaga, od razu oznacz `blocked` z powodem i wpisz do `docs/SETUP_HUBERT.md` §15; przy refillu backlogu nie planuj takich zadań jako `todo`.
 - Koniec sesji (~90 min): WIP do BACKLOG (`in_progress` + „WIP: ...”), gałąź wypchnięta, podsumowanie w `docs/LOG.md`.
 
 ## Twarde zasady (naruszenie = sesja nieudana)
