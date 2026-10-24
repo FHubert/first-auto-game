@@ -37,6 +37,8 @@ func _ready() -> void:
 		Ads.ad_about_to_show.connect(_on_ad_about_to_show)
 	if state == null:
 		state = SaveSystem.load()
+		if SaveSystem.last_load_source in ["backup", "fresh"]:
+			Analytics.track_design("save:recovered:%s" % SaveSystem.last_load_source)
 	_cancel_notifications()
 	Purchases.bind_state(state)
 	Locale.ensure_installed()
