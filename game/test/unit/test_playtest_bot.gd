@@ -19,7 +19,16 @@ const KEYS: Array = [
 	"losses_by_bracket",
 	"errors",
 	"elapsed_ms",
+	"levels_won_by_bracket",
+	"attempts_by_bracket",
+	"won_first_try_by_bracket",
+	"won_within_3_by_bracket",
+	"skips_by_bracket",
+	"median_attempts_by_bracket",
 ]
+
+## 20 rounds is noise-level (seed 7: greedy 19 vs random 20); 50 rounds is stable.
+const GREEDY_VS_RANDOM_ROUNDS: int = 50
 
 var _old_provider: Object
 
@@ -191,13 +200,68 @@ func test_pick_greedy_avoids_undo() -> void:
 
 
 func test_greedy_not_worse_than_random_on_campaign() -> void:
-	var greedy := PlaytestBot.new()
-	greedy.use_campaign_seed = true
-	var rep_g: Dictionary = greedy.run(20, 42, PlaytestBot.MODE_GREEDY)
-	var rnd := PlaytestBot.new()
-	rnd.use_campaign_seed = true
-	var rep_r: Dictionary = rnd.run(20, 42, PlaytestBot.MODE_RANDOM)
-	assert_str(rep_g["mode"]).is_equal("greedy")
-	assert_int(rep_g["softlocks"]).is_equal(0)
-	assert_int(rep_g["wins"]).is_greater_equal(rep_r["wins"])
-	assert_int(rep_g["losses_by_bracket"]["1-7"]).is_equal(0)
+	for seed_value: int in [42, 7]:
+		var greedy := PlaytestBot.new()
+		greedy.use_campaign_seed = true
+		var rep_g: Dictionary = greedy.run(
+			GREEDY_VS_RANDOM_ROUNDS, seed_value, PlaytestBot.MODE_GREEDY
+		)
+		var rnd := PlaytestBot.new()
+		rnd.use_campaign_seed = true
+		var rep_r: Dictionary = rnd.run(
+			GREEDY_VS_RANDOM_ROUNDS, seed_value, PlaytestBot.MODE_RANDOM
+		)
+		assert_str(rep_g["mode"]).is_equal("greedy")
+		assert_int(rep_g["softlocks"]).is_equal(0)
+		assert_that(rep_g["wins"] >= rep_r["wins"]).is_true()
+		assert_int(rep_g["losses_by_bracket"]["1-7"]).is_equal(0)
+
+
+func test_stay_lost_attempt_repeats_same_level() -> void:
+	var bot := PlaytestBot.new()
+	bot.stay_on_level = true
+	bot.attempt_steps_limit = 1
+	bot.use_campaign_seed = true
+	var report: Dictionary = bot.run(3, 42, PlaytestBot.MODE_RANDOM)
+	var expected: Dictionary = ContentGenerator.new().generate(
+		int(GameConfig.get_value("campaign_seed")), 1
+	)
+	assert_array(bot.last_level_data["payload"]["tubes"]).is_equal(expected["payload"]["tubes"])
+	assert_int(report["losses"]).is_equal(3)
+	assert_int(report["rounds_by_bracket"]["1-7"]).is_equal(3)
+	assert_int(report["attempts_by_bracket"]["1-7"]).is_equal(3)
+	assert_int(report["skips_by_bracket"]["1-7"]).is_equal(0)
+	# STAY_MAX_ATTEMPTS lost attempts in a row: the bot skips the level.
+	var skipper := PlaytestBot.new()
+	skipper.stay_on_level = true
+	skipper.attempt_steps_limit = 1
+	skipper.use_campaign_seed = true
+	var rep_skip: Dictionary = skipper.run(
+		PlaytestBot.STAY_MAX_ATTEMPTS, 42, PlaytestBot.MODE_RANDOM
+	)
+	assert_int(rep_skip["skips_by_bracket"]["1-7"]).is_equal(1)
+
+
+func _stay_report() -> Dictionary:
+	var bot := PlaytestBot.new()
+	bot.stay_on_level = true
+	bot.use_campaign_seed = true
+	return bot.run(30, 42, PlaytestBot.MODE_GREEDY)
+
+
+func test_stay_closed_levels_match_wins_plus_skips() -> void:
+	var report: Dictionary = _stay_report()
+	assert_int(report["softlocks"]).is_equal(0)
+	var closed: int = (
+		_sum_values(report["levels_won_by_bracket"]) + _sum_values(report["skips_by_bracket"])
+	)
+	assert_int(_sum_values(report["levels_won_by_bracket"])).is_equal(report["wins"])
+	assert_int(closed).is_greater_equal(report["wins"])
+	assert_int(_sum_values(report["attempts_by_bracket"])).is_equal(report["rounds"])
+	for label: String in PlaytestBot.BRACKET_LABELS:
+		assert_int(report["won_first_try_by_bracket"][label]).is_less_equal(
+			report["won_within_3_by_bracket"][label]
+		)
+		assert_int(report["won_within_3_by_bracket"][label]).is_less_equal(
+			report["levels_won_by_bracket"][label]
+		)

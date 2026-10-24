@@ -32,14 +32,18 @@ test-tools:
 lint:
 	gdlint $(PROJECT)/src $(PROJECT)/test && gdformat --check $(PROJECT)/src $(PROJECT)/test
 
+PLAYTEST_SEED ?= 42
+
 playtest:
 	mkdir -p $(PROJECT)/test/reports
-	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --rounds=200 --seed=42 \
+	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --rounds=200 --seed=$(PLAYTEST_SEED) \
 		--report=$(ROOT)/$(PROJECT)/test/reports/playtest.json && \
-	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --random --rounds=200 --seed=42 \
+	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --random --rounds=200 --seed=$(PLAYTEST_SEED) \
 		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_random.json && \
-	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --rounds=200 --seed=42 \
-		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_greedy.json
+	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --rounds=200 --seed=$(PLAYTEST_SEED) \
+		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_greedy.json && \
+	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --stay --rounds=400 --seed=$(PLAYTEST_SEED) \
+		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_greedy_stay.json
 
 sim:
 	python3 tools/balance_sim.py

@@ -13,12 +13,18 @@ const SIM_SECONDS_PER_ROUND: float = 30.0
 ## Level brackets [min, max] for the per-bracket report; labels in the same order.
 const BRACKETS: Array = [[1, 7], [8, 25], [26, 55], [56, 1000000]]
 const BRACKET_LABELS: Array = ["1-7", "8-25", "26-55", "56+"]
+## --stay: lost attempts on one level before the bot skips it (like the player's "Skip").
+const STAY_MAX_ATTEMPTS: int = 20
 
 var max_restarts_per_round: int = 50
 ## true: boards from GameConfig "campaign_seed" (as Level.load_level), not run_seed + i.
 var use_campaign_seed: bool = false
 ## Level data of the most recently generated round (test hook, e.g. to check the seed used).
 var last_level_data: Dictionary = {}
+## true (random/greedy): 1 round = 1 attempt; a lost attempt repeats the same level.
+var stay_on_level: bool = false
+## Moves per attempt before the bot gives up (the whole attempt when `stay_on_level`).
+var attempt_steps_limit: int = ATTEMPT_STEPS
 
 
 func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
@@ -46,12 +52,23 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		"interstitial_calls": 0,
 		"rounds_by_bracket": _zero_brackets(),
 		"losses_by_bracket": _zero_brackets(),
+		"levels_won_by_bracket": _zero_brackets(),
+		"attempts_by_bracket": _zero_brackets(),
+		"won_first_try_by_bracket": _zero_brackets(),
+		"won_within_3_by_bracket": _zero_brackets(),
+		"skips_by_bracket": _zero_brackets(),
+		"median_attempts_by_bracket": _zero_brackets(),
 		"errors": [],
 		"elapsed_ms": 0,
 	}
 	var rounds_by_bracket: Dictionary = report["rounds_by_bracket"]
 	var losses_by_bracket: Dictionary = report["losses_by_bracket"]
 	var errors: Array = report["errors"]
+	var stay_attempts: int = 0
+	var attempts_per_won: Dictionary = {}
+	for label: String in BRACKET_LABELS:
+		attempts_per_won[label] = []
+	var within_tries: int = int(GameConfig.get_value("skip_unlock_restarts")) + 1
 	var total_steps: int = 0
 	var total_moves: int = 0
 	var finished_rounds: int = 0
@@ -99,7 +116,15 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 			# so the bot does not sit on one hard level for all rounds.
 			report["losses"] += 1
 			losses_by_bracket[bracket] += 1
-			state.level += 1
+			if stay_on_level:
+				stay_attempts += 1
+				report["attempts_by_bracket"][bracket] += 1
+				if stay_attempts >= STAY_MAX_ATTEMPTS:
+					report["skips_by_bracket"][bracket] += 1
+					state.level += 1
+					stay_attempts = 0
+			else:
+				state.level += 1
 		else:
 			var res: Dictionary = game_round.result()
 			if not (res.has("won") and res.has("moves") and res.has("perfect")):
@@ -114,16 +139,32 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 				state.coins += win_reward
 				var won_level: int = state.level
 				state.level += 1
+				if stay_on_level:
+					stay_attempts += 1
+					report["attempts_by_bracket"][bracket] += 1
+					report["levels_won_by_bracket"][bracket] += 1
+					if stay_attempts == 1:
+						report["won_first_try_by_bracket"][bracket] += 1
+					if stay_attempts <= within_tries:
+						report["won_within_3_by_bracket"][bracket] += 1
+					attempts_per_won[bracket].append(stay_attempts)
+					stay_attempts = 0
 				# Like Level.on_next_pressed: ad break only after a win.
 				report["interstitial_calls"] += 1
 				Ads.maybe_show_interstitial(won_level)
 			else:
 				report["losses"] += 1
 				losses_by_bracket[bracket] += 1
+				if stay_on_level:
+					stay_attempts += 1
+					report["attempts_by_bracket"][bracket] += 1
 		if state.coins < 0:
 			errors.append("round %d: negative coins (%d)" % [round_index, state.coins])
 		sim_time[0] += SIM_SECONDS_PER_ROUND
 
+	var medians: Dictionary = report["median_attempts_by_bracket"]
+	for label: String in BRACKET_LABELS:
+		medians[label] = _median(attempts_per_won[label])
 	report["interstitials_shown"] = Ads.interstitials_shown - shown_before
 	Ads.clock = old_clock
 	report["coins_end"] = state.coins
@@ -140,6 +181,17 @@ func _zero_brackets() -> Dictionary:
 	for label: String in BRACKET_LABELS:
 		out[label] = 0
 	return out
+
+
+func _median(values: Array) -> float:
+	if values.is_empty():
+		return 0.0
+	var sorted: Array = values.duplicate()
+	sorted.sort()
+	var mid: int = sorted.size() / 2
+	if sorted.size() % 2 == 1:
+		return float(sorted[mid])
+	return (float(sorted[mid - 1]) + float(sorted[mid])) / 2.0
 
 
 func _bracket_label(level: int) -> String:
@@ -232,7 +284,12 @@ func _play_heuristic(
 			return {"steps": steps, "gave_up": true}
 		var moves: Array[Vector2i] = game_round.board().legal_moves()
 		var stuck: bool = moves.is_empty()
-		if stuck or attempt_steps >= ATTEMPT_STEPS:
+		if stay_on_level and (stuck or attempt_steps >= attempt_steps_limit):
+			# --stay: no restart inside the round; stuck or step limit = lost attempt.
+			if stuck:
+				report["stuck_count"] += 1
+			return {"steps": steps, "gave_up": true}
+		if stuck or attempt_steps >= attempt_steps_limit:
 			if stuck:
 				report["stuck_count"] += 1
 			report["restarts_total"] += 1
