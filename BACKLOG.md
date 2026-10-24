@@ -6,6 +6,10 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## P0 — fundamenty (Faza 1–2)
 
+- [ ] GH-83b `blocked` Nightly sanity: export Android wymaga `rendering/textures/vram_compression/import_etc2_astc=true` w `game/project.godot` (sekcja `[rendering]`) — po GH-83 (PR #86) ręczny run nightly (40080077585) pada na „ETC2/ASTC texture compression is required for Android export” — powód: twarda zasada CLAUDE.md zabrania sesji scheduled zmian `project.godot` poza `[autoload]`/`[input]`/`[display]`; decyzja Huberta (jedna linia; po zmianie Godot reimportuje tekstury — bez nowych plików w repo)
+  KA: `game/project.godot` ma `[rendering]` → `textures/vram_compression/import_etc2_astc=true`; `make check` zielone; `nightly-sanity` (`workflow_dispatch`) przechodzi krok „Export Android debug APK” (lub pokazuje następny, inny błąd → nowy wpis); `docs/SETUP_HUBERT.md` §15 uzupełnione. ≤ ~5 linii.
+  Skill: `godot-build`
+
 ## P1 — core loop i retencja (z GDD v1.0, R-003)
 
 <!-- Refill 2026-10-23 (continuous-dev #4): Faza 4 — pipeline wydań, tylko zadania wykonalne bez sekretów. Kolejność = zależności. -->
@@ -134,6 +138,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - T-076: test „PL/DE ≠ EN” — KA zakładało ≤ 5 wyjątków, ale poprawne słowa identyczne z EN to 7 par (PL `btn_menu`; DE `hud_level` „Level”, `btn_pause`, `btn_shop`, `shop_title` „Shop”, `set_haptics` „Vibration”, `set_lang_system`) + endonimy `set_lang_*` i łańcuchy bez słów (format). Przyjęto: lista `SAME_AS_EN` per locale z 7 wpisami, bez wymyślania sztucznych tłumaczeń (np. „Stufe”, „Laden”); do zmiany.
 - Refill #5 (T-093): definicja „porażki” w GA po wprowadzeniu wznawiania rundy — przyjęto: pauza/wyjście do Home z zapisaną rundą to `level:pause` (nie fail); fail = restart, skip albo porzucenie zapisanej rundy (`level:fail:abandon`: daily z poprzedniego dnia UTC, nadpisanie innym trybem, niespójny snapshot); fail-rate w GA = (restart + skip + abandon) / start; do zmiany.
 - Refill #5 (T-096): ekran wygranej pokazuje jeden komunikat — „+1 kolor” ma pierwszeństwo przed paskiem postępu motywu (raz na 6 poziomów), w Poziomie dnia brak komunikatu; przyjęto: tak, do zmiany.
+- GH-83b (nightly-sanity): export Android wymaga `import_etc2_astc=true` w `project.godot` `[rendering]` — przyjęto: wpis `blocked` do decyzji Huberta (sam włącz flagę albo dopisz wyjątek w CLAUDE.md dla zadań „CI:”/P0 z nightly), do zmiany.
 - Refill #6 (T-115): symbole kolorów (dostępność) awansowane z „later” do MVP — przyjęto: tak, domyślnie wyłączone (przełącznik w Settings), symbol zależy od indeksu koloru, nie od motywu; do zmiany (alternatywa: domyślnie włączone albo pytanie w FTUE).
 - Refill #6 (T-109): popup nagrody dziennej po powrocie z tła po północy UTC — przyjęto: tylko gdy aplikacja wraca na `Home`; w trakcie rundy (`Level`) nie przerywamy gry, popup pojawi się przy następnym wejściu na `Home`; do zmiany.
 - Refill #6 (T-111): kadr sklepowy 02 — przyjęto: panel LevelComplete kompaktowy przy dolnej krawędzi także w grze (nie tylko w fixture kadru), żeby screenshot pokazywał prawdziwy ekran; do zmiany (alternatywa: specjalny układ tylko w trybie `--screenshot` — szybciej, ale kadr przestaje odpowiadać grze, ryzyko odrzucenia za mylące screenshoty).
