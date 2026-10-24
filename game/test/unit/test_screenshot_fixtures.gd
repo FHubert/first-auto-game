@@ -70,3 +70,10 @@ func test_apply_win_shows_real_coins_and_perfect() -> void:
 	assert_str(coins_label.text).is_equal(tr("lc_coins") % expected)
 	assert_bool(level.level_complete.perfect_label.visible).is_true()
 	level.free()
+
+
+func test_symbols_neon_uses_neon_theme_with_symbols() -> void:
+	var state: GameState = ScreenshotFixtures.make("symbols_neon")
+	assert_str(state.theme_active).is_equal(ScreenshotFixtures.MIDGAME_EXTRA_THEME)
+	assert_array(state.themes_owned).contains([ScreenshotFixtures.MIDGAME_EXTRA_THEME])
+	assert_bool(bool(state.settings[ColorSymbols.SETTING_KEY])).is_true()

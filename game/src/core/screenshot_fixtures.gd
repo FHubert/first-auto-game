@@ -66,10 +66,13 @@ static func make(fixture: String, utc_day: int = 0) -> GameState:
 			state.streak_days = ASO_STREAK
 			state.last_play_utc_day = maxi(utc_day - 1, 0)
 			state.daily_reward_last_claim_day = maxi(utc_day - 1, 0)
-		"symbols":
+		"symbols", "symbols_neon":
 			state.level = SYMBOLS_LEVEL
 			state.levels_completed = SYMBOLS_LEVEL - 1
 			state.settings[ColorSymbols.SETTING_KEY] = true
+			if fixture == "symbols_neon":
+				state.themes_owned = [GameState.DEFAULT_THEME, MIDGAME_EXTRA_THEME]
+				state.theme_active = MIDGAME_EXTRA_THEME
 		"aso_themes":
 			state.level = ASO_LEVEL
 			state.coins = ASO_COINS
