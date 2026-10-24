@@ -53,3 +53,24 @@ func test_audio_files_exist() -> void:
 		for path: String in _audio.SFX[key]:
 			assert_bool(ResourceLoader.exists(path)).is_true()
 	assert_bool(ResourceLoader.exists(_audio.MUSIC_PATH)).is_true()
+
+
+func test_haptic_ms_const() -> void:
+	assert_int(_audio.HAPTIC_MS).is_equal(20)
+
+
+func test_click_through_single_point() -> void:
+	var clicks: Array[int] = [0]
+	_audio.sfx_requested.connect(
+		func(n: String) -> void:
+			if n == "click":
+				clicks[0] += 1
+	)
+	var a: Button = auto_free(Button.new())
+	add_child(a)
+	a.pressed.emit()
+	assert_int(clicks[0]).is_equal(1)
+	var b: Button = auto_free(Button.new())
+	add_child(b)
+	b.pressed.emit()
+	assert_int(clicks[0]).is_equal(2)
