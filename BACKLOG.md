@@ -59,7 +59,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #5, refill #3): Faza 4 — prace bez kont, bez workflowów i bez pobierania binarek (ograniczenia sesji scheduled). Kolejność = zależności. -->
 
-- [ ] T-034 `in_progress` Bramka: `make test-tools` (uruchamia `tools/test_tools.py`) dołączony do `make check` + Pillow w `make setup` (przeniesione z Inbox)
+- [ ] T-034 `review` Bramka: `make test-tools` (uruchamia `tools/test_tools.py`) dołączony do `make check` + Pillow w `make setup` (przeniesione z Inbox) → PR #54
   KA: nowy cel `test-tools` w `Makefile` (`python3 tools/test_tools.py`, exit ≠ 0 przy błędzie), `check` zależy od `lint test test-tools export-check`; `make setup` instaluje Pillow przez pip idempotentnie (bez pobierania binarek z GitHub); celowo zepsuty test lokalnie → `make check` czerwone (opis w PR), po cofnięciu zielone; 25+ testów tools przechodzi w `make check`. Bez zmian w `.github/workflows/**` (podpięcie w `test.yml` → Inbox dla Huberta, jeśli `test.yml` nie woła `make check`). Kształt `flask` w gen_assets — poza zakresem (Inbox T-066). ≤ ~20 linii.
   Skill: `godot-test`
 
@@ -124,6 +124,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
+- [ ] T-067 `todo` tools/test_tools.py: `Image.open` bez `with` → ResourceWarning: unclosed file w logu testów; użyć `with Image.open(...) as im`. Skill: godot-test
 - [ ] T-058 `todo` Screenshoty iOS 6,9" (1320×2868) w `fastlane/metadata/ios/<locale>/` — tylko po weryfikacji wymaganego rozmiaru w dokumentacji App Store Connect (link w zadaniu). Skill: aso
 - [ ] T-059 `todo` `export/screenshots_raw/` jest ignorowane, ale `fastlane/metadata/android/*/images/` nie — ustalić politykę (commitowane tylko kadry sklepowe z T-050; smoke-screenshoty z `screens.txt` do `export/`). Skill: aso
 - [ ] T-055 `blocked` CI: dokończyć T-011 — zweryfikować na stronach releases i podbić: actions/download-artifact (v4→v7?, para z upload-artifact v7), setup-java, android-actions/setup-android, ruby/setup-ruby, maxim-lobanov/setup-xcode, google-github-actions/setup-gcloud, EnricoMi/publish-unit-test-result-action; `actionlint` (w sesji bez dostępu do github.com/releases i bez pobierania binarek — zrobić w sesji z dostępem). Skill: godot-build — powód: edycja `.github/workflows/` niedostępna w sesji scheduled (jak T-002b)
