@@ -4,6 +4,8 @@ extends RefCounted
 
 const SCHEMA_VERSION: int = 2
 const DEFAULT_THEME: String = "classic"
+## Upper bound for any persisted int; larger saved values are clamped to it.
+const MAX_SAVE_INT: int = 1_000_000_000
 const DEFAULT_SETTINGS: Dictionary = {
 	"music_on": true,
 	"sfx_on": true,
@@ -67,7 +69,9 @@ static func migrate(d: Dictionary) -> Dictionary:
 	return out
 
 
-## Returns a GameState, or null when the dict is invalid (bad types, newer schema).
+## Returns a GameState, or null only for a newer schema_version.
+## A bad type/range of a single key resets just that key to its default: losing the
+## whole save because of one corrupt key is the worst case for retention (T-074).
 static func from_dict(d: Dictionary) -> GameState:
 	var data: Dictionary = migrate(d)
 	if int(data["schema_version"]) != SCHEMA_VERSION:
@@ -76,21 +80,14 @@ static func from_dict(d: Dictionary) -> GameState:
 	for entry: Array in INT_FIELDS:
 		var field: String = entry[0]
 		var v: Variant = _as_int(data.get(field, state.get(field)))
-		if v == null or int(v) < int(entry[1]):
-			return null
-		state.set(field, int(v))
-	var settings_v: Variant = _merge_settings(data.get("settings", {}))
-	var themes_v: Variant = _clean_themes(data.get("themes_owned", state.themes_owned))
-	var purchases_v: Variant = data.get("purchases", {})
-	if settings_v == null or themes_v == null or not _valid_purchases(purchases_v):
-		return null
+		if v != null and int(v) >= int(entry[1]):
+			state.set(field, int(v))
+	state.settings = _merge_settings(data.get("settings", {}))
+	state.themes_owned = _clean_themes(data.get("themes_owned", state.themes_owned))
+	state.purchases = _clean_purchases(data.get("purchases", {}))
 	var active_v: Variant = data.get("theme_active", state.theme_active)
-	if typeof(active_v) != TYPE_STRING or not (themes_v as Array).has(active_v):
-		return null
-	state.settings = settings_v
-	state.themes_owned = themes_v
-	state.theme_active = active_v
-	state.purchases = (purchases_v as Dictionary).duplicate(true)
+	if typeof(active_v) == TYPE_STRING and state.themes_owned.has(active_v):
+		state.theme_active = active_v
 	return state
 
 
@@ -113,46 +110,55 @@ func to_dict() -> Dictionary:
 	return out
 
 
-## Accepts ints and integral floats (JSON parses all numbers as float); else null.
+## Accepts ints and integral finite floats (JSON parses all numbers as float),
+## capped at MAX_SAVE_INT; else null.
 static func _as_int(value: Variant) -> Variant:
 	if typeof(value) == TYPE_INT:
-		return value
-	if typeof(value) == TYPE_FLOAT and is_equal_approx(value, roundf(value)):
-		return int(value)
+		return mini(value, MAX_SAVE_INT)
+	if typeof(value) == TYPE_FLOAT and is_finite(value):
+		if value > float(MAX_SAVE_INT):
+			return MAX_SAVE_INT
+		if value < -float(MAX_SAVE_INT):
+			return null
+		if is_equal_approx(value, roundf(value)):
+			return mini(int(value), MAX_SAVE_INT)
 	return null
 
 
-## Defaults + saved values (unknown keys kept); null on wrong type of a known key.
-static func _merge_settings(value: Variant) -> Variant:
-	if typeof(value) != TYPE_DICTIONARY:
-		return null
+## Defaults + saved values (unknown keys kept); a known key of wrong type -> its default.
+static func _merge_settings(value: Variant) -> Dictionary:
 	var merged: Dictionary = DEFAULT_SETTINGS.duplicate(true)
+	if typeof(value) != TYPE_DICTIONARY:
+		return merged
 	merged.merge(value, true)
 	for key: String in DEFAULT_SETTINGS:
 		if typeof(merged[key]) != typeof(DEFAULT_SETTINGS[key]):
-			return null
+			merged[key] = DEFAULT_SETTINGS[key]
 	return merged
 
 
-## Validates, de-duplicates and guarantees the free default theme; null if invalid.
-static func _clean_themes(value: Variant) -> Variant:
-	if typeof(value) != TYPE_ARRAY:
-		return null
+## De-duplicates, skips invalid items and guarantees the free default theme.
+static func _clean_themes(value: Variant) -> Array:
 	var out: Array = []
-	for item: Variant in value:
-		if typeof(item) != TYPE_STRING or (item as String).is_empty():
-			return null
-		if not out.has(item):
-			out.append(item)
+	if typeof(value) == TYPE_ARRAY:
+		for item: Variant in value:
+			if (
+				typeof(item) == TYPE_STRING
+				and not (item as String).is_empty()
+				and not out.has(item)
+			):
+				out.append(item)
 	if not out.has(DEFAULT_THEME):
 		out.append(DEFAULT_THEME)
 	return out
 
 
-static func _valid_purchases(value: Variant) -> bool:
+## Keeps only String -> bool entries; anything else is skipped.
+static func _clean_purchases(value: Variant) -> Dictionary:
+	var out: Dictionary = {}
 	if typeof(value) != TYPE_DICTIONARY:
-		return false
+		return out
 	for key: Variant in value:
-		if typeof(key) != TYPE_STRING or typeof(value[key]) != TYPE_BOOL:
-			return false
-	return true
+		if typeof(key) == TYPE_STRING and typeof(value[key]) == TYPE_BOOL:
+			out[key] = value[key]
+	return out

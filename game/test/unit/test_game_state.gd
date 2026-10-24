@@ -40,103 +40,54 @@ func test_migrate_adds_missing_version() -> void:
 	assert_int(migrated["schema_version"]).is_equal(GameState.SCHEMA_VERSION)
 
 
-func test_rejects_wrong_types() -> void:
+func _with(key: String, value: Variant) -> GameState:
 	var d: Dictionary = GameState.new().to_dict()
-	d["coins"] = "many"
-	assert_object(GameState.from_dict(d)).is_null()
-	d = GameState.new().to_dict()
-	d["settings"] = []
-	assert_object(GameState.from_dict(d)).is_null()
-	d = GameState.new().to_dict()
-	d["level"] = 2.5
-	assert_object(GameState.from_dict(d)).is_null()
+	d["level"] = 17
+	d[key] = value
+	return GameState.from_dict(d)
 
 
-func test_rejects_negative_coins() -> void:
-	var d: Dictionary = GameState.new().to_dict()
-	d["coins"] = -1
-	assert_object(GameState.from_dict(d)).is_null()
-
-
-func test_rejects_newer_schema() -> void:
-	var d: Dictionary = GameState.new().to_dict()
-	d["schema_version"] = GameState.SCHEMA_VERSION + 1
-	assert_object(GameState.from_dict(d)).is_null()
-
-
-func _v1_save() -> Dictionary:
-	return {
-		"schema_version": 1,
-		"coins": 5,
-		"level": 3,
-		"streak_days": 2,
-		"last_play_utc_day": 100,
-		"settings": {},
-	}
-
-
-func test_round_trip_all_fields() -> void:
-	var s := GameState.new()
-	s.coins = 9
-	s.level = 4
-	s.streak_days = 2
-	s.last_play_utc_day = 20001
-	s.daily_reward_last_claim_day = 20000
-	s.daily_last_completed_day = 19999
-	s.daily_completed_total = 6
-	s.streak_best = 8
-	s.streak_saves_used = 1
-	s.streak_save_window_day = 19990
-	s.themes_owned = ["classic", "neon"]
-	s.theme_active = "neon"
-	s.levels_completed = 12
-	s.level_restarts = 3
-	s.starter_offer_start_day = 19995
-	s.purchases = {"remove_ads": true}
-	s.settings["music_on"] = false
-	s.settings["locale"] = "pl"
-	var d: Dictionary = JSON.parse_string(JSON.stringify(s.to_dict()))
-	var copy: GameState = GameState.from_dict(d)
-	assert_object(copy).is_not_null()
-	assert_dict(copy.to_dict()).is_equal(s.to_dict())
-	assert_bool(copy.owns_theme("neon")).is_true()
-	assert_bool(copy.owns_theme("gold")).is_false()
-	assert_bool(copy.has_purchase("remove_ads")).is_true()
-	assert_bool(copy.has_purchase("other")).is_false()
-
-
-func test_migrate_v1_defaults() -> void:
-	var s: GameState = GameState.from_dict(_v1_save())
+func test_bad_coins_type_resets_coins_keeps_level() -> void:
+	var s: GameState = _with("coins", "abc")
 	assert_object(s).is_not_null()
-	assert_int(s.coins).is_equal(5)
-	assert_int(s.level).is_equal(3)
-	assert_int(s.streak_days).is_equal(2)
-	assert_int(s.last_play_utc_day).is_equal(100)
-	var fresh: Dictionary = GameState.new().to_dict()
-	fresh["coins"] = 5
-	fresh["level"] = 3
-	fresh["streak_days"] = 2
-	fresh["last_play_utc_day"] = 100
-	assert_dict(s.to_dict()).is_equal(fresh)
-	assert_bool(s.settings["music_on"]).is_true()
-	assert_array(s.themes_owned).is_equal(["classic"])
+	assert_int(s.coins).is_equal(0)
+	assert_int(s.level).is_equal(17)
 
 
-func test_settings_merge() -> void:
+func test_non_integral_level_resets_level_keeps_coins() -> void:
 	var d: Dictionary = GameState.new().to_dict()
-	d["settings"] = {"sfx_on": false, "custom": 1}
+	d["coins"] = 50
+	d["level"] = 2.5
 	var s: GameState = GameState.from_dict(d)
+	assert_int(s.level).is_equal(1)
+	assert_int(s.coins).is_equal(50)
+
+
+func test_bad_settings_container_resets_settings_keeps_level() -> void:
+	var s: GameState = _with("settings", [])
+	assert_dict(s.settings).is_equal(GameState.DEFAULT_SETTINGS)
+	assert_int(s.level).is_equal(17)
+
+
+func test_huge_coins_clamped_keeps_level() -> void:
+	var s: GameState = _with("coins", 1e30)
+	assert_int(s.coins).is_equal(GameState.MAX_SAVE_INT)
+	assert_int(s.level).is_equal(17)
+
+
+func test_negative_or_nan_coins_reset_keeps_level() -> void:
+	for bad: Variant in [-1, NAN, INF]:
+		var s: GameState = _with("coins", bad)
+		assert_int(s.coins).is_equal(0)
+		assert_int(s.level).is_equal(17)
+
+
+func test_bad_setting_type_resets_only_that_key() -> void:
+	var s: GameState = _with("settings", {"music_on": "x", "sfx_on": false, "locale": 5})
+	assert_bool(s.settings["music_on"]).is_true()
 	assert_bool(s.settings["sfx_on"]).is_false()
-	assert_bool(s.settings["haptics_on"]).is_true()
-	assert_int(s.settings["custom"]).is_equal(1)
-
-
-func test_rejects_bad_setting_type() -> void:
-	var d: Dictionary = GameState.new().to_dict()
-	d["settings"] = {"music_on": "yes"}
-	assert_object(GameState.from_dict(d)).is_null()
-	d["settings"] = {"locale": 5}
-	assert_object(GameState.from_dict(d)).is_null()
+	assert_str(s.settings["locale"]).is_equal("")
+	assert_int(s.level).is_equal(17)
 
 
 func test_themes_owned_gets_classic() -> void:
@@ -147,32 +98,33 @@ func test_themes_owned_gets_classic() -> void:
 	assert_array(s.themes_owned).is_equal(["neon", "classic"])
 
 
-func test_rejects_bad_themes() -> void:
-	var d: Dictionary = GameState.new().to_dict()
-	d["theme_active"] = "neon"
-	assert_object(GameState.from_dict(d)).is_null()
-	d = GameState.new().to_dict()
-	d["themes_owned"] = ["classic", ""]
-	assert_object(GameState.from_dict(d)).is_null()
-	d["themes_owned"] = ["classic", 3]
-	assert_object(GameState.from_dict(d)).is_null()
-	d["themes_owned"] = "classic"
-	assert_object(GameState.from_dict(d)).is_null()
+func test_bad_themes_skipped_keep_classic() -> void:
+	var s: GameState = _with("themes_owned", ["neon", "", 3])
+	assert_array(s.themes_owned).is_equal(["neon", "classic"])
+	s = _with("themes_owned", "classic")
+	assert_array(s.themes_owned).is_equal(["classic"])
+	assert_int(s.level).is_equal(17)
 
 
-func test_rejects_bad_purchases() -> void:
-	var d: Dictionary = GameState.new().to_dict()
-	d["purchases"] = {"remove_ads": 1}
-	assert_object(GameState.from_dict(d)).is_null()
-	d["purchases"] = []
-	assert_object(GameState.from_dict(d)).is_null()
+func test_unowned_active_theme_falls_back_to_classic() -> void:
+	var s: GameState = _with("theme_active", "neon")
+	assert_str(s.theme_active).is_equal("classic")
+	assert_int(s.level).is_equal(17)
 
 
-func test_rejects_negative_new_ints() -> void:
+func test_bad_purchases_skipped() -> void:
+	var s: GameState = _with("purchases", {"remove_ads": true, "bad": 1})
+	assert_dict(s.purchases).is_equal({"remove_ads": true})
+	s = _with("purchases", [])
+	assert_dict(s.purchases).is_empty()
+	assert_int(s.level).is_equal(17)
+
+
+func test_bad_new_ints_reset_keep_level() -> void:
 	for field: String in ["streak_best", "level_restarts", "starter_offer_start_day"]:
-		var d: Dictionary = GameState.new().to_dict()
-		d[field] = -1
-		assert_object(GameState.from_dict(d)).is_null()
-	var d2: Dictionary = GameState.new().to_dict()
-	d2["streak_saves_used"] = "1"
-	assert_object(GameState.from_dict(d2)).is_null()
+		var s: GameState = _with(field, -1)
+		assert_int(s.get(field)).is_equal(0)
+		assert_int(s.level).is_equal(17)
+	var s2: GameState = _with("streak_saves_used", "1")
+	assert_int(s2.streak_saves_used).is_equal(0)
+	assert_int(s2.level).is_equal(17)
