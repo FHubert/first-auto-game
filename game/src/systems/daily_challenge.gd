@@ -34,6 +34,11 @@ static func reward_amount() -> int:
 	return int(GameConfig.get_value("daily_challenge_coins"))
 
 
+## Cel miesiaca: liczba Poziomow dnia dajaca premie.
+static func month_goal() -> int:
+	return int(GameConfig.get_value("daily_month_goal"))
+
+
 ## Zalicza Poziom dnia. Zwraca przyznane monety (0 gdy przegrana/zablokowane/juz zaliczone).
 static func complete(state: GameState, utc_day: int, result: Dictionary) -> int:
 	if not bool(result.get("won", false)) or not can_complete(state, utc_day):
@@ -47,7 +52,7 @@ static func complete(state: GameState, utc_day: int, result: Dictionary) -> int:
 		state.daily_month_id = month
 		state.daily_month_count = 0
 	state.daily_month_count += 1
-	if state.daily_month_count == int(GameConfig.get_value("daily_month_goal")):
+	if state.daily_month_count == month_goal():
 		var bonus: int = int(GameConfig.get_value("daily_month_goal_coins"))
 		Economy.earn(state, bonus, Economy.SOURCE_DAILY_MONTH_GOAL)
 		Analytics.track_design("daily:month_goal", float(state.daily_month_count))
