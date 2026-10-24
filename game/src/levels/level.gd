@@ -1,4 +1,3 @@
-# gdlint: disable=max-public-methods
 class_name Level
 extends Control
 ## Scena poziomu: generuje poziom, uruchamia GameRound, HUD, wygrana i zapis.
@@ -27,6 +26,7 @@ var level_no: int = 1
 var utc_day: int = 0
 var tutorial: TutorialFlow
 var rewarded: RewardedPlacements = RewardedPlacements.new()
+var offers: LevelOffers = LevelOffers.new()
 var effects_enabled: bool = true
 
 var _round_bound_at: int = 0
@@ -66,18 +66,28 @@ func _ready() -> void:
 	board.tube_selected.connect(_on_tutorial_selected)
 	board.tube_deselected.connect(_on_tutorial_deselected)
 	board.pour_finished.connect(_on_tutorial_pour)
-	hud.hint_pressed.connect(buy_hint)
-	hud.extra_tube_pressed.connect(buy_extra_tube)
+	offers.shop_requested.connect(func(reason: String) -> void: shop_requested.emit(reason))
+	offers.purchase_finished.connect(_finish_purchase)
+	offers.hint_source.connect(
+		func(index: int) -> void:
+			if board.selected_index() == -1:
+				board.tap(index)
+	)
+	offers.action_applied.connect(_after_action)
+	offers.skip_applied.connect(_apply_skip)
+	offers.double_coins_granted.connect(_on_double_coins_granted)
+	hud.hint_pressed.connect(offers.buy_hint)
+	hud.extra_tube_pressed.connect(offers.buy_extra_tube)
 	stuck_panel.undo_pressed.connect(undo)
-	stuck_panel.extra_tube_pressed.connect(buy_extra_tube)
-	stuck_panel.undo_refill_pressed.connect(buy_undo_refill)
-	hud.extra_tube_ad_pressed.connect(func() -> void: watch_extra_tube())
-	hud.undo_refill_ad_pressed.connect(func() -> void: watch_undo_refill())
-	stuck_panel.extra_tube_ad_pressed.connect(func() -> void: watch_extra_tube())
-	stuck_panel.undo_refill_ad_pressed.connect(func() -> void: watch_undo_refill())
-	level_complete.double_pressed.connect(func() -> void: watch_double_coins())
+	stuck_panel.extra_tube_pressed.connect(offers.buy_extra_tube)
+	stuck_panel.undo_refill_pressed.connect(offers.buy_undo_refill)
+	hud.extra_tube_ad_pressed.connect(func() -> void: offers.watch_extra_tube())
+	hud.undo_refill_ad_pressed.connect(func() -> void: offers.watch_undo_refill())
+	stuck_panel.extra_tube_ad_pressed.connect(func() -> void: offers.watch_extra_tube())
+	stuck_panel.undo_refill_ad_pressed.connect(func() -> void: offers.watch_undo_refill())
+	level_complete.double_pressed.connect(func() -> void: offers.watch_double_coins())
 	stuck_panel.restart_pressed.connect(restart)
-	stuck_panel.skip_pressed.connect(watch_skip)
+	stuck_panel.skip_pressed.connect(offers.watch_skip)
 	hud.undo_pressed.connect(undo)
 	hud.restart_pressed.connect(restart)
 	hud.pause_pressed.connect(pause)
@@ -121,6 +131,7 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 ## Podpina biezaca runde do widokow (plansza, HUD, tutorial, oferty).
 func _bind_round(theme_id: String) -> void:
 	_stop_confetti()
+	offers.bind(state, round, rewarded, mode, level_no)
 	_round_bound_at = int(clock.call())
 	board.setup(round, theme_id)
 	hud.bind(round, level_no)
@@ -267,105 +278,6 @@ func restart() -> void:
 	Analytics.track_design("level:fail:restart")
 
 
-func buy_extra_tube() -> bool:
-	var ok: bool = Boosters.buy_extra_tube(state, round)
-	if not ok and not Economy.can_afford(state, Economy.extra_tube_cost()):
-		shop_requested.emit(Economy.SINK_EXTRA_TUBE)
-	return _finish_purchase(ok)
-
-
-func buy_undo_refill() -> bool:
-	var ok: bool = Boosters.buy_undo_refill(state, round)
-	if not ok:
-		shop_requested.emit(Economy.SINK_UNDO_REFILL)
-	return _finish_purchase(ok)
-
-
-## Podswietla zrodlo podpowiedzi (podnosi probowke); ruchu nie wykonuje.
-func buy_hint() -> bool:
-	var m: Vector2i = Boosters.buy_hint(state, round)
-	var ok: bool = m != GameRound.NO_HINT
-	if not ok and not Economy.can_afford(state, Economy.hint_cost()):
-		shop_requested.emit(Economy.SINK_HINT)
-	if ok and board.selected_index() == -1:
-		board.tap(m.x)
-	return _finish_purchase(ok)
-
-
-## Skip without an ad (kept for tests/debug); the UI uses watch_skip.
-func skip_level() -> void:
-	if mode == MODE_DAILY or not round.can_skip():
-		return
-	_apply_skip("level:skip:free")
-
-
-func watch_skip() -> bool:
-	if mode == MODE_DAILY or not round.can_skip():
-		return false
-	return rewarded.offer(
-		RewardedPlacements.SKIP_LEVEL, func() -> void: _apply_skip("level:skip:rewarded")
-	)
-
-
-func can_double_coins() -> bool:
-	if not round.is_done() or _last_win_coins <= 0:
-		return false
-	var min_level: int = int(GameConfig.get_value("rewarded_double_coins_min_level"))
-	if mode != MODE_DAILY and level_no < min_level:
-		return false
-	return rewarded.can_offer(RewardedPlacements.DOUBLE_COINS)
-
-
-func double_coins_bonus() -> int:
-	return Economy.rewarded_bonus(_last_win_coins) if can_double_coins() else 0
-
-
-func watch_double_coins() -> bool:
-	if not can_double_coins():
-		return false
-	var bonus: int = double_coins_bonus()
-	return rewarded.offer(
-		RewardedPlacements.DOUBLE_COINS,
-		func() -> void:
-			Economy.earn(state, bonus, Economy.SOURCE_REWARDED)
-			SaveSystem.save(state)
-			level_complete.show_result(
-				_last_win_coins + bonus,
-				_last_win_perfect,
-				level_no,
-				_last_win_title,
-				LevelComplete.progress_message(level_no, mode, state)
-			)
-			level_complete.set_double_offer(0, false)
-			hud.refresh()
-			Audio.play_sfx("coins")
-	)
-
-
-func watch_extra_tube() -> bool:
-	if round.is_done() or not round.can_add_extra_tube():
-		return false
-	return rewarded.offer(
-		RewardedPlacements.EXTRA_TUBE,
-		func() -> void:
-			round.add_extra_tube()
-			Analytics.track_design("booster:extra_tube:rewarded")
-			_after_action()
-	)
-
-
-func watch_undo_refill() -> bool:
-	if round.is_done():
-		return false
-	return rewarded.offer(
-		RewardedPlacements.UNDO_REFILL,
-		func() -> void:
-			round.add_undo_charges(int(GameConfig.get_value("undo_refill_amount")))
-			Analytics.track_design("booster:undo_refill:rewarded")
-			_after_action()
-	)
-
-
 func _apply_skip(source: String) -> void:
 	Analytics.track_progression("Fail", mode, _level_id())
 	Analytics.track_design("level:fail:skip")
@@ -406,6 +318,7 @@ func _on_round_won() -> void:
 	state.round_in_progress = {}
 	SaveSystem.save(state)
 	_last_win_coins = coins
+	offers.last_win_coins = coins
 	_last_win_perfect = bool(result.get("perfect", false))
 	_last_win_title = title
 	Analytics.track_progression("Complete", mode, _level_id(), int(result.get("moves", 0)))
@@ -421,7 +334,7 @@ func _on_round_won() -> void:
 		title,
 		LevelComplete.progress_message(level_no, mode, state)
 	)
-	level_complete.set_double_offer(double_coins_bonus(), can_double_coins())
+	level_complete.set_double_offer(offers.double_coins_bonus(), offers.can_double_coins())
 	_start_confetti()
 	level_won.emit(level_no, coins)
 
@@ -461,11 +374,24 @@ func _confetti_ramp() -> Gradient:
 	return ramp
 
 
-func _finish_purchase(ok: bool) -> bool:
+func _finish_purchase(ok: bool) -> void:
 	if ok:
 		SaveSystem.save(state)
 	_after_action()
-	return ok
+
+
+func _on_double_coins_granted(bonus: int) -> void:
+	SaveSystem.save(state)
+	level_complete.show_result(
+		_last_win_coins + bonus,
+		_last_win_perfect,
+		level_no,
+		_last_win_title,
+		LevelComplete.progress_message(level_no, mode, state)
+	)
+	level_complete.set_double_offer(0, false)
+	hud.refresh()
+	Audio.play_sfx("coins")
 
 
 ## Odswieza HUD/plansze/stuck panel po powrocie ze sklepu (overlay).
@@ -489,7 +415,7 @@ func _after_action() -> void:
 
 func _check_stuck() -> void:
 	if round.is_stuck() and not round.is_done():
-		stuck_panel.show_for(round, mode != MODE_DAILY, _ad_offers())
+		stuck_panel.show_for(round, mode != MODE_DAILY, offers.ad_offers())
 		Analytics.track_design("level:stuck", round.moves_to_goal())
 
 
@@ -503,22 +429,6 @@ static func level_id_for(mode_in: String, level_no_in: int, utc_day_in: int) -> 
 	return "level_%04d" % level_no_in
 
 
-func _ad_offers() -> Dictionary:
-	var live: bool = not round.is_done()
-	return {
-		"extra_tube":
-		live and round.can_add_extra_tube() and rewarded.can_offer(RewardedPlacements.EXTRA_TUBE),
-		"undo_refill":
-		live and round.undo_charges() == 0 and rewarded.can_offer(RewardedPlacements.UNDO_REFILL),
-		"skip":
-		(
-			mode != MODE_DAILY
-			and round.can_skip()
-			and rewarded.can_offer(RewardedPlacements.SKIP_LEVEL)
-		),
-	}
-
-
 func _refresh_offers() -> void:
-	var o: Dictionary = _ad_offers()
+	var o: Dictionary = offers.ad_offers()
 	hud.set_ad_offers(bool(o["extra_tube"]), bool(o["undo_refill"]))

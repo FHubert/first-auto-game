@@ -73,7 +73,7 @@ func _show_screenshot_screen(app: App, action: String) -> void:
 		"stuck_panel":
 			app.show_level()
 			var level := app.current_screen() as Level
-			level.stuck_panel.show_for(level.round, true, level._ad_offers())
+			level.stuck_panel.show_for(level.round, true, level.offers.ad_offers())
 
 
 func _run_playtest(args: PackedStringArray) -> int:
