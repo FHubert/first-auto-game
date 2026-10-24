@@ -48,6 +48,17 @@ func test_haptics_respect_setting() -> void:
 	assert_int(_audio.last_haptic_ms).is_equal(20)
 
 
+func test_haptic_requested_signal() -> void:
+	var got: Array[int] = []
+	_audio.haptic_requested.connect(func(ms: int) -> void: got.append(ms))
+	_audio.apply_settings({"haptics_on": false})
+	_audio.haptic()
+	assert_array(got).is_empty()
+	_audio.apply_settings({"haptics_on": true})
+	_audio.haptic()
+	assert_array(got).is_equal([20])
+
+
 func test_audio_files_exist() -> void:
 	for key: String in _audio.SFX:
 		for path: String in _audio.SFX[key]:

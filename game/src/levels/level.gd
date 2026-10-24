@@ -10,6 +10,8 @@ signal shop_requested(reason: String)
 
 const MODE_CAMPAIGN: String = "campaign"
 const MODE_DAILY: String = "daily"
+## Haptic length on tube close (2x AudioService.HAPTIC_MS).
+const TUBE_FULL_HAPTIC_MS: int = 40
 
 @export var level: int = 2
 
@@ -45,10 +47,12 @@ func _ready() -> void:
 	)
 	board.pour_finished.connect(
 		func(_from: int, to: int) -> void:
+			var closes: bool = Level.closes_tube(round.board(), to) and not round.is_done()
 			Audio.play_sfx("pour")
-			Audio.haptic()
-			if Level.closes_tube(round.board(), to) and not round.is_done():
+			Audio.haptic(TUBE_FULL_HAPTIC_MS if closes else Audio.HAPTIC_MS)
+			if closes:
 				Audio.play_sfx("tube_full")
+				board.pulse_tube(to)
 	)
 	board.illegal_move.connect(func(_from: int, _to: int) -> void: Audio.play_sfx("error"))
 	board.tube_selected.connect(_on_tutorial_selected)

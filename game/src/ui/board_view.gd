@@ -7,6 +7,7 @@ signal tube_deselected(index: int)
 signal pour_finished(from: int, to: int)
 signal illegal_move(from: int, to: int)
 signal round_won
+signal tube_pulsed(index: int)
 
 const THEMES_PATH: String = "res://assets/themes.json"
 const TEXTURE_DIR: String = "res://assets/sprites/tubes/"
@@ -21,6 +22,7 @@ const POUR_LIFT_RATIO: float = 0.25
 const POUR_TRANSFER_RATIO: float = 0.5
 const POUR_RETURN_RATIO: float = 0.25
 const TILT_DEG: float = 35.0
+const TUBE_FULL_PULSE_SCALE: float = 1.08
 
 var round: GameRound
 var theme_data: Dictionary = {}
@@ -34,6 +36,8 @@ var _bg: ColorRect
 var _slice: Dictionary = {}
 var _pour_tween: Tween
 var _pour_pending: Vector2i = Vector2i(-1, -1)
+var _pulse_tween: Tween
+var _pulse_index: int = -1
 
 
 static func load_theme(theme_id: String) -> Dictionary:
@@ -50,6 +54,7 @@ func pour_duration() -> float:
 
 
 func setup(round_in: GameRound, theme_id: String) -> void:
+	_stop_pulse()
 	_cancel_pour()
 	round = round_in
 	theme_data = load_theme(theme_id)
@@ -87,6 +92,7 @@ func tap(index: int) -> void:
 func refresh() -> void:
 	if round == null:
 		return
+	_stop_pulse()
 	if round.board().tube_count() != _views.size():
 		_rebuild()
 		return
@@ -104,6 +110,10 @@ func is_busy() -> bool:
 
 func view_layers(index: int) -> Array:
 	return _views[index].layers
+
+
+func view_scale(index: int) -> Vector2:
+	return _views[index].scale
 
 
 func view_rotation(index: int) -> float:
@@ -203,6 +213,37 @@ func _cancel_pour() -> void:
 		_views[p.x].z_index = 0
 
 
+## Short scale pulse on a tube that was just closed (single colour, full).
+func pulse_tube(index: int) -> void:
+	if index < 0 or index >= _views.size():
+		return
+	_stop_pulse()
+	_pulse_index = index
+	tube_pulsed.emit(index)
+	if not animate:
+		return
+	var v: TubeView = _views[index]
+	v.pivot_offset = v.size * 0.5
+	var half: float = float(GameConfig.get_value("tube_full_pulse_seconds", 0.25)) * 0.5
+	_pulse_tween = create_tween()
+	_pulse_tween.tween_property(v, "scale", Vector2.ONE * TUBE_FULL_PULSE_SCALE, half)
+	_pulse_tween.tween_property(v, "scale", Vector2.ONE, half)
+	_pulse_tween.tween_callback(_stop_pulse)
+
+
+func _stop_pulse() -> void:
+	if _pulse_tween != null and _pulse_tween.is_valid():
+		_pulse_tween.kill()
+	if (
+		_pulse_index >= 0
+		and _pulse_index < _views.size()
+		and is_instance_valid(_views[_pulse_index])
+	):
+		_views[_pulse_index].scale = Vector2.ONE
+	_pulse_index = -1
+	_pulse_tween = null
+
+
 func _abort_pour() -> void:
 	if _pour_tween != null and _pour_tween.is_valid():
 		_pour_tween.kill()
@@ -229,6 +270,7 @@ func _shake(v: Control) -> void:
 
 func _rebuild() -> void:
 	_abort_pour()
+	_stop_pulse()
 	for v in _views:
 		v.queue_free()
 	_views.clear()
