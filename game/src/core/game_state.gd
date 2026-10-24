@@ -30,6 +30,8 @@ const INT_FIELDS: Array = [
 	["levels_completed", 0],
 	["level_restarts", 0],
 	["starter_offer_start_day", 0],
+	["daily_month_id", 0],
+	["daily_month_count", 0],
 ]
 
 var coins: int = 0
@@ -47,6 +49,8 @@ var theme_active: String = DEFAULT_THEME
 var levels_completed: int = 0
 var level_restarts: int = 0
 var starter_offer_start_day: int = 0
+var daily_month_id: int = 0
+var daily_month_count: int = 0
 var purchases: Dictionary = {}
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate(true)
 ## Snapshot rundy w toku (round_snapshot); pusty = brak rundy do wznowienia.

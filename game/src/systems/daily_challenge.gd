@@ -19,6 +19,17 @@ static func can_complete(state: GameState, utc_day: int) -> bool:
 	return utc_day > 0 and is_unlocked(state) and utc_day > state.daily_last_completed_day
 
 
+## Identyfikator miesiaca kalendarzowego UTC: year * 12 + (month - 1).
+static func month_id(utc_day: int) -> int:
+	var d: Dictionary = Time.get_date_dict_from_unix_time(utc_day * DailyRewards.SECONDS_PER_DAY)
+	return int(d["year"]) * 12 + int(d["month"]) - 1
+
+
+## Liczba Poziomow dnia ukonczonych w miesiacu utc_day (0 gdy zapis dotyczy innego miesiaca).
+static func month_progress(state: GameState, utc_day: int) -> int:
+	return state.daily_month_count if state.daily_month_id == month_id(utc_day) else 0
+
+
 static func reward_amount() -> int:
 	return int(GameConfig.get_value("daily_challenge_coins"))
 
@@ -31,6 +42,16 @@ static func complete(state: GameState, utc_day: int, result: Dictionary) -> int:
 	state.daily_completed_total += 1
 	var amount: int = reward_amount()
 	Economy.earn(state, amount, Economy.SOURCE_DAILY_CHALLENGE)
+	var month: int = month_id(utc_day)
+	if state.daily_month_id != month:
+		state.daily_month_id = month
+		state.daily_month_count = 0
+	state.daily_month_count += 1
+	if state.daily_month_count == int(GameConfig.get_value("daily_month_goal")):
+		var bonus: int = int(GameConfig.get_value("daily_month_goal_coins"))
+		Economy.earn(state, bonus, Economy.SOURCE_DAILY_MONTH_GOAL)
+		Analytics.track_design("daily:month_goal", float(state.daily_month_count))
+		amount += bonus
 	Analytics.track_design("daily_challenge:completed", float(result.get("moves", 0)))
 	DailyRewards.register_play(state, utc_day)
 	return amount

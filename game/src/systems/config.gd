@@ -26,6 +26,8 @@ const DEFAULTS: Dictionary = {
 	"theme_cost_growth": 1.8,
 	"daily_challenge_coins": 50,
 	"daily_unlock_level": 3,
+	"daily_month_goal": 20,
+	"daily_month_goal_coins": 300,
 	# Session
 	"session_target_seconds": 180,
 	# Difficulty curve (logistic)
@@ -105,6 +107,8 @@ const RANGES: Dictionary = {
 	"theme_cost_growth": [1.0, 5.0],
 	"daily_challenge_coins": [0, 100000],
 	"daily_unlock_level": [0, 1000],
+	"daily_month_goal": [1, 31],
+	"daily_month_goal_coins": [0, 5000],
 	"session_target_seconds": [0, 86400],
 	"difficulty_min": [0.0, 1.0],
 	"difficulty_max": [0.0, 1.0],
