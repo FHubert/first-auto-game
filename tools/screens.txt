@@ -7,3 +7,4 @@ res://src/ui/settings_screen.tscn
 res://src/ui/daily_reward_popup.tscn
 res://src/ui/themes_screen.tscn
 res://src/ui/shop_screen.tscn
+res://src/levels/level.tscn|symbols|symbols
