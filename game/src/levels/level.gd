@@ -15,6 +15,7 @@ const MODE_DAILY: String = "daily"
 const TUBE_FULL_HAPTIC_MS: int = 40
 const CONFETTI_AMOUNT: int = 48
 const CONFETTI_COLORS: int = 6
+const CONFETTI_EMIT_HEIGHT: float = 4.0
 
 @export var level: int = 2
 
@@ -430,20 +431,8 @@ func _start_confetti() -> void:
 		return
 	confetti.amount = CONFETTI_AMOUNT
 	confetti.lifetime = float(GameConfig.get_value("confetti_seconds", 1.2))
-	confetti.one_shot = true
-	confetti.explosiveness = 1.0
 	confetti.position = board.position + Vector2(board.size.x * 0.5, 0.0)
-	confetti.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	confetti.emission_rect_extents = Vector2(board.size.x * 0.5, 4.0)
-	confetti.direction = Vector2(0, 1)
-	confetti.spread = 60.0
-	confetti.gravity = Vector2(0, 600)
-	confetti.initial_velocity_min = 150.0
-	confetti.initial_velocity_max = 350.0
-	confetti.angular_velocity_min = -360.0
-	confetti.angular_velocity_max = 360.0
-	confetti.scale_amount_min = 4.0
-	confetti.scale_amount_max = 8.0
+	confetti.emission_rect_extents = Vector2(board.size.x * 0.5, CONFETTI_EMIT_HEIGHT)
 	confetti.color_initial_ramp = _confetti_ramp()
 	confetti.restart()
 	confetti.emitting = true
