@@ -100,12 +100,19 @@ func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
 		return false
 	if not provider.is_interstitial_ready():
 		return false
+	if not provider.interstitial_closed.is_connected(_on_interstitial_closed):
+		provider.interstitial_closed.connect(_on_interstitial_closed)
+	Audio.set_app_muted(true)
 	provider.show_interstitial()
 	_last_interstitial_s = now
 	interstitials_shown += 1
 	Analytics.track_design("ads:interstitial:shown", float(level_no))
 	interstitial_shown.emit(level_no)
 	return true
+
+
+func _on_interstitial_closed() -> void:
+	Audio.set_app_muted(false)
 
 
 ## Clears the "rewarded already shown in this break" flag (tests / bot).
@@ -127,8 +134,10 @@ func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 		Analytics.track_design("ads:rewarded:%s:unavailable" % placement_id)
 		return false
 	_rewarded_in_break = true
+	Audio.set_app_muted(true)
 	provider.show_rewarded(
 		func(granted: bool) -> void:
+			Audio.set_app_muted(false)
 			if granted:
 				Analytics.track_design("ads:rewarded:%s:granted" % placement_id)
 				rewarded_granted.emit(placement_id)
