@@ -5,7 +5,16 @@ const MAX_BTN_LEN: int = 18
 ## Klucze, których tłumaczenie jest w danym języku identyczne z EN (poprawne słowa, nie braki).
 const SAME_AS_EN: Dictionary = {
 	"pl": ["btn_menu"],
-	"de": ["hud_level", "btn_pause", "btn_shop", "shop_title", "set_haptics", "set_lang_system"],
+	"de":
+	[
+		"hud_level",
+		"btn_pause",
+		"btn_shop",
+		"shop_title",
+		"set_haptics",
+		"set_lang_system",
+		"theme_name_neon",
+	],
 }
 ## Endonimy języków są takie same we wszystkich locale.
 const LOCALE_NAME_PREFIX: String = "set_lang_"

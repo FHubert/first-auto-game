@@ -147,7 +147,13 @@ func show_themes() -> void:
 	Analytics.track_design("nav:themes")
 	var screen: ThemesScreen = _swap(SCENE_THEMES, SCREEN_THEMES)
 	screen.back_pressed.connect(show_home)
+	screen.theme_selected.connect(_on_theme_selected)
 	add_child(screen)
+
+
+func _on_theme_selected(_id: String) -> void:
+	if _screen is Level:
+		(_screen as Level).apply_theme(state.theme_active)
 
 
 func shop_overlay_visible() -> bool:

@@ -9,7 +9,6 @@ signal illegal_move(from: int, to: int)
 signal round_won
 signal tube_pulsed(index: int)
 
-const THEMES_PATH: String = "res://assets/themes.json"
 const TEXTURE_DIR: String = "res://assets/sprites/tubes/"
 const COLUMNS_PER_ROW: int = 5
 const TUBE_WIDTH: float = 90.0
@@ -26,6 +25,7 @@ const TUBE_FULL_PULSE_SCALE: float = 1.08
 
 var round: GameRound
 var theme_data: Dictionary = {}
+var theme_id: String = ""
 var animate: bool = true
 
 var _views: Array[TubeView] = []
@@ -53,11 +53,12 @@ func pour_duration() -> float:
 	return float(GameConfig.get_value("pour_anim_seconds", 0.4))
 
 
-func setup(round_in: GameRound, theme_id: String) -> void:
+func setup(round_in: GameRound, theme_id_in: String) -> void:
 	_stop_pulse()
 	_cancel_pour()
 	round = round_in
-	theme_data = load_theme(theme_id)
+	theme_id = theme_id_in
+	theme_data = load_theme(theme_id_in)
 	_slice = theme_data.get("nine_slice", {})
 	if _bg == null:
 		_bg = ColorRect.new()
@@ -67,6 +68,18 @@ func setup(round_in: GameRound, theme_id: String) -> void:
 		move_child(_bg, 0)
 	_bg.color = Color(theme_data.get("background", "#000000"))
 	_selected = -1
+	_rebuild()
+
+
+## Zmienia motyw (paleta, tlo, ksztalt) bez resetu rundy.
+func apply_theme(theme_id_in: String) -> void:
+	if round == null:
+		return
+	theme_id = theme_id_in
+	theme_data = load_theme(theme_id_in)
+	_slice = theme_data.get("nine_slice", {})
+	if _bg != null:
+		_bg.color = Color(theme_data.get("background", "#000000"))
 	_rebuild()
 
 
@@ -110,6 +123,10 @@ func is_busy() -> bool:
 
 func view_layers(index: int) -> Array:
 	return _views[index].layers
+
+
+func view_liquids(index: int) -> Array:
+	return _views[index].liquids
 
 
 func view_scale(index: int) -> Vector2:
