@@ -342,11 +342,11 @@ func pause() -> void:
 	pause_requested.emit()
 
 
-## Leaving an unfinished round counts as a level fail (reason quit).
+## Leaving an unfinished round is a pause (snapshot is resumable), not a fail;
+## abandoning the snapshot is reported by App as level:fail:abandon.
 func quit_level() -> void:
 	if round != null and not round.is_done():
-		Analytics.track_progression("Fail", mode, _level_id())
-		Analytics.track_design("level:fail:quit")
+		Analytics.track_design("level:pause", float(round.moves()))
 
 
 func _on_round_won() -> void:
@@ -408,9 +408,13 @@ func _check_stuck() -> void:
 
 
 func _level_id() -> String:
-	if mode == MODE_DAILY:
-		return "daily_%d" % utc_day
-	return "level_%04d" % level_no
+	return level_id_for(mode, level_no, utc_day)
+
+
+static func level_id_for(mode_in: String, level_no_in: int, utc_day_in: int) -> String:
+	if mode_in == MODE_DAILY:
+		return "daily_%d" % utc_day_in
+	return "level_%04d" % level_no_in
 
 
 func _ad_offers() -> Dictionary:

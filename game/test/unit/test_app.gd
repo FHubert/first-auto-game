@@ -243,3 +243,96 @@ func test_leaving_level_to_home_saves_and_play_resumes() -> void:
 	app.show_level()
 	assert_int((app.current_screen() as Level).round.moves()).is_equal(2)
 	await get_tree().process_frame
+
+
+func _count(fake: FakeAnalyticsProvider, type: String, key: String, value: String) -> int:
+	var n: int = 0
+	for e in fake.events:
+		if e["type"] == type and str(e.get(key, "")) == value:
+			n += 1
+	return n
+
+
+func _with_fake() -> FakeAnalyticsProvider:
+	var fake := FakeAnalyticsProvider.new()
+	Analytics.provider = fake
+	return fake
+
+
+func test_pause_resume_win_has_single_start_no_fail() -> void:
+	var prev: AnalyticsProvider = Analytics.provider
+	var fake := _with_fake()
+	var app := _app(true)
+	app.show_level()
+	_play_moves(app, 3)
+	app.show_home()
+	app.show_level()
+	var level := app.current_screen() as Level
+	assert_int(level.round.moves()).is_equal(3)
+	var sol: Array = (
+		ContentGenerator
+		. new()
+		. generate(int(GameConfig.get_value("campaign_seed", 1)), level.level_no)["payload"]["solution"]
+	)
+	level.board.animate = false
+	level.round.restart()
+	for m in sol:
+		level.round.try_move(m.x, m.y)
+	level._on_round_won()
+	Analytics.provider = prev
+	assert_int(_count(fake, "progression", "status", "Start")).is_equal(1)
+	assert_int(_count(fake, "progression", "status", "Fail")).is_equal(0)
+	assert_int(_count(fake, "progression", "status", "Complete")).is_equal(1)
+	assert_dict(app.state.round_in_progress).is_empty()
+	await get_tree().process_frame
+
+
+func test_stale_daily_snapshot_is_abandoned_once() -> void:
+	var prev: AnalyticsProvider = Analytics.provider
+	var t: Array[int] = [86400 * 20000 + 100]
+	var app := _app(true)
+	app.clock = func() -> int: return t[0]
+	app.show_daily_level()
+	_play_moves(app, 1)
+	app._save_round()
+	remove_child(app)
+	t[0] += 86400
+	var app2 := _app_from_save()
+	app2.clock = func() -> int: return t[0]
+	var fake := _with_fake()
+	app2.show_daily_level()
+	Analytics.provider = prev
+	assert_int(_count(fake, "design", "event_id", "level:fail:abandon")).is_equal(1)
+	assert_int(_count(fake, "progression", "status", "Fail")).is_equal(1)
+	assert_int(_count(fake, "progression", "l2", "daily_20000")).is_equal(1)
+	assert_dict(app2.state.round_in_progress).is_empty()
+	await get_tree().process_frame
+
+
+func test_campaign_snapshot_abandoned_by_daily() -> void:
+	var prev: AnalyticsProvider = Analytics.provider
+	var app := _app(true)
+	app.show_level()
+	_play_moves(app, 1)
+	app._save_round()
+	var fake := _with_fake()
+	app.show_daily_level()
+	Analytics.provider = prev
+	assert_int(_count(fake, "design", "event_id", "level:fail:abandon")).is_equal(1)
+	assert_int(_count(fake, "progression", "l2", "level_0001")).is_equal(1)
+	await get_tree().process_frame
+
+
+func test_daily_snapshot_abandoned_by_campaign_and_empty_is_silent() -> void:
+	var prev: AnalyticsProvider = Analytics.provider
+	var app := _app(true)
+	var fake := _with_fake()
+	app._discard_snapshot()
+	assert_int(fake.events.size()).is_equal(0)
+	app.state.round_in_progress = {"mode": "daily", "level_no": "x", "utc_day": 5}
+	app.show_level()
+	Analytics.provider = prev
+	assert_int(_count(fake, "design", "event_id", "level:fail:abandon")).is_equal(1)
+	assert_int(_count(fake, "progression", "l2", "daily_5")).is_equal(1)
+	assert_dict(app.state.round_in_progress).is_empty()
+	await get_tree().process_frame

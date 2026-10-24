@@ -24,7 +24,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #8, refill #5): Faza 5 prep III — wiarygodna analityka przed soft launchem (lejek poziomów i FTUE), brakujące elementy MVP z GDD (LevelComplete, konfetti), odporność zapisu. Bez workflowów, binarek z Releases, kont i SDK. Kolejność = zależności (T-093 → T-094 → T-095 dotykają `level.gd`). -->
 
-- [ ] T-093 `in_progress` Analityka: pauza z wznawialną rundą jako `level:pause` zamiast `level:fail:quit`; porzucony snapshot jako `level:fail:abandon` (przeniesione z Inbox T-091)
+- [ ] T-093 `review` Analityka: pauza z wznawialną rundą jako `level:pause` zamiast `level:fail:quit`; porzucony snapshot jako `level:fail:abandon` (przeniesione z Inbox T-091) → PR #78
   KA: `Level.quit_level()` dla nieukończonej rundy rejestruje tylko `track_design("level:pause", moves)` — bez `track_progression("Fail", …)`; `App` w jednym helperze (np. `_discard_snapshot()`) przy każdym odrzuceniu lub nadpisaniu niepustego `round_in_progress` (daily z innego dnia UTC, kampania z innym poziomem, `Level.resume` → false, start rundy innego trybu nadpisujący snapshot) rejestruje dokładnie raz `track_progression("Fail", <mode snapshotu>, <level_id snapshotu>)` + `track_design("level:fail:abandon")` i czyści pole. Testy gdUnit4 z `FakeAnalyticsProvider` ≥ 4: (a) pauza → 0 `Fail`, 1 `level:pause`; (b) pauza → „Graj” (wznowienie) → wygrana → w sekwencji progression dokładnie 1 `Start`, 0 `Fail`, 1 `Complete`; (c) daily z wczoraj + karta Poziomu dnia → 1 `level:fail:abandon`, `round_in_progress` pusty po zapisie; (d) restart nadal loguje `level:fail:restart`. grep `level:fail:quit` w `game/src` = 0; wpisy `level_fail`/`level_pause` zgodne z GDD → Analityka (refill #5). `make check` zielone. ≤ ~80 linii.
   Skill: `godot-dev` + `analytics-review`
 
@@ -110,6 +110,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-038 `todo` Level: testy `shop_requested` dla hint/undo_refill bez środków; `buy_undo_refill` z jawnym `can_afford` (spójnie z resztą); `GameConfig.get_value` bez duplikowanych fallbacków w board_view.gd. Skill: godot-dev
 - [ ] T-042 `todo` App/Level: `show_daily_level` bez obejścia `round = GameRound.new()` (flaga `autoload_level` w Level); `test_app.gd` z wstrzykniętym zegarem (teraz realny czas otwiera popup). Skill: godot-dev
 - [ ] T-066 `todo` gen_assets: dopieścić kształt probówki `flask` (wydzielone z T-034). Skill: asset-gen
+
+- [ ] T-103 `todo` `test_content_generator.gd` → `test_levels_1_to_200_solvable_and_fast`: twardy próg `max_ms <= 500` bywa przekroczony na obciążonej maszynie CI (odkryte w T-093: 543 ms, przy ponownym uruchomieniu OK) — mierzyć medianę/percentyl albo ustawić próg z `GameConfig`/stałej z marginesem; nie osłabiać asercji „rozwiązywalny”. Skill: godot-test
 
 ## Pytania do Huberta
 - T-027: wejście do Sklepu ze StuckPanel podmieniało scenę (postęp ruchów przepadał) — rozwiązane w T-049: Shop jako overlay nad Level, powrót do tej samej rundy i trybu (campaign/daily).
