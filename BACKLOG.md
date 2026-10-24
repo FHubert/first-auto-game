@@ -74,7 +74,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #6, refill #4): poprawność ekonomii i raportów bota (wiarygodność make sim/playtest przed soft launchem), consent bez SDK. -->
 
-- [ ] T-083 `review` Economy drobiazgi + testy: `rewarded_bonus` z `maxi(0, …)`, `can_afford`, dwa zdarzenia Analytics w `apply_win` (przeniesione z Inbox T-033) → PR #__N__
+- [ ] T-083 `review` Economy drobiazgi + testy: `rewarded_bonus` z `maxi(0, …)`, `can_afford`, dwa zdarzenia Analytics w `apply_win` (przeniesione z Inbox T-033) → PR #74
   KA: `rewarded_bonus` przy `multiplier < 1` (np. 0,5 lub 0) nigdy nie daje wartości ujemnej (test gdUnit4); testy `can_afford` (równo saldo → true, saldo − 1 → false); `apply_win` z premią „idealnie” rejestruje w `FakeAnalyticsProvider` dokładnie 2 eventy zasobów (nazwa i parametry wg GDD → Analityka: nagroda za wygraną + premia „idealnie”). `make sim` exit 0 bez zmiany wyników (porównanie podsumowania przed/po w opisie PR). `make check` zielone. ≤ ~60 linii.
   Skill: `game-economy`
 
