@@ -71,6 +71,44 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 
 
+<!-- Refill 2026-10-24 (continuous-dev #6, refill #4): Faza 5 prep II — jakość zapisu, polish core loopu, FTUE, czysty log CI. Bez workflowów, binarek z Releases, kont i SDK. Kolejność = zależności / wpływ na D1. -->
+
+- [ ] T-074 `todo` GameState.from_dict: zły typ/zakres pojedynczego klucza → reset tego klucza do domyślnej zamiast odrzucenia całego zapisu; górny limit dla `_as_int` (przeniesione z Inbox T-032)
+  KA: `from_dict` przy złym typie klucza w `settings` (np. `"music": "x"`) lub pola głównego (`coins: "abc"`, `coins: 1e30`, `NaN`) zwraca stan z wartością domyślną tylko tego klucza, reszta postępu (`level`, `coins`, `streak_days`, `owned_themes`) zachowana. Limit górny jako nazwana `const` (np. `MAX_SAVE_INT = 1_000_000_000`), wartość ponad limit → przycięta do limitu. Odrzucenie całego zapisu tylko dla `schema_version` > obecny lub nie-Dictionary (istniejący test zostaje). Test gdUnit4 ≥ 5 przypadków (zły typ w settings, string w coins, 1e30, NaN, ujemne) — każdy sprawdza, że `level` z zapisu przetrwał. `make check` zielone. ≤ ~100 linii.
+  Skill: `godot-dev`
+
+- [ ] T-075 `todo` Czysty log `make test`/`make test-tools`: SaveSystem bez `ERROR: Parse JSON failed`, FNV bez `Cannot represent ... 64-bit`, `Image.open` w `with` (przeniesione z Inbox T-028, T-036, T-067)
+  KA: `SaveSystem.load` używa `JSON.new().parse()` + kod błędu (uszkodzony plik → stan domyślny, bez `ERROR:` w stdout); `FNV_OFFSET` w `test_content_generator.gd` jako literał ze znakiem (-3750763034362895579) — golden hashe bez zmian (test zielony bez edycji oczekiwanych wartości); `tools/test_tools.py` otwiera obrazy przez `with Image.open(...) as im`. Weryfikacja: `make test 2>&1 | grep -cE "Parse JSON failed|Cannot represent"` = 0 i `python3 -W error::ResourceWarning tools/test_tools.py` exit 0. `make check` zielone. ≤ ~40 linii.
+  Skill: `godot-test`
+
+- [ ] T-076 `todo` Lokalizacja: `home_streak` i inne nieprzetłumaczone klucze w PL/DE + test „PL/DE ≠ EN” (przeniesione z Inbox T-072)
+  KA: `strings.csv`: `home_streak` PL „Seria: %d” (DE „Serie: %d” już jest); test gdUnit4 w teście lokalizacji: dla każdego klucza wartość PL i DE ≠ EN, z jawną listą wyjątków `SAME_AS_EN` w teście (≤ 5 pozycji, np. nazwa gry, „OK”). Popup nagrody dziennej na Home (kadr 04): karta Poziomu dnia ukryta na czas popupu — test gdUnit4 (`visible == false` przy otwartym popupie, `true` po zamknięciu). `make screenshots` → kadry 03/04 PL/DE odświeżone. `make check` zielone. ≤ ~60 linii + PNG.
+  Skill: `aso`
+
+- [ ] T-077 `todo` BoardView: sygnał `tube_deselected` zamiast pollingu w `Level._process` + test „zły ruch w tutorialu restartuje krok” (przeniesione z Inbox T-039)
+  KA: `BoardView` emituje `tube_deselected` (tap w tę samą probówkę / nielegalny cel); `Level._process` nie odpytuje zaznaczenia na potrzeby tutorialu; `TEXT_HEIGHT` w `tutorial_overlay.gd` jako `const`. Testy gdUnit4: (a) zaznaczenie + odznaczenie → 1 emisja; (b) w tutorialu krok 2 → nielegalny ruch → `TutorialFlow` wraca do kroku 1, overlay wskazuje źródło; (c) poprawna sekwencja → flaga ukończenia w `GameState.settings`. `make check` zielone. ≤ ~90 linii.
+  Skill: `godot-dev`
+
+- [ ] T-078 `todo` BoardView: animacja przelewu wg GDD cz. 1 — przechylenie probówki źródłowej, ubywanie/przybywanie warstw w czasie `pour_anim_seconds`, ochrona tweenów przed `queue_free` w `_rebuild`/`resized` (przeniesione z Inbox T-035)
+  KA: przelew animowany w 3 fazach (uniesienie+przechył → transfer warstw → powrót) o łącznym czasie = `pour_anim_seconds` z `GameConfig` (proporcje faz jako nazwane `const`); `_rebuild`/`resized` w trakcie animacji zabija aktywne tweeny i rysuje stan końcowy (bez błędów „freed instance” w logu). Testy gdUnit4 przez `scene_runner` z `animate=true` i symulowanym czasem: `pour_finished` emitowane dokładnie raz po ≥ `pour_anim_seconds`; `resized` w połowie animacji → stan widoku = stan `SortBoard`; tap w trakcie animacji ignorowany (input zablokowany do `pour_finished`). Kadr Level (01) obejrzany. `make check` zielone. ≤ ~150 linii.
+  Skill: `godot-dev`
+
+- [ ] T-079 `todo` BoardView: animacja cz. 2 — pulsowanie probówki zamkniętej jednym kolorem + krótka haptyka przy zamknięciu, spójnie z `tube_full` z T-041 (zależy od T-078)
+  KA: po przelewie zamykającym probówkę widok odtwarza puls (skala z nazwanej `const`, czas z klucza `tube_full_pulse_seconds` w `GameConfig`, propozycja 0,25) i wywołuje haptykę przez istniejący `AudioService` (respektuje ustawienia). Test gdUnit4 z fake serwisem: 1 zamknięcie → 1 puls + 1 haptyka; przelew niezamykający → 0; restart/undo w trakcie pulsu → skala wraca do 1.0. `make check` zielone. ≤ ~70 linii.
+  Skill: `godot-dev`
+
+- [ ] T-080 `todo` Themes: motyw zastosowany od razu po `theme_selected`, nazwy motywów z kluczy `theme_name_*`, usunięcie martwej `BoardView.THEMES_PATH` (przeniesione z Inbox T-043)
+  KA: `App` po `theme_selected` odświeża aktywny Level (paleta + tło + kształt) bez resetu rundy — test gdUnit4: wybór motywu przy otwartym Level → kolory warstw w `BoardView` = paleta nowego motywu, liczba ruchów bez zmian; etykiety w Themes przez `tr("theme_name_<id>")` (klucze EN/PL/DE, objęte testem kompletności z T-023); grep `THEMES_PATH` w `board_view.gd` = 0. GDD → Meta: zdanie o koszcie wg pozycji w katalogu (zgodne z `ThemeCatalog`). `make check` zielone. ≤ ~100 linii.
+  Skill: `godot-dev`
+
+- [ ] T-081 `todo` Wznowienie rundy po zabiciu aplikacji cz. 1: serializacja `GameRound` (plansza, stos undo, ładunki, ruchy, tryb, seed) + GameState schema v3 z migracją v2→v3 (zależy od T-074; wiersz w GDD → Mechaniki)
+  KA: `GameRound.to_dict()/from_dict()` (czysta klasa) — round-trip: plansza, `moves`, stos undo, pozostałe ładunki undo/extra tube, `mode` (`campaign`/`daily`), numer poziomu / dzień UTC; `from_dict` z niespójnych danych (zła pojemność probówki, kolor poza paletą) → `null` (start od nowa, bez crasha). `GameState.SCHEMA_VERSION = 3`, pole `round_in_progress` (Dictionary, domyślnie pusty), migracja v2→v3 w istniejącym wzorcu. Testy gdUnit4 ≥ 5: round-trip po 3 ruchach i 1 undo; daily vs campaign; uszkodzony dict → null; migracja v2→v3; wygrana czyści `round_in_progress`. `make check` zielone. ≤ ~150 linii.
+  Skill: `godot-dev`
+
+- [ ] T-082 `todo` Wznowienie rundy cz. 2: zapis `round_in_progress` przy `FOCUS_OUT`/`WM_CLOSE_REQUEST` i przed pokazem reklamy, odtworzenie przy starcie (zależy od T-081)
+  KA: `App._notification` (istniejące `FOCUS_OUT`/`WM_CLOSE_REQUEST`) i `AdService` przed pokazem zapisują bieżącą rundę; przy starcie, jeśli `round_in_progress` niepusty i zgodny (Poziom dnia z innego dnia UTC → odrzucony), „Graj” na Home wznawia tę rundę. Testy gdUnit4 z wstrzykniętym zegarem: (a) 3 ruchy → symulowany `FOCUS_OUT` → nowy `App` → Level ma te same `moves` i planszę; (b) daily z wczoraj → nowa runda; (c) wygrana → `round_in_progress` pusty; (d) wznowienie nie emituje nowego `level_start` (`FakeAnalyticsProvider`). `make check` zielone. ≤ ~120 linii.
+  Skill: `godot-dev`
+
 ## P2 — monetyzacja i meta (z GDD v1.0, R-003)
 
 - [ ] T-047 `blocked` Build Android: instalacja GodotGooglePlayBilling 3.3.0 w `make setup` (tag + SHA-256) i `gradle/use_gradle_build=true` w `export_presets.cfg` (zależy od T-026, Faza 4) — powód: brak dostępu do GitHub Releases w sesji CCR — pobranie i SHA-256 w sesji Huberta (`docs/SETUP_HUBERT.md`, T-065)
@@ -85,40 +123,42 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `build-android.yml` (track `internal`) i `build-ios.yml` (TestFlight) zielone; raport QA w `docs/LOG.md`: FTUE, 20 pierwszych poziomów, Poziom dnia, daily reward, Shop + restore w sandboxie (Play test card / StoreKit sandbox), audio/haptyka, rozmiar instalacji (cel < 50 MB); Firebase Test Lab robo test bez crasha na ≥ 3 urządzeniach (sekcja „Jakość” w `docs/RELEASE_CHECKLIST.md`). Spełnienie = kryterium wyjścia z Fazy 4. Bez kodu (bugi → Inbox).
   Skill: `godot-build` + `godot-test`
 
+<!-- Refill 2026-10-24 (continuous-dev #6, refill #4): poprawność ekonomii i raportów bota (wiarygodność make sim/playtest przed soft launchem), consent bez SDK. -->
+
+- [ ] T-083 `todo` Economy drobiazgi + testy: `rewarded_bonus` z `maxi(0, …)`, `can_afford`, dwa zdarzenia Analytics w `apply_win` (przeniesione z Inbox T-033)
+  KA: `rewarded_bonus` przy `multiplier < 1` (np. 0,5 lub 0) nigdy nie daje wartości ujemnej (test gdUnit4); testy `can_afford` (równo saldo → true, saldo − 1 → false); `apply_win` z premią „idealnie” rejestruje w `FakeAnalyticsProvider` dokładnie 2 eventy zasobów (nazwa i parametry wg GDD → Analityka: nagroda za wygraną + premia „idealnie”). `make sim` exit 0 bez zmiany wyników (porównanie podsumowania przed/po w opisie PR). `make check` zielone. ≤ ~60 linii.
+  Skill: `game-economy`
+
+- [ ] T-084 `todo` PlaytestBot: interstitial liczony raz na rundę w trybie random + usunięcie przestarzałego fallbacku `win_reward_coins` (przeniesione z Inbox T-045, T-046)
+  KA: `maybe_show_interstitial` wołane maks. 1× na zakończoną rundę (po przegranej bez awansu nie powtarza tego samego numeru) — test gdUnit4 na bocie: 3 przegrane tego samego poziomu → ≤ 1 wywołanie na rundę, licznik `interstitials_shown` w raporcie zgodny z `FakeAdProvider`; `get_value("win_reward_coins", 10)` → `get_value("win_reward_coins")` (grep fallbacku = 0). `make playtest` 200/200 bez softlocka, `interstitials_shown` w `playtest.json` podany przed/po w opisie PR. `make check` zielone. ≤ ~50 linii.
+  Skill: `godot-test`
+
+- [ ] T-085 `todo` ConsentFlow: błąd `request_consent_info_update` (`ok=false`) → event `consent:ump:error` i ścieżka niespersonalizowana; `FakeConsentProvider` umie zwrócić `ok=false` (przeniesione z Inbox T-069)
+  KA: `FakeConsentProvider` ma skryptowane `info_update_ok: bool`; przy `false` flow kończy `finished` z `can_request_ads=true`, `personalized=false`, bez pokazania formularza, i rejestruje dokładnie jeden event błędu w `FakeAnalyticsProvider` (nazwa zgodna z konwencją z GDD → Analityka; jeśli brak — dopisać wiersz w GDD). Test gdUnit4 ≥ 2 przypadki (EEA + błąd, poza EEA + błąd). `make check` zielone. ≤ ~60 linii.
+  Skill: `ads-iap`
+
 ## P3 — polish / later
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
 
 - [ ] T-068 `todo` ConsentFlow: brak limitu czasu po `show_consent_form`/`request_att` (gdy SDK zawiesi się po otwarciu formularza flow nie kończy się) — rozważyć osobny długi limit `consent_form_timeout_seconds` w Fazie 5 (SDK). Skill: ads-iap
-- [ ] T-069 `todo` ConsentFlow: `ok=false` z `request_consent_info_update` idzie dalej ze statusem providera (`unknown`) — rozważyć osobny event `consent:ump:error` + test; `FakeConsentProvider` nie umie zwrócić `ok=false`. Skill: ads-iap
 - [ ] T-070 `todo` Ads.show_privacy_options: po zamknięciu opcji prywatności (callback ze statusem) ponownie ustawić `provider.set_personalized` wg nowej zgody + odświeżyć `Settings.apply_from_state` przez `Ads.consent_finished`; `Ads` jako autoload może potrzebować `process_mode = PROCESS_MODE_ALWAYS` dla `poll()` przy pauzie drzewa. Skill: ads-iap
 - [ ] T-071 `todo` iOS manifest (T-053): sprawdzić, czy preset iOS Godota 4.7 generuje własny PrivacyInfo.xcprivacy z opcji `privacy/*` (nie dublować z `game/ios/PrivacyInfo.xcprivacy`) i czy engine wymaga dodatkowych kategorii required-reason API (np. DiskSpace/statfs); zweryfikować kody powodów CA92.1/C617.1/35F9.1 i linked/tracking 6 typów. Skill: store-release
-- [ ] T-072 `todo` Home/ASO: etykieta `home_streak` w PL/DE pokazuje „Streak: %d” (nieprzetłumaczone — kadr 03/04 PL/DE); przetłumaczyć („Seria: %d” / „Serie: %d”), sprawdzić inne klucze z angielskim w PL/DE; popup 04 nachodzi na kartę Poziomu dnia (ucięty napis w tle) — rozważyć ukrycie karty pod popupem. Skill: aso
 - [ ] T-073 `todo` Audio/Ads: watchdog odciszenia — gdy prawdziwy provider nie wyemituje `interstitial_closed` ani nie wywoła callbacku rewarded, dźwięk zostaje wyciszony (`muted_by_ads`); dodać timeout odciszenia (klucz w GameConfig) w Fazie 5; `FakeAdProvider` hook `on_show` do testu stanu w trakcie pokazu. Skill: ads-iap
-- [ ] T-067 `todo` tools/test_tools.py: `Image.open` bez `with` → ResourceWarning: unclosed file w logu testów; użyć `with Image.open(...) as im`. Skill: godot-test
 - [ ] T-058 `todo` Screenshoty iOS 6,9" (1320×2868) w `fastlane/metadata/ios/<locale>/` — tylko po weryfikacji wymaganego rozmiaru w dokumentacji App Store Connect (link w zadaniu). Skill: aso
 - [ ] T-059 `todo` `export/screenshots_raw/` jest ignorowane, ale `fastlane/metadata/android/*/images/` nie — ustalić politykę (commitowane tylko kadry sklepowe z T-050; smoke-screenshoty z `screens.txt` do `export/`). Skill: aso
 - [ ] T-055 `blocked` CI: dokończyć T-011 — zweryfikować na stronach releases i podbić: actions/download-artifact (v4→v7?, para z upload-artifact v7), setup-java, android-actions/setup-android, ruby/setup-ruby, maxim-lobanov/setup-xcode, google-github-actions/setup-gcloud, EnricoMi/publish-unit-test-result-action; `actionlint` (w sesji bez dostępu do github.com/releases i bez pobierania binarek — zrobić w sesji z dostępem). Skill: godot-build — powód: edycja `.github/workflows/` niedostępna w sesji scheduled (jak T-002b)
-- [ ] T-046 `todo` playtest_bot.gd: fallback `win_reward_coins` = 10 w `GameConfig.get_value(..., 10)` nieaktualny po G-013 — usunąć fallback (klucz zawsze istnieje). Skill: godot-test
-- [ ] T-045 `todo` PlaytestBot (random): po przegranej bez podniesienia poziomu `maybe_show_interstitial(state.level - 1)` wołane wielokrotnie z tym samym numerem — liczyć przerwę raz na rundę (albo tylko po wygranej), żeby raport nie zawyżał interstitiali. Skill: godot-test
 - [ ] T-044 `todo` Skill game-economy §6: opis wyjścia nowego `make sim` (metryki motywów w dniach aktywnych, ads/DAU per placement, WARN zamiast błędu dla impresji, „starves" = mediana motywów do d7 < 1) — zadanie dotyczy wprost `.claude/`. Skill: game-economy
 
 - [ ] T-006 `todo` Postawić pierwszy tag v0.1.0 (git describe w prompcie biweekly-release wymaga istniejącego taga). Skill: store-release
 - [ ] T-007 `todo` Sprawdzić czy deny Edit(fastlane/Fastfile) itd. w .claude/settings.json działa jak zamierzono (metadata edytowalne, lanes nie); patrz ZWERYFIKUJ w docs/AUTOMATION.md. Skill: godot-test
-- [ ] T-028 `todo` SaveSystem.load: test pliku uszkodzonego wypisuje `ERROR: Parse JSON failed` do logu (JSON.parse_string); użyć `JSON.new().parse()` i sprawdzać kod błędu, żeby log CI był czysty. Skill: godot-dev
 - [ ] T-029 `todo` SortSolver: optymalizacja (~0,4 ms/stan: clone planszy, canonical_key jako String, path.duplicate per węzeł → rodzic+indeks, klucz PackedByteArray/int); cel: dokładny A* dla ≥ 8 kolorów w ≤ 500 ms, wtedy min_moves_exact=true dla większości poziomów. Skill: godot-dev
 - [ ] G-012 `todo` GDD/ADR-009: dopisać, że generator używa etapów (quick pass 250 stanów → dokładny A* ≤ 6 kolorów/1000 stanów → ważony A*), więc `min_moves_exact=false` jest normą od ~6 kolorów (premia „idealnie" liczona od wyniku ważonego + par_slack_moves); przenieść stałe EXACT_MAX_COLORS/EXACT_STATE_BUDGET/QUICK_STATE_BUDGET z content_generator.gd do GameConfig. Skill: game-economy
 - [ ] T-030 `todo` GameRound: literały wag solvera (1.0 / fallback 3.0) jako const/klucz; komentarz o limicie ACTION_BASE=16 probówek; `add_extra_tube` przez metodę SortBoard zamiast mutacji `tubes`; `undo_refill_amount` bez konsumenta do G-010. Skill: godot-dev
 - [ ] T-031 `todo` PlaytestBot: test ścieżki `gave_up` (`max_restarts_per_round=0` → przegrana bez softlocka); udokumentować `--random`/`--max-restarts` w `.claude/skills/godot-test/SKILL.md` (zadanie dotyczy wprost `.claude/`). Skill: godot-test
-- [ ] T-032 `todo` GameState.from_dict: zły typ pojedynczego klucza `settings` odrzuca cały zapis (utrata postępu) — rozważyć reset klucza do domyślnej; `_as_int` bez górnego limitu (NaN/1e30). Skill: godot-dev
-- [ ] T-033 `todo` Economy: `rewarded_bonus` → `maxi(0, …)` przy multiplier < 1; `buy_booster` bez `SINK_THEME` (zakup motywu w G-009); testy `can_afford` i dwu zdarzeń Analytics w `apply_win`. Skill: game-economy
-- [ ] T-035 `todo` BoardView: pełna animacja przelewu wg GDD (przechylenie, ubywanie/przybywanie warstw, pulsowanie pełnej probówki) + ochrona tweenów przed `queue_free` w `_rebuild`/`resized`; nazwane stałe proporcji shake/pour; test z `animate=true` przez `scene_runner` i symulowany czas. Skill: godot-dev
-- [ ] T-036 `todo` test_content_generator: `const FNV_OFFSET = 0xCBF29CE484222325` daje `ERROR: Cannot represent ... as a 64-bit signed integer` w logu `make test` (3×) — użyć literału ze znakiem (-3750763034362895579) albo FNV-1a 32-bit; sprawdzić, czy golden hash się nie zmienia. Skill: godot-test
 - [ ] T-037 `todo` Level: test wygranej bez „idealnie" (ukryty `perfect_label`, tylko `win_reward_coins`); usunąć nieużywane `@export var level` po T-022. Skill: godot-dev
 - [ ] T-038 `todo` Level: testy `shop_requested` dla hint/undo_refill bez środków; `buy_undo_refill` z jawnym `can_afford` (spójnie z resztą); `GameConfig.get_value` bez duplikowanych fallbacków w board_view.gd. Skill: godot-dev
-- [ ] T-039 `todo` BoardView: sygnał `tube_deselected` zamiast pollingu w `Level._process` (tutorial); test „zły ruch w tutorialu restartuje krok”; `TEXT_HEIGHT` const w tutorial_overlay.gd. Skill: godot-dev
 - [ ] T-042 `todo` App/Level: `show_daily_level` bez obejścia `round = GameRound.new()` (flaga `autoload_level` w Level); `test_app.gd` z wstrzykniętym zegarem (teraz realny czas otwiera popup). Skill: godot-dev
-- [ ] T-043 `todo` Themes: usunąć martwą `BoardView.THEMES_PATH`; nazwy motywów przez klucze `theme_name_*` w CSV; App odświeża Level po `theme_selected` (dziś od następnej rundy); GDD Meta: dopisać zasadę kosztu wg pozycji w katalogu. Skill: godot-dev
 - [ ] T-066 `todo` gen_assets: dopieścić kształt probówki `flask` (wydzielone z T-034). Skill: asset-gen
 
 ## Pytania do Huberta
@@ -140,6 +180,8 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - Faza 4 (T-062/T-063): brak zgody UMP/ATT — przyjęto: gra działa, reklamy niespersonalizowane (bez blokady i bez ponownego pytania w tej sesji), timeout UMP 8 s → start bez formularza; do zmiany.
 - Faza 4 (STATUS): kryterium wyjścia z Fazy 4 wymaga kont (T-054) — przyjęto: faza zostaje „Faza 4”, prace bez kont prowadzone jako „Faza 5 prep” (consent flow, privacy manifest), bez formalnego przejścia; do zmiany.
 - Faza 4 (T-002b, T-005, T-053, T-055): sesja scheduled w auto-mode odrzuca każdą edycję `.github/workflows/**` (Edit, python, sed — także w zadaniach „CI:”), choć `.claude/settings.json` deny `Edit(.github/workflows/**)` i CLAUDE.md pozwalają na nie w zadaniach „CI:”. Przyjęto: zadania dotykające workflowów oznaczone `blocked`, do zrobienia przez Huberta w sesji interaktywnej (albo po usunięciu deny i akceptacji w auto-mode), do zmiany.
+- Refill #4 (T-081/T-082, G-014 w GDD): wznowienie przerwanej rundy po zabiciu aplikacji awansowane z „later” do MVP — przyjęto: tak, wznawiamy kampanię i Poziom dnia tylko z tego samego dnia UTC, wznowienie nie liczy się jako nowy `level_start` i nie odnawia ładunków undo, do zmiany.
+- Refill #4 (T-078): tap w trakcie animacji przelewu — przyjęto: ignorowany (input zablokowany do `pour_finished`, ~`pour_anim_seconds`), nie kolejkowany, do zmiany.
 
 ## Done (ostatnie 30)
 - [x] T-001 `done` Smoke: środowisko i pętla działają end-to-end → PR #13 (zmergowany 2026-10-23)
