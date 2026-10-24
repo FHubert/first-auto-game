@@ -171,3 +171,50 @@ func test_late_callback_after_timeout_ignored() -> void:
 	assert_int(_provider.form_shown).is_equal(0)
 	assert_int(_count("consent:ump:")).is_equal(1)
 	assert_bool(_has("consent:ump:timeout")).is_true()
+
+
+func _assert_error_result() -> void:
+	assert_int(_finished_count).is_equal(1)
+	assert_bool(_flow.result["can_request_ads"]).is_true()
+	assert_bool(_flow.result["personalized"]).is_false()
+	assert_bool(_flow.result["timed_out"]).is_false()
+	assert_str(_flow.result["ump_status"]).is_equal("error")
+	assert_int(_provider.form_shown).is_equal(0)
+	assert_int(_count("consent:ump:")).is_equal(1)
+	assert_bool(_has("consent:ump:error")).is_true()
+
+
+func test_info_update_error_eea() -> void:
+	_eea("obtained")
+	_provider.info_update_ok = false
+	_flow.start()
+	_assert_error_result()
+	assert_int(_count("consent:att:")).is_equal(0)
+
+
+func test_info_update_error_outside_eea() -> void:
+	_provider.info_update_ok = false
+	_flow.start()
+	_assert_error_result()
+	assert_int(_count("consent:att:")).is_equal(0)
+
+
+func test_info_update_error_ios_reports_att_skipped() -> void:
+	_provider.att_supported = true
+	_provider.info_update_ok = false
+	_flow.start()
+	_assert_error_result()
+	assert_int(_provider.att_requests).is_equal(0)
+	assert_int(_count("consent:att:")).is_equal(1)
+	assert_bool(_has("consent:att:skipped")).is_true()
+	assert_str(_flow.result["att_status"]).is_equal("skipped")
+
+
+func test_info_update_error_then_poll_no_timeout() -> void:
+	_provider.info_update_ok = false
+	_flow.start()
+	_now = 200.0
+	_flow.poll()
+	assert_int(_count("consent:ump:")).is_equal(1)
+	assert_bool(_has("consent:ump:timeout")).is_false()
+	assert_int(_finished_count).is_equal(1)

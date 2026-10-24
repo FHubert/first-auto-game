@@ -2,11 +2,13 @@ class_name ConsentFlow
 extends RefCounted
 ## Boot consent sequence: UMP first, then ATT on iOS. Pure logic: the clock is injected
 ## and the timeout is checked via poll() (no Node, no timers, no await).
+## A failed consent info update ends the flow unpersonalized (UMP_ERROR), without a form.
 
 signal finished(result: Dictionary)
 
 const ATT_SKIPPED := "skipped"
 const UMP_TIMEOUT := "timeout"
+const UMP_ERROR := "error"
 
 var provider: ConsentProvider
 var ads: Node
@@ -46,7 +48,14 @@ func poll() -> void:
 func _on_info_updated(ok: bool) -> void:
 	if is_finished:
 		return
-	if ok and provider.is_form_required():
+	if not ok:
+		_report("ump", UMP_ERROR)
+		var att: String = ""
+		if provider.is_att_supported():
+			att = ATT_SKIPPED
+			_report("att", att)
+		_finish(UMP_ERROR, att, false)
+	elif provider.is_form_required():
 		_awaiting_user = true
 		provider.show_consent_form(_after_ump)
 	else:
@@ -93,7 +102,7 @@ func _report(kind: String, status: String) -> void:
 func _finish(ump: String, att: String, timed_out: bool) -> void:
 	var att_ok: bool = att == "" or att == ConsentProvider.ATT_AUTHORIZED
 	result = {
-		"can_request_ads": timed_out or provider.can_request_ads(),
+		"can_request_ads": timed_out or ump == UMP_ERROR or provider.can_request_ads(),
 		"personalized":
 		not timed_out and ump != ConsentProvider.UMP_DENIED and att_ok and _ump_ok(ump),
 		"ump_status": ump,
