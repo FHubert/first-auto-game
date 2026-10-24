@@ -27,6 +27,7 @@ var _watchdog_fired: bool = false
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	if provider == null:
 		provider = _make_default_provider()
 	provider.initialize()
@@ -83,8 +84,29 @@ func is_privacy_options_required() -> bool:
 
 
 func show_privacy_options() -> void:
-	if consent_provider != null:
-		consent_provider.show_privacy_options(func(_status: String) -> void: pass)
+	if consent_provider == null:
+		return
+	consent_provider.show_privacy_options(_on_privacy_options_closed)
+
+
+## Re-applies personalization after the privacy options form closed (new UMP status).
+func _on_privacy_options_closed(status: String) -> void:
+	var ump: String = consent_provider.get_ump_status()
+	if ump == "" or ump == ConsentProvider.UMP_UNKNOWN:
+		ump = status
+	var personalized: bool = ump in [ConsentProvider.UMP_OBTAINED, ConsentProvider.UMP_NOT_REQUIRED]
+	var att: String = str(consent_result.get("att_status", ""))
+	if att != "" and att != ConsentProvider.ATT_AUTHORIZED:
+		personalized = false
+	consent_result = consent_result.duplicate()
+	consent_result["ump_status"] = ump
+	consent_result["personalized"] = personalized
+	consent_result["can_request_ads"] = consent_provider.can_request_ads()
+	consent_result["privacy_options_required"] = consent_provider.is_privacy_options_required()
+	if provider != null:
+		provider.set_personalized(personalized)
+	report_consent("ump", ump)
+	consent_finished.emit(consent_result)
 
 
 ## Tests only: back to the state before begin_consent().
