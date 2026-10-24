@@ -13,9 +13,13 @@ const SCENE_LEVEL: String = "res://src/levels/level.tscn"
 const SCENE_SETTINGS: String = "res://src/ui/settings_screen.tscn"
 const SCENE_THEMES: String = "res://src/ui/themes_screen.tscn"
 const SCENE_SHOP: String = "res://src/ui/shop_screen.tscn"
+const NOTIF_IDS: Dictionary = {"streak": 1, "daily": 2, "comeback": 3}
+const NOTIF_KIND_STREAK: String = "streak"
 
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
+var notifications: NotificationProvider = NotificationProvider.new()
+var tz_offset: Callable = func() -> int: return int(Time.get_time_zone_from_system()["bias"])
 var effects_enabled: bool = true
 var shop_overlay: ShopScreen
 var _screen: Node
@@ -33,6 +37,7 @@ func _ready() -> void:
 		Ads.ad_about_to_show.connect(_on_ad_about_to_show)
 	if state == null:
 		state = SaveSystem.load()
+	_cancel_notifications()
 	Purchases.bind_state(state)
 	Locale.ensure_installed()
 	Locale.apply_setting(str(state.settings.get("locale", "")))
@@ -52,8 +57,10 @@ func _exit_tree() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_save_round()
+		_schedule_notifications()
 		track_session_end()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		_cancel_notifications()
 		track_session_start()
 		_on_focus_in()
 
@@ -68,6 +75,28 @@ func _on_focus_in() -> void:
 		var home := _screen as Home
 		home.refresh()
 		_maybe_show_daily_popup(home)
+
+
+## Planuje lokalne notyfikacje przy wyjsciu w tlo (provider niedostepny = zero wywolan).
+func _schedule_notifications() -> void:
+	if state == null or not notifications.is_available():
+		return
+	notifications.cancel_all()
+	var now: int = int(clock.call())
+	for entry: Dictionary in NotificationPlanner.plan(now, int(tz_offset.call()), state):
+		var kind: String = str(entry["kind"])
+		var body: String = tr(str(entry["body_key"]))
+		if kind == NOTIF_KIND_STREAK:
+			body = body % state.streak_days
+		notifications.schedule(
+			int(NOTIF_IDS[kind]), int(entry["fire_unix"]), tr(str(entry["title_key"])), body
+		)
+		Analytics.track_design("notif:scheduled:%s" % kind)
+
+
+func _cancel_notifications() -> void:
+	if notifications.is_available():
+		notifications.cancel_all()
 
 
 func _on_ad_about_to_show(_kind: String) -> void:
@@ -275,6 +304,8 @@ func _close_shop_overlay() -> void:
 
 func _on_setting_changed(key: String) -> void:
 	Audio.apply_settings(state.settings)
+	if key == "notifications_on" and not bool(state.settings.get(key, true)):
+		_cancel_notifications()
 	if key == "locale":
 		Locale.apply_setting(str(state.settings.get("locale", "")))
 		show_settings()

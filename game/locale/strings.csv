@@ -92,3 +92,10 @@ shop_reason_undo_refill,Not enough coins for undos,Za mało monet na cofnięcia,
 share_daily_moves,%d moves (min %d),%d ruchów (min %d),%d Züge (min %d)
 btn_copy_result,Copy result,Kopiuj wynik,Ergebnis kopieren
 btn_copied,Copied!,Skopiowano!,Kopiert!
+set_notifications,Notifications,Powiadomienia,Mitteilungen
+notif_streak_title,Keep your streak!,Utrzymaj serię!,Serie halten!
+notif_streak_body,%d-day streak — one level keeps it alive.,Seria %d dni — jeden poziom ją utrzyma.,%d-Tage-Serie – ein Level hält sie am Leben.
+notif_daily_title,New Daily Level,Nowy Poziom dnia,Neues Tageslevel
+notif_daily_body,Today's puzzle is ready. Can you beat par?,Dzisiejsza łamigłówka czeka. Zmieścisz się w limicie?,Das heutige Rätsel wartet. Schaffst du das Par?
+notif_comeback_title,Your tubes miss you,Probówki tęsknią,Deine Röhren vermissen dich
+notif_comeback_body,A quick sort to relax? Your progress is saved.,Krótkie sortowanie na relaks? Postęp jest zapisany.,Kurz sortieren zum Entspannen? Dein Fortschritt ist gespeichert.
