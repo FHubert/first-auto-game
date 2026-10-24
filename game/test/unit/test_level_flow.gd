@@ -79,6 +79,15 @@ func test_win_advances_level_and_pays_coins() -> void:
 	assert_int(st.streak_days).is_equal(1)
 
 
+func test_win_beyond_par_has_no_perfect_bonus() -> void:
+	GameConfig.apply_remote({"par_slack_moves": -1})
+	_win()
+	assert_bool(_level.round.moves() > _level.round.min_moves() - 1).is_true()
+	assert_bool(_level.level_complete.perfect_label.visible).is_false()
+	var reward: int = int(GameConfig.get_value("win_reward_coins"))
+	assert_int(_level.state.coins).is_equal(_coins_before + reward)
+
+
 func test_win_is_saved() -> void:
 	_win()
 	var loaded: GameState = SaveSystem.load()

@@ -7,8 +7,9 @@ var _level: Level
 func before_test() -> void:
 	GameConfig.reset()
 	_level = auto_free(load("res://src/levels/level.tscn").instantiate())
-	_level.level = 2
 	add_child(_level)
+	_level.load_level(2)
+	await get_tree().process_frame
 
 
 func _board() -> BoardView:

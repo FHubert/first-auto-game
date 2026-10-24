@@ -44,7 +44,7 @@ func buy_extra_tube() -> bool:
 
 func buy_undo_refill() -> bool:
 	var ok: bool = Boosters.buy_undo_refill(state, round)
-	if not ok:
+	if not ok and not Economy.can_afford(state, Economy.undo_refill_cost()):
 		shop_requested.emit(Economy.SINK_UNDO_REFILL)
 	purchase_finished.emit(ok)
 	return ok
