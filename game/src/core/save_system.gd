@@ -31,7 +31,16 @@ func load() -> GameState:
 	if not FileAccess.file_exists(save_path):
 		return GameState.new()
 	var text: String = FileAccess.get_file_as_string(save_path)
-	var parsed: Variant = JSON.parse_string(text)
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		push_warning(
+			(
+				"SaveSystem: corrupted save file (parse error line %d), starting fresh"
+				% json.get_error_line()
+			)
+		)
+		return GameState.new()
+	var parsed: Variant = json.data
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_warning("SaveSystem: corrupted save file, starting fresh")
 		return GameState.new()

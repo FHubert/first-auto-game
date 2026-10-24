@@ -123,10 +123,12 @@ class GenAssetsTest(unittest.TestCase):
             p = Path(d)
             self.assertEqual(len(list((p / "ui").glob("icon_*.svg"))), 6)
             for n in ("tube_body", "flask_body", "tube_highlight"):
-                self.assertEqual(Image.open(p / "tubes" / f"{n}.png").size, (128, 384))
-            big = Image.open(p / "icon_1024.png")
-            self.assertEqual((big.mode, big.size), ("RGB", (1024, 1024)))
-            self.assertEqual(Image.open(p / "icon_512.png").size, (512, 512))
+                with Image.open(p / "tubes" / f"{n}.png") as im:
+                    self.assertEqual(im.size, (128, 384))
+            with Image.open(p / "icon_1024.png") as big:
+                self.assertEqual((big.mode, big.size), ("RGB", (1024, 1024)))
+            with Image.open(p / "icon_512.png") as im:
+                self.assertEqual(im.size, (512, 512))
 
 
 class GenSfxTest(unittest.TestCase):

@@ -1,6 +1,8 @@
 extends GdUnitTestSuite
 
-const FNV_OFFSET: int = 0xCBF29CE484222325
+## Odcisk determinizmu (nie jest poprawnym FNV-1a): pierwotny literał 0xCBF29CE484222325
+## nie mieści się w int64 i Godot przycinał go do INT64_MAX; golden hashe policzono z tą wartością.
+const FNV_OFFSET: int = 9223372036854775807
 const FNV_PRIME: int = 0x100000001B3
 const SLOW_REPORTED: int = 5
 const MAX_MS_PER_LEVEL: int = 500

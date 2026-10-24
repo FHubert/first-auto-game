@@ -26,7 +26,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Refill 2026-10-24 (continuous-dev #6, refill #4): Faza 5 prep II — jakość zapisu, polish core loopu, FTUE, czysty log CI. Bez workflowów, binarek z Releases, kont i SDK. Kolejność = zależności / wpływ na D1. -->
 
-- [ ] T-075 `in_progress` Czysty log `make test`/`make test-tools`: SaveSystem bez `ERROR: Parse JSON failed`, FNV bez `Cannot represent ... 64-bit`, `Image.open` w `with` (przeniesione z Inbox T-028, T-036, T-067)
+- [ ] T-075 `review` Czysty log `make test`/`make test-tools`: SaveSystem bez `ERROR: Parse JSON failed`, FNV bez `Cannot represent ... 64-bit`, `Image.open` w `with` (przeniesione z Inbox T-028, T-036, T-067) → PR #__N__
   KA: `SaveSystem.load` używa `JSON.new().parse()` + kod błędu (uszkodzony plik → stan domyślny, bez `ERROR:` w stdout); `FNV_OFFSET` w `test_content_generator.gd` jako literał ze znakiem (-3750763034362895579) — golden hashe bez zmian (test zielony bez edycji oczekiwanych wartości); `tools/test_tools.py` otwiera obrazy przez `with Image.open(...) as im`. Weryfikacja: `make test 2>&1 | grep -cE "Parse JSON failed|Cannot represent"` = 0 i `python3 -W error::ResourceWarning tools/test_tools.py` exit 0. `make check` zielone. ≤ ~40 linii.
   Skill: `godot-test`
 
@@ -89,6 +89,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 ## P3 — polish / later
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
+- [ ] T-087 `todo` `make test`: po zakończeniu runnera `WARNING: 4 ObjectDB instances were leaked at exit` i `ERROR: 2 resources still in use at exit` (także przy zielonym przebiegu) — znaleźć źródło (`--verbose`), posprzątać w `after()`/`auto_free` (odkryte w T-075). Skill: godot-test
 
 - [ ] T-068 `todo` ConsentFlow: brak limitu czasu po `show_consent_form`/`request_att` (gdy SDK zawiesi się po otwarciu formularza flow nie kończy się) — rozważyć osobny długi limit `consent_form_timeout_seconds` w Fazie 5 (SDK). Skill: ads-iap
 - [ ] T-070 `todo` Ads.show_privacy_options: po zamknięciu opcji prywatności (callback ze statusem) ponownie ustawić `provider.set_personalized` wg nowej zgody + odświeżyć `Settings.apply_from_state` przez `Ads.consent_finished`; `Ads` jako autoload może potrzebować `process_mode = PROCESS_MODE_ALWAYS` dla `poll()` przy pauzie drzewa. Skill: ads-iap
