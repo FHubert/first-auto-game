@@ -4,10 +4,15 @@ const SAVE_PATH: String = "user://test_tutorial.json"
 
 var _level: Level
 var _old_path: String
+var _fake: FakeAnalyticsProvider
+var _prev_analytics: AnalyticsProvider
 
 
 func before_test() -> void:
 	GameConfig.reset()
+	_prev_analytics = Analytics.provider
+	_fake = FakeAnalyticsProvider.new()
+	Analytics.provider = _fake
 	_old_path = SaveSystem.save_path
 	SaveSystem.save_path = SAVE_PATH
 	_cleanup()
@@ -18,6 +23,7 @@ func after_test() -> void:
 		_level.free()
 	_cleanup()
 	SaveSystem.save_path = _old_path
+	Analytics.provider = _prev_analytics
 	GameConfig.reset()
 
 
@@ -111,3 +117,69 @@ func test_scene_skips_tutorial_when_done() -> void:
 	assert_object(_level.tutorial).is_null()
 	assert_bool(_level.tutorial_overlay.visible).is_false()
 	assert_bool(_level.hud.hint_button.visible).is_true()
+
+
+func _count_design(id: String) -> int:
+	var n: int = 0
+	for e in _fake.events:
+		if e["type"] == "design" and e["event_id"] == id:
+			n += 1
+	return n
+
+
+func _design_index(id: String) -> int:
+	for i in _fake.events.size():
+		if _fake.events[i]["type"] == "design" and _fake.events[i]["event_id"] == id:
+			return i
+	return -1
+
+
+func _design_value(id: String) -> float:
+	return float(_fake.events[_design_index(id)]["value"])
+
+
+func test_analytics_tutorial_steps_in_order() -> void:
+	_make_level(false)
+	var path: Array = SortSolver.solve(_level.round.board(), 20000, 1.0)["path"]
+	for m: Vector2i in path:
+		_level.board.tap(m.x)
+		_level.board.tap(m.y)
+	var ids: Array = ["tutorial:step:1", "tutorial:step:2", "tutorial:step:3", "tutorial:done"]
+	var prev: int = -1
+	for id: String in ids:
+		assert_int(_count_design(id)).is_equal(1)
+		var idx: int = _design_index(id)
+		assert_bool(idx > prev).is_true()
+		prev = idx
+	assert_int(_count_design("tutorial:reset")).is_equal(0)
+
+
+func test_analytics_tutorial_deselect_logs_reset_once() -> void:
+	_make_level(false)
+	var m: Vector2i = _level.tutorial.expected
+	_level.board.tap(m.x)
+	_level.board.tap(m.x)
+	assert_int(_count_design("tutorial:reset")).is_equal(1)
+	assert_float(_design_value("tutorial:reset")).is_equal(2.0)
+	_level.board.tap(m.x)
+	assert_int(_count_design("tutorial:step:1")).is_equal(1)
+	assert_int(_count_design("tutorial:step:2")).is_equal(1)
+
+
+func test_analytics_tutorial_wrong_target_logs_reset() -> void:
+	_make_level(false)
+	var m: Vector2i = _level.tutorial.expected
+	_level.board.tap(m.x)
+	for i: int in _level.round.board().tube_count():
+		if i != m.x and not _level.round.board().can_pour(m.x, i):
+			_level.board.tap(i)
+			break
+	assert_int(_count_design("tutorial:reset")).is_equal(1)
+	assert_float(_design_value("tutorial:reset")).is_equal(2.0)
+	assert_int(_count_design("tutorial:step:2")).is_equal(1)
+
+
+func test_analytics_no_tutorial_events_when_done() -> void:
+	_make_level(true)
+	for e in _fake.events:
+		assert_bool(str(e.get("event_id", "")).begins_with("tutorial:")).is_false()

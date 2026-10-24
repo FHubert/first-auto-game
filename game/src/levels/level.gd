@@ -26,6 +26,7 @@ var tutorial: TutorialFlow
 var rewarded: RewardedPlacements = RewardedPlacements.new()
 
 var _round_bound_at: int = 0
+var _tutorial_max_step: int = 0
 var _last_win_coins: int = 0
 var _last_win_perfect: bool = false
 var _last_win_title: String = ""
@@ -120,8 +121,10 @@ func _bind_round(theme_id: String) -> void:
 	stuck_panel.visible = false
 	tutorial = null
 	if level_no == 1 and not bool(state.settings.get("tutorial_done", false)):
+		_tutorial_max_step = 0
 		tutorial = TutorialFlow.new()
 		tutorial.start(_solver_first_move())
+		_track_tutorial_step()
 	_update_tutorial_overlay()
 	_refresh_offers()
 
@@ -190,12 +193,14 @@ func _solver_first_move() -> Vector2i:
 
 func _on_tutorial_selected(index: int) -> void:
 	if tutorial != null and tutorial.on_tube_selected(index):
+		_track_tutorial_step()
 		_update_tutorial_overlay()
 
 
 func _on_tutorial_deselected(_index: int) -> void:
 	if tutorial != null and tutorial.step == TutorialFlow.Step.PICK_TARGET:
 		tutorial.on_deselect()
+		Analytics.track_design("tutorial:reset", float(TutorialFlow.Step.PICK_TARGET + 1))
 		_update_tutorial_overlay()
 
 
@@ -205,12 +210,25 @@ func _on_tutorial_pour(from: int, to: int) -> void:
 	var next_move: Vector2i = GameRound.NO_HINT
 	if not round.is_done():
 		next_move = _solver_first_move()
+	var prev_step: int = tutorial.step
 	if not tutorial.on_pour(from, to, next_move, round.is_done()):
 		if round.is_done():
 			tutorial.step = TutorialFlow.Step.DONE
 		else:
 			tutorial.start(next_move)
+			Analytics.track_design("tutorial:reset", float(prev_step + 1))
+	_track_tutorial_step()
 	_update_tutorial_overlay()
+
+
+## Loguje tutorial:step:N (N = Step + 1: 1 wybor zrodla, 2 cel, 3 koniec) raz na runde.
+func _track_tutorial_step() -> void:
+	if tutorial == null or tutorial.is_done():
+		return
+	var step_no: int = tutorial.step + 1
+	if step_no > _tutorial_max_step:
+		_tutorial_max_step = step_no
+		Analytics.track_design("tutorial:step:%d" % step_no)
 
 
 func _update_tutorial_overlay() -> void:
