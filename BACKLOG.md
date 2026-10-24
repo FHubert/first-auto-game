@@ -30,7 +30,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `SaveSystem.load` używa `JSON.new().parse()` + kod błędu (uszkodzony plik → stan domyślny, bez `ERROR:` w stdout); `FNV_OFFSET` w `test_content_generator.gd` jako literał ze znakiem (-3750763034362895579) — golden hashe bez zmian (test zielony bez edycji oczekiwanych wartości); `tools/test_tools.py` otwiera obrazy przez `with Image.open(...) as im`. Weryfikacja: `make test 2>&1 | grep -cE "Parse JSON failed|Cannot represent"` = 0 i `python3 -W error::ResourceWarning tools/test_tools.py` exit 0. `make check` zielone. ≤ ~40 linii.
   Skill: `godot-test`
 
-- [ ] T-076 `in_progress` Lokalizacja: `home_streak` i inne nieprzetłumaczone klucze w PL/DE + test „PL/DE ≠ EN” (przeniesione z Inbox T-072)
+- [ ] T-076 `review` Lokalizacja: `home_streak` i inne nieprzetłumaczone klucze w PL/DE + test „PL/DE ≠ EN” (przeniesione z Inbox T-072) → PR #__N__
   KA: `strings.csv`: `home_streak` PL „Seria: %d” (DE „Serie: %d” już jest); test gdUnit4 w teście lokalizacji: dla każdego klucza wartość PL i DE ≠ EN, z jawną listą wyjątków `SAME_AS_EN` w teście (≤ 5 pozycji, np. nazwa gry, „OK”). Popup nagrody dziennej na Home (kadr 04): karta Poziomu dnia ukryta na czas popupu — test gdUnit4 (`visible == false` przy otwartym popupie, `true` po zamknięciu). `make screenshots` → kadry 03/04 PL/DE odświeżone. `make check` zielone. ≤ ~60 linii + PNG.
   Skill: `aso`
 
@@ -89,6 +89,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 ## P3 — polish / later
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
+- [ ] T-088 `todo` Lokalizacja PL: `btn_save_streak` „Uratuj streak” → „Uratuj serię” (spójnie z `home_streak`/`daily_streak` „Seria”); sprawdzić `MAX_BTN_LEN` i inne wystąpienia anglicyzmu „streak” w PL (odkryte w T-076). Skill: aso
 - [ ] T-087 `todo` `make test`: po zakończeniu runnera `WARNING: 4 ObjectDB instances were leaked at exit` i `ERROR: 2 resources still in use at exit` (także przy zielonym przebiegu) — znaleźć źródło (`--verbose`), posprzątać w `after()`/`auto_free` (odkryte w T-075). Skill: godot-test
 
 - [ ] T-068 `todo` ConsentFlow: brak limitu czasu po `show_consent_form`/`request_att` (gdy SDK zawiesi się po otwarciu formularza flow nie kończy się) — rozważyć osobny długi limit `consent_form_timeout_seconds` w Fazie 5 (SDK). Skill: ads-iap
@@ -133,6 +134,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - Faza 4 (T-002b, T-005, T-053, T-055): sesja scheduled w auto-mode odrzuca każdą edycję `.github/workflows/**` (Edit, python, sed — także w zadaniach „CI:”), choć `.claude/settings.json` deny `Edit(.github/workflows/**)` i CLAUDE.md pozwalają na nie w zadaniach „CI:”. Przyjęto: zadania dotykające workflowów oznaczone `blocked`, do zrobienia przez Huberta w sesji interaktywnej (albo po usunięciu deny i akceptacji w auto-mode), do zmiany.
 - Refill #4 (T-081/T-082, G-014 w GDD): wznowienie przerwanej rundy po zabiciu aplikacji awansowane z „later” do MVP — przyjęto: tak, wznawiamy kampanię i Poziom dnia tylko z tego samego dnia UTC, wznowienie nie liczy się jako nowy `level_start` i nie odnawia ładunków undo, do zmiany.
 - Refill #4 (T-078): tap w trakcie animacji przelewu — przyjęto: ignorowany (input zablokowany do `pour_finished`, ~`pour_anim_seconds`), nie kolejkowany, do zmiany.
+- T-076: test „PL/DE ≠ EN” — KA zakładało ≤ 5 wyjątków, ale poprawne słowa identyczne z EN to 7 par (PL `btn_menu`; DE `hud_level` „Level”, `btn_pause`, `btn_shop`, `shop_title` „Shop”, `set_haptics` „Vibration”, `set_lang_system`) + endonimy `set_lang_*` i łańcuchy bez słów (format). Przyjęto: lista `SAME_AS_EN` per locale z 7 wpisami, bez wymyślania sztucznych tłumaczeń (np. „Stufe”, „Laden”); do zmiany.
 
 ## Done (ostatnie 30)
 - [x] T-001 `done` Smoke: środowisko i pętla działają end-to-end → PR #13 (zmergowany 2026-10-23)

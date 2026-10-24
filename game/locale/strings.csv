@@ -2,7 +2,7 @@ keys,en,pl,de
 hud_level,Level %d,Poziom %d,Level %d
 hud_moves,Moves: %d,Ruchy: %d,Züge: %d
 btn_undo,Undo (%d),Cofnij (%d),Rückgängig (%d)
-btn_restart,Restart,Restart,Neustart
+btn_restart,Restart,Od nowa,Neustart
 btn_pause,Pause,Pauza,Pause
 btn_hint,Hint (%d),Podpowiedź (%d),Tipp (%d)
 btn_extra_tube,+Tube (%d),+Probówka (%d),+Röhrchen (%d)
@@ -21,7 +21,7 @@ tut_pick_source,Tap the highlighted tube,Stuknij podświetloną probówkę,Tippe
 tut_pick_target,Now tap where to pour,"Teraz stuknij, gdzie przelać",Tippe jetzt auf das Ziel
 tut_finish,Finish it - sort the colors!,Dokończ — posortuj kolory!,Mach weiter - sortiere die Farben!
 home_play,Play: level %d,Graj: poziom %d,Spielen: Level %d
-home_streak,Streak: %d,Streak: %d,Serie: %d
+home_streak,Streak: %d,Seria: %d,Serie: %d
 home_theme_progress,to next theme: %d / %d,do następnego motywu: %d / %d,bis zum nächsten Thema: %d / %d
 btn_themes,Themes,Motywy,Themen
 btn_shop,Shop,Sklep,Shop
@@ -37,7 +37,7 @@ set_lang_de,Deutsch,Deutsch,Deutsch
 btn_back,Back,Wróć,Zurück
 set_version,v%s (%s),v%s (%s),v%s (%s)
 daily_title,Daily reward,Nagroda dzienna,Tägliche Belohnung
-daily_streak,Streak: %d,Streak: %d,Serie: %d
+daily_streak,Streak: %d,Seria: %d,Serie: %d
 btn_claim,Claim,Odbierz,Abholen
 btn_claim_x2,Claim ×2 (+%d),Odbierz ×2 (+%d),Abholen ×2 (+%d)
 btn_save_streak,Save streak,Uratuj streak,Streak retten

@@ -99,6 +99,8 @@ func _maybe_show_daily_popup(home: Home) -> void:
 	_popup = POPUP_SCENE.instantiate()
 	add_child(_popup)
 	_popup.show_for(state, day)
+	if home.daily_card != null:
+		home.daily_card.visible = false
 	_popup.claimed.connect(func(_amount: int) -> void: home.refresh())
 	_popup.claimed.connect(_close_popup)
 	_popup.closed.connect(_close_popup)
@@ -109,6 +111,9 @@ func _close_popup(_amount: int = 0) -> void:
 		_popup.visible = false
 		_popup.queue_free()
 	_popup = null
+	var home := _screen as Home
+	if home != null and home.daily_card != null:
+		home.daily_card.visible = true
 
 
 func show_level() -> void:
