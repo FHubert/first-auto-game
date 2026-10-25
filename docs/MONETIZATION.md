@@ -74,11 +74,11 @@ Plan eksperymentów z próbkami: `docs/EXPERIMENTS.md` (T-208)
 
 ### Przewidywanie `make sim` (seed 1, 1000 graczy, 30 dni)
 
-`python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 --overlay docs/remote_config/<wariant>.json` (default = bez `--overlay`; klucze nieznane symulacji, np. `starter_offer_min_level`, są ignorowane z ostrzeżeniem na stderr, a `remote_config_variant` jako klucz meta jest pomijany po cichu). Stan po T-178/T-185/T-189 (pomoc na plateau, kalibracja `--assist`, metryki motywów z n i progiem `MIN_N` = 30).
+`python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 --overlay docs/remote_config/<wariant>.json` (default = bez `--overlay`; klucze nieznane symulacji, np. `starter_offer_min_level`, są ignorowane z ostrzeżeniem na stderr, a `remote_config_variant` jako klucz meta jest pomijany po cichu). Stan po T-178/T-185/T-189/T-199 (pomoc na plateau jako mnożnik porażki `plateau_assist_fail_mult_*`, metryki motywów z n i progiem `MIN_N` = 30; wiersze `default` i H4 przeliczone w T-199, h1–h3 nadal z T-190 — stara baza 26/3).
 
 | wariant | impresje/DAU (rewarded + interstitial = total) | rewarded `extra_tube`/DAU | 1. motyw (dzień kalendarzowy, mediana) | 3. motyw (dzień, n) | mediana monet d30 / d1 | exit code |
 |---|---|---|---|---|---|---|
-| default (od T-198: `plateau_assist_from_attempt` 2) | 3.05 + 1.35 = 4.40 | 0.421 | 4 | n/a (n=0) | 585 / 330 | 0 |
+| default (od T-198: `plateau_assist_from_attempt` 2) | 3.15 + 1.39 = 4.54 | 0.423 | 3 | n/a (n=1) | 570 / 335 | 0 |
 | h1_b (`rewarded_multiplier` 3.0)* | 2.87 + 1.34 = 4.21 | 0.222 | 3 | n/a (n=10) | 600 / 350 | 0 |
 | h2_b (interstitial co 4 rundy, od lvl 5)* | 2.85 + 1.77 = 4.62 | 0.206 | 4 | n/a (n=0) | 575 / 335 | 0 |
 | h3_b (`starter_offer_min_level` 6)* | 2.85 + 1.34 = 4.19 | 0.206 | 4 | n/a (n=0) | 575 / 335 | 0 |
@@ -93,12 +93,12 @@ H2 podnosi interstitiale z 1.34 do 1.77/DAU (total 4.19 -> 4.62), bez wpływu na
 | metryka | baza (od 2. próby, `DEFAULTS` od T-198) | H4 (od 3. próby) |
 |---|---|---|
 | 3. motyw | n/a (0,0 %) | n/a (0,0 %) |
-| `plateau_assist_coins_per_dau` | 18.729 | 7.787 |
-| `rewarded_extra_tube_per_dau` | 0.421 | 0.206 |
-| `plateau_assist_buys` / próby | 2969 / 24653 | 1192 / 23259 |
-| ads/DAU interstitial | 1.35 | 1.34 |
-| ads/DAU rewarded | 3.05 | 2.85 |
-| ads/DAU total | 4.40 | 4.19 |
-| mediana monet po 7. dniu aktywnym | 522 | 650 |
+| `plateau_assist_coins_per_dau` | 18.530 | 7.149 |
+| `rewarded_extra_tube_per_dau` | 0.423 | 0.220 |
+| `plateau_assist_buys` / próby | 2930 / 25004 | 1220 / 25180 |
+| ads/DAU interstitial | 1.39 | 1.34 |
+| ads/DAU rewarded | 3.15 | 2.84 |
+| ads/DAU total | 4.54 | 4.18 |
+| mediana monet po 7. dniu aktywnym | 525 | 400 |
 
-Hipoteza: oferta od 3. próby daje ok. 2,4x mniej monet wydanych na pomoc (mediana d7 +128 monet, szybszy zakup motywów) i mniejszą natrętność, kosztem ARPDAU ok. -5 % (rewarded -0,2/DAU, total 4.40 → 4.19) i ryzyka D7 56+ poniżej bramki (34,4 % vs 46,0 % wg T-187). Metryka decyzji: D7 kohorty, `level:assist:*`/DAU, rewarded/DAU; minimalny czas testu jak H1-H3 (>= 14 dni na wariant, D7 wymaga pełnych kohort). Decyzja 26/2 (T-198, pytanie 12 w GDD) jest domyślna; w A/B w Fazie 6 wariant 3 wygrywa tylko gdy D7 kohorty nie spada istotnie, a D1 i natrętność (`level:assist:*`/DAU) poprawiają się.
+Hipoteza: oferta od 3. próby daje ok. 2,6x mniej monet wydanych na pomoc i mniejszą natrętność, kosztem ARPDAU ok. -8 % (rewarded -0,3/DAU, total 4.54 → 4.18); od T-199 pomoc realnie skraca plateau, więc baza 26/2 zarabia więcej monet na wygranych (mediana po 7. dniu aktywnym 525 vs 400; przed T-199 odwrotnie: 522 vs 650, bo pomoc była martwa) i ryzyka D7 56+ poniżej bramki (34,4 % vs 46,0 % wg T-187). Metryka decyzji: D7 kohorty, `level:assist:*`/DAU, rewarded/DAU; minimalny czas testu jak H1-H3 (>= 14 dni na wariant, D7 wymaga pełnych kohort). Decyzja 26/2 (T-198, pytanie 12 w GDD) jest domyślna; w A/B w Fazie 6 wariant 3 wygrywa tylko gdy D7 kohorty nie spada istotnie, a D1 i natrętność (`level:assist:*`/DAU) poprawiają się.
