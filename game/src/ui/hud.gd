@@ -96,6 +96,14 @@ func refresh() -> void:
 	undo_button.disabled = charges <= 0
 
 
+## T-222: podpowiedz liczy sie w tle - przycisk nieaktywny z "…" do wyniku.
+func set_hint_pending(pending: bool) -> void:
+	if hint_button == null:
+		return
+	hint_button.disabled = pending
+	hint_button.text = "…" if pending else tr("btn_hint") % Economy.hint_cost()
+
+
 func set_boosters_visible(v: bool) -> void:
 	_boosters_visible = v
 	if hint_button != null:

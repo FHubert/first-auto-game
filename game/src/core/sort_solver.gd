@@ -13,6 +13,8 @@ const N_BOARD: int = 3
 const N_PARENT: int = 4  # węzeł-rodzic (Array) albo null dla korzenia
 const N_KEY: int = 5
 const N_MOVE: int = 6  # ruch rodzic -> ten węzeł
+## Flaga anulowania sprawdzana co 256 rozwinięć (~30 ms).
+const CANCEL_CHECK_MASK: int = 255
 
 ## 0 (domyślny) = heurystyka granic, 1 = max(granice, h2) (T-180, wycofane z domyślnych).
 static var heuristic_mode: int = 0
@@ -23,7 +25,11 @@ static var heuristic_mode: int = 0
 ## rozwiązania, a `exact` = false przerwanie na limicie `max_states`.
 ## `expanded` = liczba rozwiniętych stanów (zawsze <= max_states).
 ## `path` = ruchy (from, to) od stanu startowego do wygranej.
-static func solve(board: SortBoard, max_states: int, weight: float = EXACT_WEIGHT) -> Dictionary:
+## `cancel` (T-222): token ustawiany z innego watku; sprawdzany co CANCEL_CHECK_MASK + 1
+## rozwiniec - po anulowaniu wynik jak przy limicie ({moves -1, exact false}).
+static func solve(
+	board: SortBoard, max_states: int, weight: float = EXACT_WEIGHT, cancel: SolverCancel = null
+) -> Dictionary:
 	var exact_mode: bool = is_equal_approx(weight, EXACT_WEIGHT)
 	if board.is_won():
 		var none: Array[Vector2i] = []
@@ -38,6 +44,9 @@ static func solve(board: SortBoard, max_states: int, weight: float = EXACT_WEIGH
 	var expanded: int = 0
 
 	while not heap.is_empty():
+		if cancel != null and (expanded & CANCEL_CHECK_MASK) == 0 and cancel.cancelled:
+			var stopped: Array[Vector2i] = []
+			return _result(NO_SOLUTION, stopped, false, expanded)
 		var node: Array = _pop(heap)
 		var key: PackedInt32Array = node[N_KEY]
 		var g: int = node[N_G]
