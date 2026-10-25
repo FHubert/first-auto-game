@@ -13,7 +13,6 @@ const GAP: int = 22
 const ICON_SIZE: int = 48
 const TILE_SIZE: int = 74
 const ROW_MIN_H: int = 88
-const ROW_PAD: int = 19
 const SEP_H: int = 2
 
 var state: GameState
