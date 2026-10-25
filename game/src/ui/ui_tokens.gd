@@ -18,6 +18,7 @@ const STREAK := Color("#FB8500")
 const TEXT := Color("#FFFFFF")
 const TEXT_MUTED := Color("#A9B8D6")
 const TEXT_SECTION := Color("#8EA0C4")
+const TEXT_SOFT := Color("#C9D4EA")
 const DIM := Color(0.0235, 0.0471, 0.1098, 0.66)
 
 const FONT_XS := 24
@@ -65,6 +66,7 @@ const NAV_RADIUS := 44
 const CARD_RADIUS := 59
 const CARD_ROW_RADIUS := 37
 const TILE_RADIUS := 33
+const TILE_ICON := 44
 const SHADOW_BTN := 11
 const SHADOW_ICON := 9
 const BTN_PAD_H := 44

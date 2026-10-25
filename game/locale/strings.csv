@@ -104,3 +104,11 @@ themes_remaining,%s: %d coins to go,Do motywu %s brakuje %d,Bis %s fehlen %d Mü
 set_section_sound,Sound and touch,Dźwięk i dotyk,Ton und Haptik
 set_section_access,Accessibility and language,Dostępność i język,Barrierefreiheit und Sprache
 set_section_account,Account and privacy,Konto i prywatność,Konto und Datenschutz
+stuck_free,Free,Za darmo,Gratis
+hud_ad,Ad,Reklama,Werbung
+stuck_row_undo,Undo move,Cofnij ruch,Zug zurück
+stuck_row_undo_desc,%d free left,Zostało %d darmowych,%d gratis übrig
+stuck_row_tube,Extra tube,Dodatkowa probówka,Extra-Röhrchen
+stuck_row_tube_desc,"Empty, until the level ends","Pusta, do końca poziomu","Leer, bis zum Levelende"
+stuck_row_refill,+%d undos,+%d cofnięć,+%d Rückgängig
+stuck_row_refill_desc,Add undo charges,Dodaj ładunki cofania,Rückgängig-Ladungen hinzufügen
