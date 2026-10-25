@@ -77,6 +77,7 @@ func _notification(what: int) -> void:
 func _on_focus_in() -> void:
 	if state == null:
 		return
+	Ads.on_app_resumed()
 	if _screen is Level:
 		(_screen as Level).resume_clock()
 	elif _screen is Home:

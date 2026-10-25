@@ -34,6 +34,8 @@ var _interstitial_ids: Array[int] = []
 var _policies: Dictionary = {"rewarded": AdLoadPolicy.new(), "interstitial": AdLoadPolicy.new()}
 var _loading: Dictionary = {"rewarded": false, "interstitial": false}
 var _giveup_tracked: Dictionary = {}
+## Clock time of each format's giveup (T-239); a resume after the cap starts a new series.
+var _giveup_at: Dictionary = {}
 var _preload_started: bool = false
 var _signals_provider: AdProvider
 
@@ -299,6 +301,26 @@ func poll_loads() -> void:
 			_request_load(kind, now)
 
 
+## Back from background (T-239): a format that gave up at least `ad_load_retry_max_seconds`
+## ago gets a fresh series (policy reset + 1 immediate load). Others are left alone.
+func on_app_resumed() -> void:
+	if provider == null or consent_state == ConsentState.PENDING:
+		return
+	_connect_load_signals()
+	var now: float = float(clock.call())
+	var wait: float = float(GameConfig.get_value("ad_load_retry_max_seconds"))
+	for kind: String in _policies:
+		var policy: AdLoadPolicy = _policies[kind]
+		if not policy.gave_up() or (kind == "interstitial" and ads_removed):
+			continue
+		if now - float(_giveup_at.get(kind, now)) < wait:
+			continue
+		policy.reset()
+		_giveup_tracked.erase(kind)
+		_giveup_at.erase(kind)
+		_request_load(kind, now)
+
+
 ## After a close: load again unless already loading/ready/failed (failures wait for backoff).
 func _reload(kind: String) -> void:
 	if provider == null or consent_state == ConsentState.PENDING:
@@ -354,4 +376,5 @@ func _on_load_done(kind: String, ok: bool) -> void:
 	Analytics.track_design("ads:load:fail:%s" % kind, float(policy.failures()))
 	if policy.gave_up() and not _giveup_tracked.has(kind):
 		_giveup_tracked[kind] = true
+		_giveup_at[kind] = float(clock.call())
 		Analytics.track_design("ads:load:giveup:%s" % kind)

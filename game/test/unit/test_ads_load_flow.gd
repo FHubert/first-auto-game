@@ -53,6 +53,7 @@ func _reset_ads() -> void:
 	Ads._policies = {"rewarded": AdLoadPolicy.new(), "interstitial": AdLoadPolicy.new()}
 	Ads._loading = {"rewarded": false, "interstitial": false}
 	Ads._giveup_tracked = {}
+	Ads._giveup_at = {}
 	Ads._preload_started = false
 	Ads._signals_provider = null
 	Ads._rewarded_in_break = false
@@ -174,3 +175,81 @@ func test_ads_removed_purchase_stops_interstitial_loads_keeps_rewarded() -> void
 	_provider.release(true)
 	assert_int(_provider.rewarded_load_calls).is_equal(rewarded_loads + 1)
 	assert_bool(_button_visible(level)).is_true()
+
+
+## Drives both formats to giveup (max retries failures each), stopping right at it.
+func _give_up() -> void:
+	var cap: float = float(GameConfig.get_value("ad_load_retry_max_seconds"))
+	for i in range(int(GameConfig.get_value("ad_load_max_retries")) + 1):
+		if Ads._policies["rewarded"].gave_up():
+			break
+		_now[0] += cap
+		Ads.poll_loads()
+
+
+func test_resume_before_cap_after_giveup_does_not_load() -> void:
+	_provider.fail_next_loads(int(GameConfig.get_value("ad_load_max_retries")) * 2)
+	Ads.begin_consent(_consent)
+	var level := _level()
+	_give_up()
+	assert_int(_count(GIVEUP)).is_equal(1)
+	var calls: int = _provider.rewarded_load_calls
+	_now[0] += 10.0
+	Ads.on_app_resumed()
+	assert_int(_provider.rewarded_load_calls).is_equal(calls)
+	assert_bool(_button_visible(level)).is_false()
+
+
+func test_resume_after_cap_after_giveup_loads_once_and_shows_button() -> void:
+	_provider.fail_next_loads(int(GameConfig.get_value("ad_load_max_retries")) * 2)
+	Ads.begin_consent(_consent)
+	var level := _level()
+	_give_up()
+	var calls: int = _provider.rewarded_load_calls
+	_now[0] += float(GameConfig.get_value("ad_load_retry_max_seconds"))
+	Ads.on_app_resumed()
+	assert_int(_provider.rewarded_load_calls).is_equal(calls + 1)
+	assert_bool(_button_visible(level)).is_true()
+	Ads.on_app_resumed()
+	assert_int(_provider.rewarded_load_calls).is_equal(calls + 1)
+
+
+func test_second_series_giveup_reported_once_more() -> void:
+	var max_retries: int = int(GameConfig.get_value("ad_load_max_retries"))
+	_provider.fail_next_loads(max_retries * 4)
+	Ads.begin_consent(_consent)
+	var level := _level()
+	_give_up()
+	_now[0] += float(GameConfig.get_value("ad_load_retry_max_seconds"))
+	Ads.on_app_resumed()
+	_give_up()
+	assert_int(_count(GIVEUP)).is_equal(2)
+	var calls: int = _provider.rewarded_load_calls
+	_now[0] += 1000.0
+	Ads.poll_loads()
+	assert_int(_provider.rewarded_load_calls).is_equal(calls)
+	assert_int(_count(GIVEUP)).is_equal(2)
+
+
+func test_resume_without_giveup_loads_nothing() -> void:
+	Ads.begin_consent(_consent)
+	var level := _level()
+	var rewarded: int = _provider.rewarded_load_calls
+	var interstitial: int = _provider.interstitial_load_calls
+	_now[0] += 1000.0
+	Ads.on_app_resumed()
+	assert_int(_provider.rewarded_load_calls).is_equal(rewarded)
+	assert_int(_provider.interstitial_load_calls).is_equal(interstitial)
+	assert_bool(_button_visible(level)).is_true()
+
+
+func test_resume_after_giveup_skips_interstitial_when_ads_removed() -> void:
+	_provider.fail_next_loads(int(GameConfig.get_value("ad_load_max_retries")) * 2)
+	Ads.begin_consent(_consent)
+	var level := _level()
+	_give_up()
+	Ads.set_ads_removed(true)
+	var interstitial: int = _provider.interstitial_load_calls
+	_now[0] += float(GameConfig.get_value("ad_load_retry_max_seconds"))
+	Ads.on_app_resumed()
+	assert_int(_provider.interstitial_load_calls).is_equal(interstitial)
