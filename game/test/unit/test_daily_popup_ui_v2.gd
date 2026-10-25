@@ -75,3 +75,24 @@ func test_close_button_circle_inside_card() -> void:
 	assert_vector(b.size).is_equal_approx(Vector2(81, 81), Vector2(1, 1))
 	assert_bool(popup._card.get_global_rect().encloses(b.get_global_rect())).is_true()
 	assert_vector(b.get_theme_stylebox("normal").get_minimum_size()).is_equal(Vector2.ZERO)
+
+
+func test_claim_x2_icon_next_to_label() -> void:
+	var popup: DailyRewardPopup = _popup()
+	popup.claim_x2_button.visible = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var b: Button = popup.claim_x2_button
+	var icon: TextureRect = b.get_node("InlineIcon")
+	var font: Font = b.get_theme_font("font")
+	var fsize: int = b.get_theme_font_size("font_size")
+	var text_w: float = font.get_string_size(b.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fsize).x
+	var sb: StyleBox = b.get_theme_stylebox("normal")
+	var inner_l: float = sb.get_margin(SIDE_LEFT)
+	var inner_w: float = b.size.x - inner_l - sb.get_margin(SIDE_RIGHT)
+	var text_left: float = inner_l + (inner_w - text_w) * 0.5
+	assert_float(text_left - (icon.position.x + icon.size.x)).is_between(0.0, 16.0)
+	var mid_lo: float = b.size.x * 0.25
+	var mid_hi: float = b.size.x * 0.75
+	assert_float(icon.position.x + icon.size.x * 0.5).is_between(mid_lo, mid_hi)
+	assert_float(text_left + text_w * 0.5).is_between(mid_lo, mid_hi)

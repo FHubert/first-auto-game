@@ -1,6 +1,10 @@
 extends GdUnitTestSuite
 
 const SAVE_PATH: String = "user://test_level_fit.json"
+## Szerokosc probowki (px) po apply_win zmierzona na main PRZED T-302 (720x1280 i 720x1560 -
+## identyczna, skala ograniczona szerokoscia): poziom 8 (6 probowek) i 56 (14 probowek).
+const BASE_TUBE_W_LV8: float = 55.18593
+const BASE_TUBE_W_LV56: float = 22.4031
 
 var _level: Level
 var _old_path: String
@@ -163,3 +167,32 @@ func test_stuck_board_not_under_panel_720x1280() -> void:
 	var panel: Rect2 = _level.stuck_panel.panel_rect()
 	for i in _level.round.board().tube_count():
 		assert_bool(panel.intersects(_level.board.tube_rect(i))).is_false()
+
+
+func _win_tubes_gap(screen: Vector2, level_no: int) -> Array:
+	_level.size = screen
+	_level.load_level(level_no)
+	ScreenshotFixtures.apply_win(_level)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var panel: Rect2 = _level.level_complete.panel_rect()
+	var min_gap: float = INF
+	for i in _level.round.board().tube_count():
+		min_gap = minf(min_gap, panel.position.y - _level.board.tube_rect(i).end.y)
+	return [min_gap, _level.board.tube_rect(0).size.x]
+
+
+func test_win_tubes_pad_from_card_and_not_smaller() -> void:
+	var pad: float = float(UiTokens.SCREEN_PAD)
+	for screen: Vector2 in [Vector2(720, 1280), Vector2(720, 1560)]:
+		var r8: Array = await _win_tubes_gap(screen, 8)
+		assert_float(r8[0]).is_greater_equal(pad)
+		assert_float(r8[1]).is_greater_equal(BASE_TUBE_W_LV8 - 0.01)
+		var r56: Array = await _win_tubes_gap(screen, 56)
+		assert_float(r56[0]).is_greater_equal(pad)
+		assert_float(r56[1]).is_greater_equal(BASE_TUBE_W_LV56 - 0.01)
+
+
+func test_win_dim_is_transparent_over_tubes() -> void:
+	var dim: ColorRect = _level.level_complete.get_node("Dim")
+	assert_float(dim.color.a).is_equal(0.0)

@@ -14,6 +14,8 @@ const MODE_DAILY: String = "daily"
 const TUBE_FULL_HAPTIC_MS: int = 40
 ## Odstep probowek od panelu wygranej i dozwolone wejscie pustego pasa HUD (px).
 const FIT_GAP_PX: float = 8.0
+## Odstep probowek od karty wygranej (makieta 03): UiTokens.SCREEN_PAD.
+const FIT_GAP_PANEL_PX: float = float(UiTokens.SCREEN_PAD)
 const CONFETTI_AMOUNT: int = 48
 const CONFETTI_COLORS: int = 6
 const CONFETTI_EMIT_HEIGHT: float = 4.0
@@ -455,7 +457,7 @@ func fit_board_above_panel() -> void:
 	var bottom: float = level_complete.panel_height()
 	board.set_single_row(true)
 	board.offset_top = level_complete.header_height() + FIT_GAP_PX
-	board.offset_bottom = -(bottom + FIT_GAP_PX)
+	board.offset_bottom = -(bottom + FIT_GAP_PANEL_PX)
 
 
 ## Rozbicie nagrody dla ekranu wygranej (daily: bez win/perfect - nagroda liczona inaczej).
