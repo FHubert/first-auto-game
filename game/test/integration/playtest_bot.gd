@@ -11,8 +11,8 @@ const MAX_STEPS: int = 600
 const ATTEMPT_STEPS: int = 150
 const SIM_SECONDS_PER_ROUND: float = 30.0
 ## Level brackets [min, max] for the per-bracket report; labels in the same order.
-const BRACKETS: Array = [[1, 7], [8, 25], [26, 55], [56, 1000000]]
-const BRACKET_LABELS: Array = ["1-7", "8-25", "26-55", "56+"]
+const BRACKETS: Array = LevelBrackets.RANGES
+const BRACKET_LABELS: Array = LevelBrackets.LABELS
 ## --stay: lost attempts on one level before the bot skips it (like the player's "Skip").
 const STAY_MAX_ATTEMPTS: int = 20
 

@@ -299,11 +299,13 @@ func restart() -> void:
 	_after_action()
 	Analytics.track_progression("Fail", mode, _level_id())
 	Analytics.track_design("level:fail:restart")
+	_track_attempt_fail(round.restarts())
 
 
 func _apply_skip(source: String) -> void:
 	Analytics.track_progression("Fail", mode, _level_id())
 	Analytics.track_design("level:fail:skip")
+	_track_attempt_fail(round.restarts() + 1)
 	Analytics.track_design(source)
 	state.level += 1
 	SaveSystem.save(state)
@@ -362,6 +364,7 @@ func _on_round_won() -> void:
 	Analytics.track_design("level:complete:" + kind, float(result.get("elapsed_s", 0.0)))
 	Analytics.track_design("level:complete:undos", float(result.get("undos_used", 0)))
 	Analytics.track_design("level:complete:boosters", float(result.get("boosters_used", 0)))
+	_track_attempt_win()
 	hud.refresh()
 	level_complete.show_result(
 		coins,
@@ -481,6 +484,23 @@ func _check_stuck() -> void:
 		stuck_panel.show_for(round, mode != MODE_DAILY, offers.ad_offers())
 		assist_bar.visible = false
 		Analytics.track_design("level:stuck", round.moves_to_goal())
+
+
+## T-207: numer proby przy porazce (tylko kampania); attempt = restarts + 1 w chwili porazki.
+func _track_attempt_fail(attempt: int) -> void:
+	if mode == MODE_CAMPAIGN:
+		var id: String = LevelBrackets.id_for(level_no)
+		Analytics.track_design("level:fail:attempt:" + id, float(attempt))
+
+
+## T-207: numer proby wygranej i flaga "probowka dodana w tej probie" (przezywa wznowienie).
+func _track_attempt_win() -> void:
+	if mode != MODE_CAMPAIGN:
+		return
+	var id: String = LevelBrackets.id_for(level_no)
+	var tube: int = 1 if int(round.to_dict().get("extra_tubes_added", 0)) > 0 else 0
+	Analytics.track_design("level:complete:attempt:" + id, float(round.restarts() + 1))
+	Analytics.track_design("level:complete:tube:" + id, float(tube))
 
 
 func _level_id() -> String:
