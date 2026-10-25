@@ -66,8 +66,9 @@ Ceny lokalne (PLN, EUR) pobierane ze sklepu (`IapProvider`), nigdy z kodu. Integ
 | H1 | Mnożnik ×3 na `double_coins` zwiększa odsetek wygranych z obejrzaną reklamą bez inflacji, która przyspiesza zakup motywów i obniża D7 | Ad impressions / DAU; kontrolnie D7 | ≥ 3,0 impr./DAU przy D7 ≥ 12 % | `rewarded_multiplier` = 2.0 | `rewarded_multiplier` = 3.0 |
 | H2 | Gęstszy interstitial (co 4 poziomy, min 90 s, od poziomu 5) podnosi impresje bez spadku D1 | Ad impressions / DAU, D1 | ≥ 3,0 impr./DAU przy D1 ≥ 35 % | `interstitial_every_n_rounds` = 5, `interstitial_min_seconds` = 120, `interstitial_min_level` = 8 | 4 / 90 / 5 |
 | H3 | Wcześniejsza oferta `starter_pack` (po poziomie 6 zamiast 12) podnosi konwersję IAP | IAP conversion | ≥ 1,5 % | `starter_offer_min_level` = 12 | `starter_offer_min_level` = 6 |
+| H4 | Pomoc na plateau od 2. próby (zamiast 3.) podnosi D7 kohorty 56+ (38,3 → 44,2 % w ≤ 3 próbach wg T-175) bez utraty ARPDAU | D7 kohorty; `level:assist:*`/DAU; rewarded/DAU | D7 ≥ 12 % przy rewarded/DAU ≥ 2,85 | `plateau_assist_from_attempt` = 3 | `plateau_assist_from_attempt` = 2 |
 
-**Paczki remote configu:** [`default.json`](remote_config/default.json), [`h1_b.json`](remote_config/h1_b.json), [`h2_b.json`](remote_config/h2_b.json), [`h3_b.json`](remote_config/h3_b.json). Nowy eksperyment = nowy plik w `docs/remote_config/` (`remote_config_variant` = nazwa pliku) + zielony `test_remote_config_packages.gd` PRZED wpisaniem wartości do Firebase Remote Config; wartości wariantu B w tabeli i w pliku muszą być identyczne.
+**Paczki remote configu:** [`default.json`](remote_config/default.json), [`h1_b.json`](remote_config/h1_b.json), [`h2_b.json`](remote_config/h2_b.json), [`h3_b.json`](remote_config/h3_b.json), [`h4_assist_2.json`](remote_config/h4_assist_2.json). Nowy eksperyment = nowy plik w `docs/remote_config/` (`remote_config_variant` = nazwa pliku) + zielony `test_remote_config_packages.gd` PRZED wpisaniem wartości do Firebase Remote Config; wartości wariantu B w tabeli i w pliku muszą być identyczne.
 
 ### Przewidywanie `make sim` (seed 1, 1000 graczy, 30 dni)
 
@@ -81,3 +82,18 @@ Ceny lokalne (PLN, EUR) pobierane ze sklepu (`IapProvider`), nigdy z kodu. Integ
 | h3_b (`starter_offer_min_level` 6) | 2.722 + 1.350 = 4.072 | 4 | 24 | 560 / 335 | 0 |
 
 H2 podnosi interstitiale z 1.35 do 1.78/DAU (total 4.50), bez wpływu na ekonomię monet. H1 podnosi monety tylko nieznacznie (d30 560 -> 610), 3. motyw nadal ok. 25. dnia - brak ryzyka inflacji w modelu; H3 nie jest modelowany przez symulację (wynik identyczny z default).
+
+### H4 - przewidywanie `make sim --overlay docs/remote_config/h4_assist_2.json` (seed 1, 1000 graczy, 30 dni)
+
+| metryka | baza (od 3. próby) | H4 (od 2. próby) |
+|---|---|---|
+| 3. motyw | n/a (0,0 %) | n/a (0,0 %) |
+| `plateau_assist_coins_per_dau` | 7.787 | 18.729 |
+| `rewarded_extra_tube_per_dau` | 0.206 | 0.421 |
+| `plateau_assist_buys` / próby | 1192 / 23259 | 2969 / 24653 |
+| ads/DAU interstitial | 1.34 | 1.35 |
+| ads/DAU rewarded | 2.85 | 3.05 |
+| ads/DAU total | 4.19 | 4.40 |
+| mediana monet po 7. dniu aktywnym | 650 | 522 |
+
+Hipoteza: D7 rośnie (56+ 38,3 → 44,2 % w <= 3 próbach), ARPDAU ok. +5 % (rewarded +0,2/DAU, total 4.19 → 4.40); koszt: ok. 2,4x więcej monet wydanych na pomoc (sink -128 monet w medianie d7), więc wolniejszy zakup motywów. Metryka decyzji: D7 kohorty, `level:assist:*`/DAU, rewarded/DAU; minimalny czas testu jak H1-H3 (>= 14 dni na wariant, D7 wymaga pełnych kohort). Decyzja 26/3 vs 26/2 (pytanie 12 w GDD) zapada w A/B w Fazie 6: wygrywa 2 tylko gdy D7 rośnie istotnie, a ryzyko natrętności (spadek D1, więcej `level:assist:*`) nie przekracza progu.
