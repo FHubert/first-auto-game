@@ -23,6 +23,7 @@ const GATE_MAX_MS: float = 500.0
 var _round_cls: GDScript
 var _solver_cls: GDScript
 var _bot_cls: GDScript
+var _job_cls: GDScript
 
 
 func _initialize() -> void:
@@ -31,9 +32,13 @@ func _initialize() -> void:
 	var idx: int = args.find("--out")
 	if idx >= 0 and idx + 1 < args.size():
 		out_path = args[idx + 1]
+	var lim: int = args.find("--limit")
+	if lim >= 0 and lim + 1 < args.size():
+		_cfg().set_for_test("hint_solver_max_states", int(args[lim + 1]))
 	_round_cls = load("res://src/core/game_round.gd")
 	_solver_cls = load("res://src/core/sort_solver.gd")
 	_bot_cls = load("res://test/integration/playtest_bot.gd")
+	_job_cls = load("res://src/systems/hint_job.gd")
 	var gen_cls: GDScript = load("res://src/systems/content_generator.gd")
 	var daily_cls: GDScript = load("res://src/systems/daily_challenge.gd")
 	var seed_value: int = int(_cfg().get_value("campaign_seed"))
@@ -60,6 +65,9 @@ func _initialize() -> void:
 		var h: Array = s["hint_ms"]
 		var m: Array = s["moves_to_goal_ms"]
 		print("| %s | %d | %s | %s | %s |" % [b, s["n"], _fmt(h), _fmt(m), s["gate"]])
+	print("| przedzial | HintJob.request (watek glowny) med/p95/max ms | do wyniku (worker) |")
+	for b: String in BRACKETS:
+		print("| %s | %s | %s |" % [b, _fmt(summary[b]["main_ms"]), _fmt(summary[b]["worker_ms"])])
 	print("zapisano: ", abs_path)
 	quit()
 
@@ -103,6 +111,7 @@ func _measure_level(data: Dictionary, level: int, mode: String, bracket: String)
 					"bracket": bracket,
 					"progress_pct": PROGRESS[i],
 					"hint_ms": _median(hint_us) / USEC_PER_MS,
+					"async_ms": _measure_async(snap),
 					"moves_to_goal_ms": _median(goal_us) / USEC_PER_MS,
 					"moves": probe.moves_to_goal(),
 					"exact": int(first["moves"]) > 0,
@@ -111,6 +120,22 @@ func _measure_level(data: Dictionary, level: int, mode: String, bracket: String)
 			)
 		)
 	return rows
+
+
+## T-222: [czas request() na watku glownym, czas do wyniku] w ms (mediana z REPEATS).
+func _measure_async(snap: Dictionary) -> Array:
+	var main_us: Array = []
+	var total_us: Array = []
+	for _r in REPEATS:
+		var board: RefCounted = _round_cls.from_dict(snap).board()
+		var job: RefCounted = _job_cls.new()
+		var t0: int = Time.get_ticks_usec()
+		job.request(board, int(_cfg().get_value("hint_solver_max_states")), 3.0)
+		main_us.append(Time.get_ticks_usec() - t0)
+		while job.poll().is_empty():
+			OS.delay_msec(1)
+		total_us.append(Time.get_ticks_usec() - t0)
+	return [_median(main_us) / USEC_PER_MS, _median(total_us) / USEC_PER_MS]
 
 
 ## Snapshoty (to_dict) po 0/25/50/75 % ruchow przebiegu greedy (seed 42, bez cofania).
@@ -140,16 +165,25 @@ func _summary(rows: Array) -> Dictionary:
 	for b: String in BRACKETS:
 		var h: Array = []
 		var m: Array = []
+		var am: Array = []
+		var aw: Array = []
 		for row: Dictionary in rows:
 			if row["bracket"] == b:
 				h.append(row["hint_ms"])
 				m.append(row["moves_to_goal_ms"])
+				am.append(row["async_ms"][0])
+				aw.append(row["async_ms"][1])
 		var hs: Array = _stats(h)
 		var ms: Array = _stats(m)
 		var ok: bool = hs[1] <= GATE_P95_MS and ms[1] <= GATE_P95_MS
 		ok = ok and hs[2] <= GATE_MAX_MS and ms[2] <= GATE_MAX_MS
 		out[b] = {
-			"n": h.size(), "hint_ms": hs, "moves_to_goal_ms": ms, "gate": "OK" if ok else "FAIL"
+			"n": h.size(),
+			"hint_ms": hs,
+			"moves_to_goal_ms": ms,
+			"main_ms": _stats(am),
+			"worker_ms": _stats(aw),
+			"gate": "OK" if ok else "FAIL",
 		}
 	return out
 

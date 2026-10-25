@@ -277,3 +277,24 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 - Nowy event `ads_load` (`ads:load:fail:<format>`, `ads:load:giveup:<format>`) — kategoria „Advertising interactions” w Data Safety / Privacy Labels (`docs/RELEASE_CHECKLIST.md`).
 - Inbox T-212 (id przerwy w `interstitial_closed`) do rozważenia razem z sygnałami ładowania przy pisaniu adaptera.
 - Wartości 2 / 64 / 6 to założenie (przykład AppLovin MAX: https://support.applovin.com/en/max/android/ad-formats/rewarded-ads, 2026-10-25) — kalibracja po soft launchu eventem `ads_load`.
+
+
+## ADR-014: Podpowiedź liczona w tle (`HintJob`) z tokenem anulowania — uzupełnia ADR-011
+
+**Data:** 2026-10-25
+**Status:** Accepted (T-222; nie zmienia ADR-009 ani ADR-011)
+
+**Kontekst:**
+- T-210 (`measure_hint.gd`, 36 stanów w trakcie rundy) pokazał, że `GameRound.hint()` blokuje wątek główny do ~2,7 s (x86 CI; telefon budżetowy kilkukrotnie wolniej, współczynnik ZWERYFIKUJ w T-054 — próg ANR to 5 s). Wolne są stany 0 % poziomów 40/56/80/120: przebieg exact wyczerpuje `hint_solver_max_states` (20 000 stanów ≈ 2,3 s, 80–140 µs/stan), potem przebieg ważony znajduje rozwiązanie szybko.
+- Wariant A (mniejszy budżet, bez zmiany UX) zmierzony na tych samych stanach, med/p95/max ms (hint): limit 2000 — 8–25: 13,4/31,3/31,3; 26–55: 8,9/245,2/245,2; 56+: 87,6/326,3/326,3; dzienny: 19,1/197,2/197,2. Limit 5000 — 13,1/39,2/39,2; 6,6/555,9/555,9; 83,0/747,8/747,8; 20,3/439,6/439,6. Limit 10000 — 13,5/32,0/32,0; 6,8/1158,7/1158,7; 86,5/1432,8/1432,8; 19,6/807,7/807,7. Bramka (p95 ≤ 100 ms i max ≤ 500 ms w KAŻDYM przedziale) niespełniona przy żadnym limicie: stany 0 % wyczerpują exact przy każdym limicie ≥ 2000, a p95 ≤ 100 ms to ≈ 1000 stanów łącznie z obu przebiegów. Poprawność (rozwiązanie znalezione tam, gdzie baza 20 000 je znajdowała): 24/24 przy każdym limicie, ale przy 2000 w 3 z 24 stanów ścieżka dłuższa niż optymalna (przebieg ważony), przy 5000 w 1.
+
+**Decyzja:**
+- Wariant B: `HintJob` (RefCounted, `WorkerThreadPool`, wzorzec `LevelPrefetch`) liczy dokładnie to samo co `GameRound._solve_cached` (exact, a gdy brak wyniku — przebieg ważony) na KLONIE planszy zrobionym na wątku głównym; wynik jest identyczny jak synchroniczny (test). `solver_max_states`, generator i poziomy bez zmian.
+- `SortSolver.solve` dostaje opcjonalny `SolverCancel` (flaga bool: zapis z wątku głównego, odczyt w roboczym — atomowy), sprawdzany co 256 rozwinięć (~30 ms), więc `cancel()` w `_after_action`/`_bind_round`/`_exit_tree` nie blokuje wątku głównego dłużej niż to. Bez tokena zachowanie solvera bez zmian (golden hashe).
+- `Level._request_hint`: z cache lub bez środków (sklep) — od razu przez `offers.buy_hint()`; inaczej przycisk „…” (disabled) i liczenie w tle. Monety pobierane DOPIERO po wyniku (`offers.buy_hint()` z zasilonym cache), a wynik przyjmowany tylko dla planszy z chwili żądania (`solution_key()`); ruch/cofnięcie/restart/zakup/wyjście z poziomu anuluje zadanie, monety nietknięte. Wynik bez ścieżki nie pobiera monet.
+- `StuckPanel.show_for` ZOSTAJE synchroniczny (odstępstwo od KA T-222): `_check_stuck` woła je tylko gdy `round.is_stuck()` (brak legalnych ruchów), więc solver rozwija 1 stan — T-210 zmierzył 0,3–0,9 ms dla wszystkich 11 martwych stanów, a test `test_stuck_board_solves_in_one_expansion` pilnuje ≤ 2 rozwinięć i < 50 ms.
+
+**Konsekwencje:**
+- Wątek główny: `HintJob.request` (klon + `add_task`) 0,1–0,3 ms zamiast do 2,7 s (tabela w GDD). Czas do podpowiedzi (worker) bez zmian — przycisk „…” do ~2,7 s na CI w najgorszym stanie; na telefonie może to być kilkanaście sekund, więc ZWERYFIKUJ w T-054 i rozważ ograniczenie budżetu (A) dodatkowo.
+- Konfiguracja czytana w wątku przez `HintJob` jest przekazywana jako argumenty z wątku głównego (limit, waga); solver nie dotyka `GameConfig`.
+- Przyszłe zmiany stanu planszy poza `pour_finished`/`_after_action` muszą wołać `_cancel_hint()` albo polegać na kluczu planszy (odrzuca wynik).
