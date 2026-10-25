@@ -66,6 +66,10 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		"skips_by_bracket": _zero_brackets(),
 		"median_attempts_by_bracket": _zero_brackets(),
 		"extra_tubes_by_bracket": _zero_brackets(),
+		"attempts_with_tube_by_bracket": _zero_brackets(),
+		"won_with_tube_by_bracket": _zero_brackets(),
+		"attempts_without_tube_by_bracket": _zero_brackets(),
+		"won_without_tube_by_bracket": _zero_brackets(),
 		"won_le3_pct_by_bracket": _zero_pcts(),
 		"won_first_pct_by_bracket": _zero_pcts(),
 		"errors": [],
@@ -102,6 +106,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 			break
 		var game_round := GameRound.new()
 		game_round.start(level_data)
+		var with_tube: bool = false
 		if (
 			stay_on_level
 			and extra_tube_from_attempt > 0
@@ -110,6 +115,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 			and game_round.add_extra_tube()
 		):
 			report["extra_tubes_by_bracket"][bracket] += 1
+			with_tube = true
 		var steps: int = 0
 		var gave_up: bool = false
 		if mode == MODE_RANDOM or mode == MODE_GREEDY:
@@ -137,6 +143,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 			if stay_on_level:
 				stay_attempts += 1
 				report["attempts_by_bracket"][bracket] += 1
+				_count_attempt(report, bracket, with_tube, false)
 				if stay_attempts >= STAY_MAX_ATTEMPTS:
 					report["skips_by_bracket"][bracket] += 1
 					state.level += 1
@@ -160,6 +167,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 				if stay_on_level:
 					stay_attempts += 1
 					report["attempts_by_bracket"][bracket] += 1
+					_count_attempt(report, bracket, with_tube, true)
 					report["levels_won_by_bracket"][bracket] += 1
 					if stay_attempts == 1:
 						report["won_first_try_by_bracket"][bracket] += 1
@@ -176,6 +184,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 				if stay_on_level:
 					stay_attempts += 1
 					report["attempts_by_bracket"][bracket] += 1
+					_count_attempt(report, bracket, with_tube, false)
 		if state.coins < 0:
 			errors.append("round %d: negative coins (%d)" % [round_index, state.coins])
 		sim_time[0] += SIM_SECONDS_PER_ROUND
@@ -193,6 +202,14 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		report["avg_moves"] = float(total_moves) / float(finished_rounds)
 	report["elapsed_ms"] = Time.get_ticks_msec() - started_ms
 	return report
+
+
+## One attempt = one round on a stay_on_level level; split by extra tube added in it.
+func _count_attempt(report: Dictionary, bracket: String, with_tube: bool, won: bool) -> void:
+	var suffix: String = "with_tube" if with_tube else "without_tube"
+	report["attempts_" + suffix + "_by_bracket"][bracket] += 1
+	if won:
+		report["won_" + suffix + "_by_bracket"][bracket] += 1
 
 
 func _zero_pcts() -> Dictionary:
