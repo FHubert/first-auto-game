@@ -456,6 +456,9 @@ func _on_load_done(kind: String, ok: bool) -> void:
 	_loading[kind] = false
 	if ok:
 		policy.on_loaded()
+		# A late load after giveup ends the series: the next giveup must be reported again.
+		_giveup_tracked.erase(kind)
+		_giveup_at.erase(kind)
 		_loaded_at[kind] = [provider.get_instance_id(), float(clock.call())]
 		return
 	_loaded_at.erase(kind)
