@@ -18,7 +18,8 @@ const PAIRS: Array = [
 ## Key = fake script file name; value = public test hooks that the base lacks.
 const FAKE_ONLY: Dictionary = {
 	# Completes a held rewarded/interstitial ad (hold_show mode).
-	"fake_ad_provider.gd": ["release", "release_at", "fail_next_loads", "release_load", "emit_interstitial_closed"],
+	"fake_ad_provider.gd":
+	["release", "release_at", "fail_next_loads", "release_load", "emit_interstitial_closed"],
 	# Answers a held UMP form / ATT prompt (hold_form / hold_att mode).
 	"fake_consent_provider.gd": ["release_form", "release_att"],
 	# Answers a held system notification permission request (hold_permission mode).
