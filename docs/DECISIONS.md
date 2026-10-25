@@ -253,3 +253,26 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 - Logika w pełni testowalna headless; podpięcie w `Main` i ustawienia — kolejne zadania.
 - Klucze tłumaczeń `notif_*` i podpięcie w `App` (FOCUS_OUT → `cancel_all` + `schedule`, FOCUS_IN/`_ready` → `cancel_all`, stałe ID 1/2/3, event `notif:scheduled:<kind>`) — T-151; provider niedostępny (`is_available() == false`) → zero wywołań.
 - ZWERYFIKUJ: nazwa pluginu dla Godot 4.7 (kompatybilność z eksportem Android/iOS).
+
+
+## ADR-013: Ładowanie reklam — preload i ponawianie w `AdService`, provider bez logiki retry
+
+**Data:** 2026-10-25
+**Status:** Proposed (refill #15; Accepted w T-225)
+
+**Kontekst:**
+- `AdProvider` (ADR-003) ma dziś tylko `is_*_ready()` i `show_*()` — bez pojęcia ładowania. `FakeAdProvider` jest „zawsze gotowy”, więc żadna ścieżka testowa nie sprawdza, co się dzieje po pokazie albo po błędzie sieci.
+- AdMob: „RewardedAd is a one-time-use object”, „Ads can only be shown once per load”, zalecany preload po zamknięciu reklamy; ponawianie ładowania z callbacku błędu „strongly discouraged”, a jeśli konieczne — „limit ad load retries” (https://developers.google.com/admob/unity/rewarded, 2026-10-25; strona dla Unity — dla pluginu Godot ZWERYFIKUJ w Fazie 5, ale model obiektu jest wspólny dla SDK Android/iOS).
+- Bez preloadu i ponawiania rewarded po 1. pokazie albo po 1. błędzie zostałby niedostępny do końca sesji — przyciski rewarded są ukryte, gdy reklama nie jest gotowa (MONETIZATION → Zasady), czyli 0 impresji (ARPDAU).
+
+**Decyzja:**
+- Interfejs `AdProvider` dostaje `load_rewarded()`, `load_interstitial()` i sygnały `*_loaded` / `*_load_failed(code)`; adapter SDK (Faza 5) tylko tłumaczy wywołania i callbacki pluginu, bez własnej logiki ponawiania.
+- Kiedy ładować i kiedy ponawiać decyduje `AdService` z czystą klasą `AdLoadPolicy` (RefCounted, bez `Node`, czas wstrzykiwany): wykładniczy odstęp `ad_load_retry_base_seconds` × 2^(n−1) do `ad_load_retry_max_seconds`, rezygnacja po `ad_load_max_retries` kolejnych błędach na format na sesję (wartości w `GameConfig`, zmienne remote configiem; GDD → Ekonomia).
+- `FakeAdProvider` domyślnie ładuje od razu i z sukcesem (testy i `make playtest` bez zmian), a tryby `fail_next_loads`/`hold_loads` pozwalają testować błędy i opóźnienia headless.
+- Bez nowej zależności (ADR-007 bez zmian).
+
+**Konsekwencje:**
+- Kontrakt T-165 (`test_provider_contracts.gd`) obejmuje nowe metody — adapter AdMob bez nich wykryty przed urządzeniem.
+- Nowy event `ads_load` (`ads:load:fail:<format>`, `ads:load:giveup:<format>`) — kategoria „Advertising interactions” w Data Safety / Privacy Labels (`docs/RELEASE_CHECKLIST.md`).
+- Inbox T-212 (id przerwy w `interstitial_closed`) do rozważenia razem z sygnałami ładowania przy pisaniu adaptera.
+- Wartości 2 / 64 / 6 to założenie (przykład AppLovin MAX: https://support.applovin.com/en/max/android/ad-formats/rewarded-ads, 2026-10-25) — kalibracja po soft launchu eventem `ads_load`.
