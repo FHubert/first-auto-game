@@ -22,7 +22,7 @@ Exit code 1 when the economy
 Ad density (interstitial <= 2.5, total >= 3.0 per DAU) only prints a WARN, it does not fail.
 Statistics are taken over *engaged* players (active on >= 2 of the first 7 days).
 
-Usage: python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 [--json] [--config PATH] [--overlay PATH]
+Usage: python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 [--json] [--always-active] [--config PATH] [--overlay PATH]
 """
 from __future__ import annotations
 
@@ -218,6 +218,16 @@ def fmt(m: dict) -> str:
     return f"n/a (n={m['n']})" if m["value"] is None else f"{m['value']:.0f} (n={m['n']})"
 
 
+EARNED_DAYS = (7, 14, 30)  # active days of the coins_earned_cum_active_day<N> metrics (T-202)
+THEME_COUNT = 3  # paid themes with an "affordable" threshold
+
+
+def theme_thresholds(cfg: dict) -> list[int]:
+    """Cumulative theme costs (600 / 1680 / 3624 by default) from theme_cost_base / theme_cost_growth."""
+    costs = [round(cfg["theme_cost_base"] * cfg["theme_cost_growth"] ** i) for i in range(THEME_COUNT)]
+    return [sum(costs[: i + 1]) for i in range(THEME_COUNT)]
+
+
 PLACEMENTS = ("double_coins", "daily_x2", "streak_save", "extra_tube", "undo_refill")
 
 
@@ -226,7 +236,7 @@ def assisted_win_prob(win_p: float, fail_mult: float) -> float:
     return 1.0 - (1.0 - win_p) * fail_mult
 
 
-def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool = True) -> dict:
+def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool = True, always_active: bool = False) -> dict:
     rnd = random.Random(seed)
     coins_by_day = [[] for _ in range(days)]  # per day: balances of engaged players
     themes_d7: list[int] = []
@@ -240,6 +250,9 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
     act14_buy_active: list[list[int]] = [[], [], []]  # active day of the 1st/2nd/3rd purchase
     negative_players = engaged = active_days = sessions_total = interstitials = 0
     rewarded = {k: 0 for k in PLACEMENTS}
+    earned_at = {d: [] for d in EARNED_DAYS}  # cumulative EARNED coins at the end of active day d (T-202)
+    thresholds = theme_thresholds(cfg)
+    afford_active: list[list[int]] = [[] for _ in thresholds]  # first active day earned >= threshold
     assist_coins = assist_buys = assist_attempts = 0
     assist_on = plateau_assist and cfg["plateau_assist_take_rate"] > 0
     mults = cfg["daily_reward_multipliers"]
@@ -262,7 +275,12 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         active_count = 0
         daily_done = 0
         coins_at_active7 = None
-        activity = [rnd.random() < retention_at(cfg, d) for d in range(days)]
+        earned = 0
+        afford: list[int] = []
+        if always_active:
+            activity = [True] * days
+        else:
+            activity = [rnd.random() < retention_at(cfg, d) for d in range(days)]
         activity[0] = True
         is_engaged = sum(activity[:7]) >= 2
         themes_at_7 = 0
@@ -296,11 +314,14 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
                     rewarded["daily_x2"] += 1
                     reward *= cfg["rewarded_multiplier"]
                 coins += int(round(reward))
+                earned += int(round(reward))
                 if level >= cfg["daily_unlock_level"] and rnd.random() < cfg["daily_challenge_play_rate"]:
                     coins += int(cfg["daily_challenge_coins"])
+                    earned += int(cfg["daily_challenge_coins"])
                     daily_done += 1
                     if daily_done == cfg["daily_month_goal"]:  # month goal bonus (T-137)
                         coins += int(cfg["daily_month_goal_coins"])
+                        earned += int(cfg["daily_month_goal_coins"])
                 n_sessions = max(1, poisson(rnd, cfg["sessions_per_day"] * engagement))
                 sessions_total += n_sessions
                 for _s in range(n_sessions):
@@ -340,6 +361,7 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
                                 rewarded_in_break = True
                                 total = int(round(total * cfg["rewarded_multiplier"]))
                             coins += total
+                            earned += total
                             level += 1
                             since_inter += 1
                             if (
@@ -368,6 +390,10 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
                     went_negative = True
                 if active_count == 7:
                     coins_at_active7 = coins
+                if active_count in earned_at:
+                    earned_at[active_count].append(earned)
+                while len(afford) < len(thresholds) and earned >= thresholds[len(afford)]:
+                    afford.append(active_count)
             balances.append(coins)
             if day == 6:
                 themes_at_7 = themes
@@ -393,6 +419,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
             act14_players += 1
             for i, a in enumerate(buy_active[:3]):
                 act14_buy_active[i].append(a)
+        for i, a in enumerate(afford):
+            afford_active[i].append(a)
         negative_players += went_negative
 
     return {
@@ -408,6 +436,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         "daily_third": daily_third,
         "act14_players": act14_players,
         "act14_buy_active": act14_buy_active,
+        "earned_at": earned_at,
+        "afford_active": afford_active,
         "negative_players": negative_players,
         "players": players,
         "active_days": active_days,
@@ -429,6 +459,8 @@ def main(argv: list | None = None) -> int:
     ap.add_argument("--overlay", type=Path, default=None,
                     help="JSON z docs/remote_config/ nakladany na config.gd (klucze nieznane symulacji sa ignorowane)")
     ap.add_argument("--no-plateau-assist", action="store_true", help="wylacz pomoc na plateau (baza porownawcza)")
+    ap.add_argument("--always-active", action="store_true",
+                    help="proxy gracza grajacego codziennie: aktywny we wszystkie --days dni (T-202)")
     ap.add_argument("--json", action="store_true", help="print machine-readable JSON only")
     args = ap.parse_args(argv)
     if args.days < 8:
@@ -450,7 +482,7 @@ def main(argv: list | None = None) -> int:
             print(f"[balance_sim] ignored overlay key: {k}", file=sys.stderr)
         print(f"[balance_sim] applied overlay {args.overlay.name}: {len(applied)} key(s)", file=sys.stderr)
 
-    res = simulate(cfg, args.players, args.days, args.seed, not args.no_plateau_assist)
+    res = simulate(cfg, args.players, args.days, args.seed, not args.no_plateau_assist, args.always_active)
     if res["engaged"] == 0:
         print("[balance_sim] no engaged players; increase --players", file=sys.stderr)
         return 1
@@ -482,6 +514,12 @@ def main(argv: list | None = None) -> int:
         for i in range(3)
         for name, q in (("p50", 0.5), ("p90", 0.9))
     }
+    earned = {
+        f"coins_earned_cum_active_day{d}_{name}": stat(res["earned_at"][d], q)
+        for d in EARNED_DAYS
+        for name, q in (("p50", 0.5), ("p90", 0.9))
+    }
+    afford = {f"theme{i + 1}_affordable_active_day_p50": stat(xs) for i, xs in enumerate(res["afford_active"])}
     daily_pct = 100.0 * res["daily_third"] / res["daily_players"] if res["daily_players"] else 0.0
 
     problems = []
@@ -498,6 +536,7 @@ def main(argv: list | None = None) -> int:
         "days": args.days,
         "seed": args.seed,
         "overlay": str(args.overlay) if args.overlay else None,
+        "always_active": args.always_active,
         "engaged_players": eng,
         "median_coins_day1": day1,
         "median_coins_day7": day7,
@@ -515,6 +554,8 @@ def main(argv: list | None = None) -> int:
         "theme3_by_d30_pct": round(theme3_by_d30, 1),
         **{k: v["value"] for k, v in buy14.items()},
         **{k + "_n": v["n"] for k, v in buy14.items()},
+        **{k: v["value"] for k, v in {**earned, **afford}.items()},
+        **{k + "_n": v["n"] for k, v in {**earned, **afford}.items()},
         "third_theme_pct_daily_players": round(daily_pct, 1),
         "median_coins_active_day7": med(res["coins_active7"]),
         "first_theme_pct": round(first_pct, 1),
@@ -545,6 +586,10 @@ def main(argv: list | None = None) -> int:
         print(f"players active >={ACTIVE14_DAYS} days: {a14}; theme3_by_d30_pct {theme3_by_d30:.1f} %")
         for i in range(3):
             print(f"  theme {i + 1} buy active day p50 {fmt(b[f'theme{i + 1}_buy_day_active_p50'])} / p90 {fmt(b[f'theme{i + 1}_buy_day_active_p90'])}")
+        print("earned coins (cum.) by active day: " + ", ".join(
+            f"d{d} p50 {fmt(earned[f'coins_earned_cum_active_day{d}_p50'])} / p90 {fmt(earned[f'coins_earned_cum_active_day{d}_p90'])}" for d in EARNED_DAYS))
+        print("themes affordable (cum. earned) active day p50: " + ", ".join(
+            f"{i + 1}: {fmt(afford[f'theme{i + 1}_affordable_active_day_p50'])}" for i in range(THEME_COUNT)))
         print(f"median coins after 7th active day: {med(res['coins_active7']):.0f}")
         parts = ", ".join(f"{k} {v:.2f}" for k, v in by_place.items())
         print(f"ads/DAU: interstitial {inter_dau:.2f}, rewarded {rew_dau:.2f} ({parts}), total {imp_dau:.2f}")
