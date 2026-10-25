@@ -147,3 +147,14 @@ func test_hud_hidden_on_win_and_restored_on_restart() -> void:
 	assert_bool(_level.hud.visible).is_false()
 	_level.restart()
 	assert_bool(_level.hud.visible).is_true()
+
+
+func test_backdrop_covers_level_with_theme_color() -> void:
+	_level.load_level(1)
+	await _frames()
+	var want := Color(BoardView.load_theme(_level.board.theme_id)["background"])
+	assert_that(_level.backdrop.color).is_equal(want)
+	(
+		assert_bool(_level.backdrop.get_global_rect().encloses(Rect2(Vector2.ZERO, _level.size)))
+		. is_true()
+	)

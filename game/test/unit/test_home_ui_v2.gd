@@ -72,3 +72,14 @@ func test_german_texts_not_clipped() -> void:
 		W - 2 * UiTokens.SCREEN_PAD
 	)
 	TranslationServer.set_locale(prev)
+
+
+func test_home_has_fullscreen_backdrop() -> void:
+	var home: Home = _home(1920)
+	home.size = Vector2(1080, 1920)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var bg: ColorRect = home.get_child(0) as ColorRect
+	assert_object(bg).is_not_null()
+	assert_that(bg.color).is_equal(UiTokens.BG)
+	assert_bool(bg.get_global_rect().encloses(Rect2(Vector2.ZERO, home.size))).is_true()

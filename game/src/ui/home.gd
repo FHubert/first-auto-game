@@ -119,6 +119,7 @@ func daily_intro_seen() -> bool:
 
 func _build() -> void:
 	theme = UI_THEME
+	ScreenHeader.add_backdrop(self)
 	root_margin = MarginContainer.new()
 	root_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for side: String in ["left", "top", "right", "bottom"]:
