@@ -66,7 +66,8 @@ func _process(_delta: float) -> void:
 	if r.is_empty():
 		return
 	hud.set_hint_pending(false)
-	if round == null or round.is_done() or SolverCache.key_of(round.board()) != _hint_key:
+	var stale: bool = round == null or round.is_done()
+	if stale or SolverCache.key_of(round.board(), _hint_limit()) != _hint_key:
 		return  # plansza zmieniona w trakcie liczenia: wynik odrzucony, monety nietkniete
 	round.solutions.put(_hint_key, int(r["moves"]), r["path"])
 	if not (r["path"] as Array).is_empty():
@@ -495,14 +496,18 @@ func apply_theme(theme_id_in: String) -> void:
 func _request_hint() -> void:
 	if round == null or round.is_done() or hint_job.is_busy():
 		return
-	_hint_key = SolverCache.key_of(round.board())
+	var limit: int = _hint_limit()
+	_hint_key = SolverCache.key_of(round.board(), limit)
 	if round.solutions.has_key(_hint_key) or not Economy.can_afford(state, Economy.hint_cost()):
 		offers.buy_hint()
 		return
 	hud.set_hint_pending(true)
-	var limit: int = int(GameConfig.get_value("hint_solver_max_states"))
 	var weight: float = float(GameConfig.get_value("solver_fallback_weight"))
 	hint_job.request(round.board(), limit, weight)
+
+
+func _hint_limit() -> int:
+	return int(GameConfig.get_value("hint_exact_max_states"))
 
 
 func _cancel_hint() -> void:

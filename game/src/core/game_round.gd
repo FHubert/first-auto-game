@@ -264,7 +264,7 @@ func is_stuck() -> bool:
 func hint() -> Vector2i:
 	if _done:
 		return NO_HINT
-	var path: Array = _solve_cached().get("path", [])
+	var path: Array = _solve_cached(_cfg_int("hint_exact_max_states")).get("path", [])
 	if path.is_empty():
 		return NO_HINT
 	_boosters_used += 1
@@ -275,7 +275,7 @@ func hint() -> Vector2i:
 func moves_to_goal() -> int:
 	if _done:
 		return 0
-	return int(_solve_cached().get("moves", -1))
+	return int(_solve_cached(_cfg_int("hint_solver_max_states")).get("moves", -1))
 
 
 func min_moves() -> int:
@@ -310,12 +310,12 @@ func result() -> Dictionary:
 	}
 
 
-# Cache: SolverCache (klucz = dokładny układ probówek, patrz tam).
-func _solve_cached() -> Dictionary:
-	var key: String = SolverCache.key_of(_board)
+# Cache: SolverCache (klucz = układ probówek + limit). Limit: hint() = hint_exact_max_states,
+# moves_to_goal() = hint_solver_max_states (T-237).
+func _solve_cached(limit: int) -> Dictionary:
+	var key: String = SolverCache.key_of(_board, limit)
 	if solutions.has_key(key):
 		return solutions.get_entry(key)
-	var limit: int = _cfg_int("hint_solver_max_states")
 	var r: Dictionary = SortSolver.solve(_board, limit, SortSolver.EXACT_WEIGHT)
 	if int(r["moves"]) <= 0 and not _board.is_won():
 		var w: float = float(GameConfig.get_value("solver_fallback_weight"))

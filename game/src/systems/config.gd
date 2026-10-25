@@ -77,6 +77,8 @@ const DEFAULTS: Dictionary = {
 	"skip_unlock_restarts": 2,
 	"par_slack_moves": 2,
 	"hint_solver_max_states": 20000,
+	# T-237: budżet exact tylko dla podpowiedzi; moves_to_goal() używa hint_solver_max_states
+	"hint_exact_max_states": 2000,
 	# Daily / streak (GDD v1.0)
 	"daily_reward_multipliers": [1, 1, 2, 2, 3, 3, 6],
 	"streak_save_max_per_week": 1,
@@ -165,6 +167,7 @@ const RANGES: Dictionary = {
 	"skip_unlock_restarts": [0, 100],
 	"par_slack_moves": [-10, 100],
 	"hint_solver_max_states": [1, 200000],
+	"hint_exact_max_states": [250, 200000],
 	"streak_save_max_per_week": [0, 7],
 	"streak_save_window_days": [1, 365],
 	"streak_grace_days": [0, 30],
@@ -282,4 +285,5 @@ func _invariants_ok(v: Dictionary) -> bool:
 		and int(v["colors_start"]) <= int(v["colors_max"])
 		and float(v["difficulty_min"]) <= float(v["difficulty_max"])
 		and int(v["ad_load_retry_base_seconds"]) <= int(v["ad_load_retry_max_seconds"])
+		and int(v["hint_exact_max_states"]) <= int(v["hint_solver_max_states"])
 	)
