@@ -13,7 +13,7 @@ Oznaczenia: DAU = unikalni gracze z `session_start` danego dnia; przedział = `l
 | # | Metryka | Wzór (eventy) | Próg / reguła | Kalibruje |
 |---|---|---|---|---|
 | 1 | D1 retention | gracze z `session_start` w dniu instalacji+1 / kohorta instalacji (pierwszy `session_start`) | min 25 %, cel 35 % (KPI); < 25 % → KPI-2 | `make playtest` (trudność 1. sesji), `tutorial_step` |
-| 1a | Stuck rate per przedział (T-254) | `level:stuck:<przedział>` (1× na próbę) / `level_start` w przedziale; wartość = numer próby, `level_stuck` = ruchy w chwili utknięcia | reguła 2 (D1): wysoki w 1–7 → KPI-2 | `level_stuck` (`StuckPanel`), generator |
+| 1a | Stuck rate per przedział (T-254) | `level:stuck:<przedział>` (1× na próbę) / `level_start` w przedziale; wartość = numer próby, `level_stuck` = ruchy w chwili utknięcia | reguła 2 (D1): wysoki w 1–7 → KPI-2 | `level_stuck` (`StuckPanel`), generator; baza z bota (T-298, greedy `--stay`, 3 seedy): 1–7 = 0 %, 8–25 ≤ 5,3 %, 26–55 ≈ 25–29 % |
 | 2 | D7 retention | jak D1, dzień +7 | min 8 %, cel 12 %; D1 OK i D7 < 8 % → KPI-3 | `plateau_assist_min_level`, `plateau_assist_from_attempt`, paczka H4 (GDD pyt. 12, 18) |
 | 3 | Sesje / DAU | `session_start` / DAU (`session_end` z czasem w [s] daje średnią długość sesji) | min 2,0, cel 3,0; długość min 2 min, cel 4 min (KPI) | okno `session:start` na powrót fokusu (`App.track_session_start`) |
 | 4 | Fail-rate per przedział | (`level_fail` reason `restart` + `skip` + `abandon`) / `level_start`, z przedziałem z `level:fail:attempt:<przedział>` i `level:fail:abandon:<przedział>` | 1–7 i 8–25 bez porażek w modelu bota (GDD Progresja); wzrost → KPI-2 (1–25) albo KPI-3 (26+); definicja z refillu #5 (BACKLOG, Pytania do Huberta) | `gen_*` (generator), `min_moves_factor_*` |
@@ -35,7 +35,7 @@ Oznaczenia: DAU = unikalni gracze z `session_start` danego dnia; przedział = `l
 ## Diagnostyka i lejki (bez własnej metryki KPI)
 
 Eventy potrzebne do rozbicia metryk wyżej, bez progu w `KPI.md`:
-- Lejek rundy: `level_start`, `level_complete` (czas, `moves`, `perfect`), `level_fail`, `level_pause` (pauza to nie porażka, G-014), `level_stuck` (`moves_to_goal` przy `StuckPanel`), `daily_challenge_complete`.
+- Lejek rundy: `level_start`, `level_complete` (czas, `moves`, `perfect`), `level_fail`, `level_pause` (pauza to nie porażka, G-014), `level_stuck` (ruchy w chwili utknięcia przy `StuckPanel`, nie `moves_to_goal`), `daily_challenge_complete`.
 - Lejek FTUE (KPI-2): `tutorial_step` (kroki 1–3 → `tutorial:done`).
 - Ekonomia: `coins_earned`, `booster_used` (`booster:<type>:<free\|coins\|rewarded>`), `theme_unlocked`, `daily_reward_claimed`, `streak_changed`.
 - Meta (D7, KPI-3): `nav` (`nav:shop`, `nav:themes`, `nav:daily`), `daily_share`, `daily_month_goal`.

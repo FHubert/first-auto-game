@@ -33,6 +33,8 @@ const KEYS: Array = [
 	"won_without_tube_by_bracket",
 	"won_le3_pct_by_bracket",
 	"won_first_pct_by_bracket",
+	"stuck_attempts_by_bracket",
+	"stuck_rate_pct_by_bracket",
 ]
 ## T-162 gate (26-55 within 3 tries, %), reduced sample (1 seed).
 const GATE_26_55: float = 50.0
@@ -377,3 +379,41 @@ func test_assist_gate_26_55_reduced_sample() -> void:
 	var report: Dictionary = bot.run(100, 42, PlaytestBot.MODE_GREEDY)
 	assert_array(report["errors"]).is_empty()
 	assert_float(report["won_le3_pct_by_bracket"]["26-55"]).is_greater_equal(GATE_26_55)
+
+
+func _stuck_bot(mode: String, rounds: int, campaign: bool = true) -> Dictionary:
+	var bot := PlaytestBot.new()
+	bot.stay_on_level = true
+	bot.use_campaign_seed = campaign
+	return bot.run(rounds, 42, mode)
+
+
+func test_stuck_attempts_bounded_by_stuck_count_and_attempts() -> void:
+	var report: Dictionary = _stuck_bot(PlaytestBot.MODE_GREEDY, 60)
+	var total: int = 0
+	for label: String in PlaytestBot.BRACKET_LABELS:
+		var s: int = report["stuck_attempts_by_bracket"][label]
+		assert_int(s).is_less_equal(report["attempts_by_bracket"][label])
+		total += s
+	assert_int(total).is_less_equal(report["stuck_count"])
+
+
+func test_stuck_attempts_zero_for_solver() -> void:
+	var report: Dictionary = _stuck_bot(PlaytestBot.MODE_SOLVER, 20)
+	for label: String in PlaytestBot.BRACKET_LABELS:
+		assert_int(report["stuck_attempts_by_bracket"][label]).is_equal(0)
+		assert_float(report["stuck_rate_pct_by_bracket"][label]).is_equal(0.0)
+
+
+func test_stuck_rate_random_matches_formula() -> void:
+	# Random, --stay, per-round seeds, seed 42, 20 rounds: 1 stuck attempt (bracket 8-25).
+	# (With the campaign board 20 rounds give 0, 60 rounds give 7.)
+	var report: Dictionary = _stuck_bot(PlaytestBot.MODE_RANDOM, 20, false)
+	var total: int = 0
+	for label: String in PlaytestBot.BRACKET_LABELS:
+		var s: int = report["stuck_attempts_by_bracket"][label]
+		var a: int = report["attempts_by_bracket"][label]
+		total += s
+		var expected: float = snappedf(100.0 * s / a, 0.1) if a > 0 else 0.0
+		assert_float(report["stuck_rate_pct_by_bracket"][label]).is_equal(expected)
+	assert_int(total).is_greater_equal(1)
