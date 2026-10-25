@@ -18,7 +18,7 @@ const PAIRS: Array = [
 ## Key = fake script file name; value = public test hooks that the base lacks.
 const FAKE_ONLY: Dictionary = {
 	# Completes a held rewarded/interstitial ad (hold_show mode).
-	"fake_ad_provider.gd": ["release"],
+	"fake_ad_provider.gd": ["release", "release_at"],
 }
 ## Safe arguments for base methods with required parameters (bool/Dictionary/Array returns).
 const NOOP_ARGS: Dictionary = {}

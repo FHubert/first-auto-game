@@ -24,6 +24,10 @@ var _rewarded_in_break: bool = false
 var _muted_at_s: float = -INF
 var _ad_break_open: bool = false
 var _watchdog_fired: bool = false
+var _break_id: int = 0
+## Breaks closed by the watchdog whose SDK callback has not arrived yet (id -> true).
+var _watchdog_ids: Dictionary = {}
+var _interstitial_ids: Array[int] = []
 
 
 func _ready() -> void:
@@ -47,15 +51,31 @@ func poll_watchdog() -> void:
 	if float(clock.call()) - _muted_at_s >= limit:
 		_watchdog_fired = true
 		_ad_break_open = false
+		_watchdog_ids[_break_id] = true
 		Audio.set_app_muted(false)
 		Analytics.track_design("ads:watchdog:unmute")
 
 
-func _begin_ad_break() -> void:
+func _begin_ad_break() -> int:
+	_break_id += 1
 	Audio.set_app_muted(true)
 	_muted_at_s = clock.call()
 	_ad_break_open = true
 	_watchdog_fired = false
+	return _break_id
+
+
+## Ends break id only if it is the open one. A late callback (watchdog already closed it)
+## is reported once and returns true; it never touches the audio of the current break.
+func _close_break(id: int, kind: String) -> bool:
+	if _watchdog_ids.has(id):
+		_watchdog_ids.erase(id)
+		Analytics.track_design("ads:watchdog:late:%s" % kind)
+		return true
+	if _ad_break_open and id == _break_id:
+		_end_ad_break()
+		return true
+	return false
 
 
 func _end_ad_break() -> void:
@@ -153,7 +173,7 @@ func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
 		return false
 	if not provider.interstitial_closed.is_connected(_on_interstitial_closed):
 		provider.interstitial_closed.connect(_on_interstitial_closed)
-	_begin_ad_break()
+	_interstitial_ids.append(_begin_ad_break())
 	ad_about_to_show.emit("interstitial")
 	provider.show_interstitial()
 	_last_interstitial_s = now
@@ -164,10 +184,9 @@ func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
 
 
 func _on_interstitial_closed() -> void:
-	if _watchdog_fired:
-		_watchdog_fired = false
+	if _interstitial_ids.is_empty():
 		return
-	_end_ad_break()
+	_close_break(_interstitial_ids.pop_front(), "interstitial")
 
 
 ## Clears the "rewarded already shown in this break" flag (tests / bot).
@@ -194,7 +213,7 @@ func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 		Analytics.track_design("ads:rewarded:%s:unavailable" % placement_id)
 		return false
 	_rewarded_in_break = true
-	_begin_ad_break()
+	var break_id: int = _begin_ad_break()
 	var rewarded_done: Array[bool] = [false]
 	ad_about_to_show.emit("rewarded")
 	provider.show_rewarded(
@@ -202,10 +221,7 @@ func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 			if rewarded_done[0]:
 				return
 			rewarded_done[0] = true
-			if _watchdog_fired:
-				_watchdog_fired = false
-			else:
-				_end_ad_break()
+			_close_break(break_id, "rewarded")
 			if granted:
 				Analytics.track_design("ads:rewarded:%s:granted" % placement_id)
 				rewarded_granted.emit(placement_id)
