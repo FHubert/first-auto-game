@@ -8,6 +8,7 @@ func _popup(lang: String = "en", state: GameState = null) -> DailyRewardPopup:
 	TranslationServer.set_locale(lang)
 	var host: Control = auto_free(Control.new())
 	host.size = Vector2(W, 1280)
+	host.theme = ScreenHeader.UI_THEME
 	add_child(host)
 	var popup: DailyRewardPopup = load("res://src/ui/daily_reward_popup.tscn").instantiate()
 	host.add_child(popup)
@@ -56,7 +57,7 @@ func test_variations() -> void:
 	assert_str(popup.close_button.text).is_equal("")
 	assert_str(str(popup.claim_button.theme_type_variation)).is_equal("ButtonPrimary")
 	assert_str(str(popup.claim_x2_button.theme_type_variation)).is_equal("ButtonAccent")
-	assert_str(str(popup.close_button.theme_type_variation)).is_equal("ButtonIcon")
+	assert_str(str(popup.close_button.theme_type_variation)).is_equal("ButtonClose")
 
 
 func test_day7_wider() -> void:
@@ -64,3 +65,13 @@ func test_day7_wider() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	assert_float(popup.tiles[6].size.x).is_greater(popup.tiles[4].size.x)
+
+
+func test_close_button_circle_inside_card() -> void:
+	var popup := _popup()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var b: Button = popup.close_button
+	assert_vector(b.size).is_equal_approx(Vector2(81, 81), Vector2(1, 1))
+	assert_bool(popup._card.get_global_rect().encloses(b.get_global_rect())).is_true()
+	assert_vector(b.get_theme_stylebox("normal").get_minimum_size()).is_equal(Vector2.ZERO)

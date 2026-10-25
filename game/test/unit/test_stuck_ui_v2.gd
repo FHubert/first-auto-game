@@ -7,6 +7,7 @@ const H: int = 1280
 func _host() -> Control:
 	var host: Control = auto_free(Control.new())
 	host.size = Vector2(W, H)
+	host.theme = ScreenHeader.UI_THEME
 	add_child(host)
 	return host
 
@@ -75,6 +76,17 @@ func test_stuck_panel_rows_touch_size() -> void:
 	assert_bool(panel.skip_button.visible).is_false()
 	assert_str(panel.undo_desc_label.text).contains(str(_round().counters.undo_charges))
 	assert_bool(Rect2(0, 0, W, H).encloses(_panel_rect(panel))).is_true()
+
+
+func test_close_button_circle_inside_panel() -> void:
+	var panel := _stuck()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var b: Button = panel.close_button
+	assert_str(str(b.theme_type_variation)).is_equal("ButtonClose")
+	assert_vector(b.size).is_equal_approx(Vector2(81, 81), Vector2(1, 1))
+	assert_bool(_panel_rect(panel).encloses(b.get_global_rect())).is_true()
+	assert_vector(b.get_theme_stylebox("normal").get_minimum_size()).is_equal(Vector2.ZERO)
 
 
 func _panel_rect(panel: StuckPanel) -> Rect2:

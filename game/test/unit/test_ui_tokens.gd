@@ -34,6 +34,16 @@ func test_button_variants_structure() -> void:
 			assert_bool(THEME.has_stylebox(s, v)).is_true()
 
 
+func test_button_close_variant() -> void:
+	assert_str(str(THEME.get_type_variation_base("ButtonClose"))).is_equal("Button")
+	for s in STATES:
+		var sb: StyleBoxFlat = THEME.get_stylebox(s, "ButtonClose")
+		assert_vector(sb.get_minimum_size()).is_equal(Vector2.ZERO)
+	var n: StyleBoxFlat = THEME.get_stylebox("normal", "ButtonClose")
+	assert_bool(n.bg_color.is_equal_approx(UiTokens.CARD_ROW)).is_true()
+	assert_int(n.border_width_bottom).is_equal(0)
+
+
 func test_label_and_panel_variants() -> void:
 	for v in LABELS:
 		assert_str(str(THEME.get_type_variation_base(v))).is_equal("Label")
