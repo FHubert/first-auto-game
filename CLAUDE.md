@@ -76,6 +76,7 @@ Patrz `KPI.md`. Skrót: D1 retention ≥ 35 %, D7 ≥ 12 %, ARPDAU ≥ 0,05 USD,
 | `make check` | lint + test + test-tools + export-check (bramka przed PR) |
 | `make screenshots` | screenshoty headless do `fastlane/metadata/` |
 | `make screenshots-smoke` | smoke wszystkich ekranów z `tools/screens.txt` → `export/screenshots_framed/` |
+| `make perf` | raport wydajności CI (`measure_startup` + `measure_hint` + `measure_prefetch`) → `game/test/reports/perf.json`; poza `make check` (kilka minut) |
 
 ## GitHub: tylko REST (gh api)
 W sesjach Claude Code Remote `gh pr *` (GraphQL) zwraca 403 — używaj wyłącznie `gh api`. Owner/repo: FHubert/first-auto-game.
