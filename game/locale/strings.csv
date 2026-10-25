@@ -50,6 +50,8 @@ btn_back,Back,Wróć,Zurück
 set_version,v%s (%s),v%s (%s),v%s (%s)
 daily_title,Daily reward,Nagroda dzienna,Tägliche Belohnung
 daily_streak,Streak: %d,Seria: %d,Serie: %d
+daily_subtitle,"Come back daily, rewards grow","Wracaj codziennie, nagrody rosną","Komm täglich zurück, die Belohnungen wachsen"
+daily_day,Day %d,Dzień %d,Tag %d
 btn_claim,Claim,Odbierz,Abholen
 btn_claim_x2,Claim ×2 (+%d),Odbierz ×2 (+%d),Abholen ×2 (+%d)
 btn_save_streak,Save streak,Uratuj serię,Streak retten
