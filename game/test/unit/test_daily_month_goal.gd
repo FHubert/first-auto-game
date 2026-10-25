@@ -37,17 +37,20 @@ func test_month_id_boundaries() -> void:
 	assert_int(DailyChallenge.month_id(20818) + 1).is_equal(DailyChallenge.month_id(20819))
 
 
-func test_goal_reached_on_20th_completion() -> void:
+func test_goal_reached_on_goal_th_completion() -> void:
 	var bonus: int = int(GameConfig.get_value("daily_month_goal_coins"))
-	for d in range(NOV_1, NOV_1 + 19):
+	var goal: int = DailyChallenge.month_goal()
+	for d in range(NOV_1, NOV_1 + goal - 1):
 		assert_int(DailyChallenge.complete(_state, d, {"won": true})).is_equal(50)
 	assert_int(_goal_events()).is_equal(0)
-	assert_int(DailyChallenge.complete(_state, NOV_1 + 19, {"won": true})).is_equal(50 + bonus)
+	assert_int(DailyChallenge.complete(_state, NOV_1 + goal - 1, {"won": true})).is_equal(
+		50 + bonus
+	)
 	assert_int(_goal_events()).is_equal(1)
-	assert_int(_state.coins).is_equal(50 * 20 + bonus)
-	assert_int(DailyChallenge.complete(_state, NOV_1 + 20, {"won": true})).is_equal(50)
+	assert_int(_state.coins).is_equal(50 * goal + bonus)
+	assert_int(DailyChallenge.complete(_state, NOV_1 + goal, {"won": true})).is_equal(50)
 	assert_int(_goal_events()).is_equal(1)
-	assert_int(DailyChallenge.month_progress(_state, NOV_1 + 20)).is_equal(21)
+	assert_int(DailyChallenge.month_progress(_state, NOV_1 + goal)).is_equal(goal + 1)
 
 
 func test_custom_goal_bonus_on_third_completion() -> void:

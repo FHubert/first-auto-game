@@ -7,6 +7,7 @@ Każdy punkt sprawdzamy przed `git tag`. Niezaznaczony punkt oznacza brak wydani
 - [ ] Playtest bez softlocka: `game/test/reports/playtest.json` bez softlocka.
 - [ ] Crash-free na Firebase Test Lab.
 - [ ] `make perf` na CI (`game/test/reports/perf.json`) i ten sam scenariusz na urządzeniu budżetowym (T-054) — iloraz telefon/CI wpisany do ADR-011/ADR-014 jako uzupełnienie w nowym ADR, nie edycją.
+- [ ] `make perf` exit 0 przed tagiem wydania (bramka `tools/perf_gate.py`, progi z GDD: T-237/T-210/T-253/T-145; T-260).
 - [ ] Screenshoty aktualne (`make screenshots`).
 - [ ] Changelog w `fastlane/metadata`.
 - [ ] Adapter SDK (reklamy, IAP, zgoda, powiadomienia, analityka) dopisany do `PAIRS` w `test_provider_contracts.gd` i zielony przed podpięciem w `App`/autoloadzie (Faza 5).

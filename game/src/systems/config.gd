@@ -32,7 +32,8 @@ const DEFAULTS: Dictionary = {
 	"theme_cost_growth": 1.8,
 	"daily_challenge_coins": 50,
 	"daily_unlock_level": 3,
-	"daily_month_goal": 20,
+	# T-259: 20 -> 15 (make sim: K=6 59,5 %, K=7 86,1 % graczy; przy 20 tylko 3,0 % / 20,6 %)
+	"daily_month_goal": 15,
 	"daily_month_goal_coins": 300,
 	# Local notifications (T-150)
 	"notif_local_hour": 19,

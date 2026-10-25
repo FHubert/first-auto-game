@@ -49,7 +49,7 @@ BUILTIN = {
     "daily_reward_multipliers": [1, 1, 2, 2, 3, 3, 6],
     "daily_challenge_coins": 50,
     "daily_unlock_level": 3,
-    "daily_month_goal": 20,
+    "daily_month_goal": 15,
     "daily_month_goal_coins": 300,
     "hint_cost_coins": 25,
     "extra_tube_cost_coins": 60,
