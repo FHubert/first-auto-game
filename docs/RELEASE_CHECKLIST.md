@@ -17,7 +17,7 @@ Każdy punkt sprawdzamy przed `git tag`. Niezaznaczony punkt oznacza brak wydani
   | Typ danych (Play) | Zbierane | Udostępniane | Cel | Opcjonalne | Źródło/eventy |
   |---|---|---|---|---|---|
   | Device or other IDs | tak | tak (AdMob, GameAnalytics) | Analytics, Advertising | nie | SDK: AdMob, GA |
-  | App interactions | tak | tak (GA) | Analytics | nie | level_start, level_complete, level_fail, level_pause, tutorial_step, nav, daily_share, level_stuck, booster_used, daily_reward_claimed, streak_changed, daily_challenge_complete, theme_unlocked, coins_earned, session_start, session_end, daily_month_goal, config_variant, notif_scheduled, save_recovered, level_assist |
+  | App interactions | tak | tak (GA) | Analytics | nie | level_start, level_complete, level_fail, level_pause, tutorial_step, nav, daily_share, level_stuck, booster_used, daily_reward_claimed, streak_changed, daily_challenge_complete, theme_unlocked, coins_earned, session_start, session_end, daily_month_goal, config_variant, notif_scheduled, save_recovered, level_assist, level_attempt |
   | App info and performance (Diagnostics) | ZWERYFIKUJ (czy GA zbiera crash logs) | ZWERYFIKUJ | Analytics | nie | SDK |
   | Purchase history | tak | nie | App functionality | nie | iap_purchase |
   | Advertising interactions | tak | tak (AdMob) | Advertising | nie | rewarded_offered, rewarded_completed, interstitial_shown, ads_watchdog |
@@ -35,7 +35,7 @@ Każdy punkt sprawdzamy przed `git tag`. Niezaznaczony punkt oznacza brak wydani
   | Kategoria (ASC) | Linked to user | Used for tracking | Źródło |
   |---|---|---|---|
   | Identifiers → Device ID | AdMob: tak (ZWERYFIKUJ); GA: nie (ZWERYFIKUJ) | AdMob: tak, tylko po zgodzie ATT; GA: nie (ZWERYFIKUJ) | SDK; consent_result |
-  | Usage Data → Product Interaction | nie (ZWERYFIKUJ) | nie | level_start, level_complete, level_fail, level_pause, tutorial_step, nav, daily_share, level_stuck, booster_used, session_start, session_end, streak_changed, daily_reward_claimed, daily_challenge_complete, theme_unlocked, coins_earned, daily_month_goal, config_variant, notif_scheduled, save_recovered, level_assist |
+  | Usage Data → Product Interaction | nie (ZWERYFIKUJ) | nie | level_start, level_complete, level_fail, level_pause, tutorial_step, nav, daily_share, level_stuck, booster_used, session_start, session_end, streak_changed, daily_reward_claimed, daily_challenge_complete, theme_unlocked, coins_earned, daily_month_goal, config_variant, notif_scheduled, save_recovered, level_assist, level_attempt |
   | Usage Data → Advertising Data | ZWERYFIKUJ | tak, tylko po ATT | rewarded_offered, rewarded_completed, interstitial_shown, ads_watchdog |
   | Purchases → Purchase History | nie (ZWERYFIKUJ) | nie | iap_purchase |
   | Diagnostics → Crash Data | ZWERYFIKUJ | ZWERYFIKUJ | SDK |
