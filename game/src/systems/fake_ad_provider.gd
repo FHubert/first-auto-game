@@ -103,17 +103,22 @@ func is_interstitial_ready() -> bool:
 	return always_ready and _interstitial_loaded
 
 
-func show_interstitial() -> void:
+func show_interstitial(ad_id: int) -> void:
 	interstitials_shown += 1
 	_interstitial_loaded = false
 	if hold_show:
-		held.append({"kind": "interstitial", "cb": Callable()})
+		held.append({"kind": "interstitial", "cb": Callable(), "id": ad_id})
 		return
 	if deferred:
-		held.append({"kind": "interstitial", "cb": Callable()})
+		held.append({"kind": "interstitial", "cb": Callable(), "id": ad_id})
 		release.call_deferred(reward_on_show)
 		return
-	interstitial_closed.emit()
+	interstitial_closed.emit(ad_id)
+
+
+## Tests only: emits a close for any id (duplicate / unknown).
+func emit_interstitial_closed(ad_id: int) -> void:
+	interstitial_closed.emit(ad_id)
 
 
 func release(granted: bool) -> void:
@@ -133,7 +138,7 @@ func release_at(i: int, granted: bool) -> void:
 			cb.call(granted)
 		rewarded_closed.emit(granted)
 	else:
-		interstitial_closed.emit()
+		interstitial_closed.emit(int(entry.get("id", 0)))
 
 
 func set_personalized(enabled: bool) -> void:
