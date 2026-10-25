@@ -20,7 +20,7 @@ func before_test() -> void:
 	_ad_provider = FakeAdProvider.new()
 	_ads = auto_free(load("res://src/systems/ad_service.gd").new())
 	_ads.provider = _ad_provider
-	_ads.clock = func() -> float: return _now[0]
+	_ads.clock = TestClock.ticking_float(_now)
 	_ads.consent_finished.connect(func(_r: Dictionary) -> void: _finished += 1)
 	_consent = FakeConsentProvider.new()
 	_consent.region_eea = true
