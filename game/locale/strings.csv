@@ -83,13 +83,11 @@ btn_undo_refill_ad,+%d undo (ad),+%d cofnięć (ad),+%d Rückg. (ad)
 btn_skip_ad,Skip (ad),Pomiń (ad),Überspr. (ad)
 shop_title,Shop,Sklep,Shop
 shop_item_remove_ads,No ads,Bez reklam,Keine Werbung
-shop_desc_remove_ads,"No interstitial ads, forever","Bez reklam pełnoekranowych na zawsze","Keine Zwischenwerbung, für immer"
+shop_desc_remove_ads,"No breaks between levels, forever","Bez przerw między poziomami, na zawsze","Keine Pausen zwischen Leveln, für immer"
 shop_item_coins_small,Coin pouch,Sakiewka monet,Münzbeutel
 shop_item_coins_large,Coin chest,Skrzynia monet,Münzkiste
-shop_desc_coins,+%d coins,+%d monet,+%d Münzen
 shop_item_starter_pack,Starter pack,Pakiet startowy,Starterpaket
-shop_desc_starter,+%d coins + Neon theme,+%d monet + motyw Neon,+%d Münzen + Neon-Design
-shop_offer_left,Offer ends in %d h,Oferta kończy się za %d h,Angebot endet in %d h
+shop_offer_left,%s left,Jeszcze %s,Noch %s
 shop_price_unknown,…,…,…
 btn_owned,Owned,Posiadane,Gekauft
 set_privacy_options,Privacy options,Opcje prywatności,Datenschutz
@@ -125,3 +123,11 @@ stuck_row_hint,Hint,Podpowiedź,Tipp
 stuck_row_hint_desc,Shows the best move,Pokaże najlepszy ruch,Zeigt den besten Zug
 lc_great,Great!,Świetnie!,Super!
 themes_hint,You earn coins for every level and the Daily level,Monety zdobywasz za każdy poziom i Poziom dnia,Münzen gibt es für jedes Level und das Tageslevel
+shop_starter_badge,STARTER PACK,PAKIET STARTOWY,STARTERPAKET
+shop_starter_coins,%d coins,%d monet,%d Münzen
+shop_starter_theme,+ %s theme,+ motyw %s,+ %s-Design
+shop_starter_once,"One time only, to get you started","Tylko raz, na start","Nur einmal, zum Start"
+shop_buy_for,Buy for %s,Kup za %s,Kaufen für %s
+shop_coins_amount,%d coins,%d monet,%d Münzen
+shop_desc_tubes,About %d extra tubes,Około %d dodatkowych probówek,Etwa %d zusätzliche Röhrchen
+shop_desc_bonus,+%d %% free,+%d %% gratis,+%d %% gratis

@@ -5,12 +5,12 @@ extends Control
 signal back_pressed
 signal purchase_requested(sku: String)
 
-const GAP: int = 22
+const GAP: int = 30
 const UI_THEME: Theme = preload("res://assets/fonts/ui_theme.tres")
 const SKU_ICONS: Dictionary = {
 	"starter_pack": "coin", "remove_ads": "video", "coins_small": "coin", "coins_large": "coin"
 }
-const SKU_ORDER: Array[String] = ["starter_pack", "remove_ads", "coins_small", "coins_large"]
+const SKU_ORDER: Array[String] = ["starter_pack", "coins_small", "coins_large", "remove_ads"]
 
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
@@ -19,9 +19,11 @@ var coins_label: Label
 var reason_label: Label
 var backdrop: PanelContainer
 var status_label: Label
-var restore_button: Button
+## Karty w przewijanym obszarze: na niskich ekranach lista przewija sie, restore zostaje na dole.
+var scroll: ScrollContainer
+var restore_button: LinkButton
 var back_button: Button
-## sku -> {"panel": Control, "button": Button, "desc": Label, "extra": Label}
+## sku -> {"panel": Control, "button": Button, "desc": Label, "extra": Label, "badge": Label}
 var cards: Dictionary = {}
 
 
@@ -54,14 +56,15 @@ func refresh() -> void:
 		var panel: Control = cards[sku]["panel"]
 		var b: Button = cards[sku]["button"]
 		var extra: Label = cards[sku]["extra"]
-		extra.visible = false
+		if extra != null:
+			extra.visible = false
 		if sku == Purchases.SKU_STARTER:
 			var now: int = int(clock.call())
 			panel.visible = Purchases.starter_offer_visible(state.level, now)
 			if panel.visible:
 				var window_s: int = int(GameConfig.get_value("starter_offer_hours")) * 3600
 				var left_s: int = state.starter_offer_start_day + window_s - now
-				extra.text = tr("shop_offer_left") % int(ceil(left_s / 3600.0))
+				extra.text = str(tr("shop_offer_left")) % format_hms(left_s)
 				extra.visible = true
 		if Purchases.NON_CONSUMABLE.has(sku) and state.has_purchase(sku):
 			b.text = tr("btn_owned")
@@ -70,7 +73,8 @@ func refresh() -> void:
 			b.text = tr("shop_price_unknown")
 			b.disabled = true
 		else:
-			b.text = Purchases.price_text(sku)
+			var price: String = Purchases.price_text(sku)
+			b.text = str(tr("shop_buy_for")) % price if sku == Purchases.SKU_STARTER else price
 			b.disabled = false
 
 
@@ -89,16 +93,36 @@ func _on_restore_done(restored: Array) -> void:
 	refresh()
 
 
+static func format_hms(seconds: int) -> String:
+	var t: int = maxi(seconds, 0)
+	return "%02d:%02d:%02d" % [t / 3600, (t / 60) % 60, t % 60]
+
+
+func _title(sku: String) -> String:
+	match sku:
+		"coins_small":
+			return str(tr("shop_coins_amount")) % int(GameConfig.get_value("iap_coins_small"))
+		"coins_large":
+			return str(tr("shop_coins_amount")) % int(GameConfig.get_value("iap_coins_large"))
+		_:
+			return tr("shop_item_" + sku)
+
+
 func _desc(sku: String) -> String:
 	match sku:
 		"starter_pack":
-			return tr("shop_desc_starter") % int(GameConfig.get_value("iap_starter_coins"))
+			return tr("shop_starter_once")
 		"remove_ads":
 			return tr("shop_desc_remove_ads")
 		"coins_small":
-			return tr("shop_desc_coins") % int(GameConfig.get_value("iap_coins_small"))
+			var cost: int = maxi(int(GameConfig.get_value("extra_tube_cost_coins")), 1)
+			return (
+				str(tr("shop_desc_tubes")) % (int(GameConfig.get_value("iap_coins_small")) / cost)
+			)
 		_:
-			return tr("shop_desc_coins") % int(GameConfig.get_value("iap_coins_large"))
+			return (
+				str(tr("shop_desc_bonus")) % int(GameConfig.get_value("iap_coins_large_bonus_pct"))
+			)
 
 
 func _label(parent: Control, text: String = "", variation: StringName = &"") -> Label:
@@ -135,74 +159,179 @@ func _build() -> void:
 	back_button.pressed.connect(func() -> void: back_pressed.emit())
 	reason_label = _label(box, "", &"LabelCaption")
 	reason_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	scroll = ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(scroll)
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", GAP)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
 	for sku in SKU_ORDER:
-		_build_card(box, sku)
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.add_child(spacer)
+		_build_card(list, sku)
 	status_label = _label(box, "", &"LabelCaption")
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	restore_button = Button.new()
+	restore_button = LinkButton.new()
 	restore_button.text = tr("btn_restore")
-	ScreenHeader.plain(restore_button)
+	restore_button.underline = LinkButton.UNDERLINE_MODE_ALWAYS
+	restore_button.custom_minimum_size.y = UiTokens.TOUCH_MIN
+	restore_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	restore_button.add_theme_font_size_override("font_size", UiTokens.FONT_SM + 2)
 	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-		restore_button.add_theme_color_override(c, UiTokens.TEXT_MUTED)
+		restore_button.add_theme_color_override(c, UiTokens.TEXT_SOFT)
 	restore_button.pressed.connect(Purchases.restore)
 	box.add_child(restore_button)
+
+
+func _style(radius: int, bg: Color, margins: Array[int], border: int = 0) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.set_corner_radius_all(radius)
+	if border > 0:
+		sb.set_border_width_all(border)
+		sb.border_color = UiTokens.ACCENT
+	sb.content_margin_left = margins[0]
+	sb.content_margin_top = margins[1]
+	sb.content_margin_right = margins[2]
+	sb.content_margin_bottom = margins[3]
+	return sb
+
+
+func _text(parent: Control, text: String, size: int, color: Color) -> Label:
+	var l := _label(parent, text)
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	return l
+
+
+func _icon(sku_icon: String, px: int) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.texture = UiTokens.icon(sku_icon)
+	icon.custom_minimum_size = Vector2(px, px)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return icon
 
 
 func _build_card(box: Control, sku: String) -> void:
 	var starter: bool = sku == Purchases.SKU_STARTER
 	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"Card" if starter else &"CardRow"
-	if starter:
-		var sb := UI_THEME.get_stylebox("panel", "Card").duplicate() as StyleBoxFlat
-		sb.set_border_width_all(6)
-		sb.border_color = UiTokens.ACCENT
-		panel.add_theme_stylebox_override("panel", sb)
+	panel.add_theme_stylebox_override(
+		"panel",
+		(
+			_style(48, UiTokens.CARD_ICON, [33, 37, 33, 33], 6)
+			if starter
+			else _style(41, UiTokens.CARD, [26, 26, 26, 26])
+		)
+	)
 	box.add_child(panel)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", GAP)
-	panel.add_child(row)
-	var col := VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var icon_panel := PanelContainer.new()
-	var ib := StyleBoxFlat.new()
-	ib.bg_color = UiTokens.CARD_ICON
-	ib.set_corner_radius_all(UiTokens.CARD_ROW_RADIUS)
-	ib.set_content_margin_all(14)
-	icon_panel.add_theme_stylebox_override("panel", ib)
-	var icon := TextureRect.new()
-	icon.texture = UiTokens.icon(SKU_ICONS[sku])
-	icon.custom_minimum_size = Vector2(48, 48)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon_panel.add_child(icon)
-	icon_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var title := _label(col, tr("shop_item_" + sku))
-	title.add_theme_font_size_override("font_size", UiTokens.FONT_BTN)
-	var extra := _label(col, "", &"LabelCaption")
-	extra.add_theme_color_override("font_color", UiTokens.ACCENT)
-	var desc := _label(col, _desc(sku), &"LabelCaption")
-	for l: Label in [title, extra, desc]:
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var b := Button.new()
 	b.theme_type_variation = &"ButtonPrimary" if starter else &"ButtonAccent"
-	b.custom_minimum_size = Vector2(0 if starter else 200, UiTokens.BTN_H)
+	b.custom_minimum_size = Vector2(0 if starter else 177, UiTokens.BTN_H if starter else 81)
+	b.add_theme_font_size_override("font_size", 30)
 	b.pressed.connect(_on_buy.bind(sku))
+	var extra: Label
+	var badge: Label
+	var desc: Label
 	if starter:
-		panel.remove_child(row)
 		var wrap := VBoxContainer.new()
-		wrap.add_theme_constant_override("separation", GAP)
+		wrap.add_theme_constant_override("separation", 26)
 		panel.add_child(wrap)
+		var top := HBoxContainer.new()
+		wrap.add_child(top)
+		var pill := PanelContainer.new()
+		pill.add_theme_stylebox_override("panel", _style(24, UiTokens.ACCENT, [18, 0, 18, 0]))
+		pill.custom_minimum_size.y = 48
+		top.add_child(pill)
+		badge = _text(pill, tr("shop_starter_badge"), 24, UiTokens.ON_ACCENT)
+		badge.autowrap_mode = TextServer.AUTOWRAP_OFF
+		badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		extra = _text(top, "", 26, UiTokens.ACCENT)
+		extra.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 30)
 		wrap.add_child(row)
+		var tile := PanelContainer.new()
+		var theme_def: Dictionary = ThemeCatalog.theme(
+			str(GameConfig.get_value("iap_starter_theme"))
+		)
+		var bg: Color = Color(str(theme_def.get("background", "#000000")))
+		tile.add_theme_stylebox_override("panel", _style(30, bg, [22, 18, 22, 18]))
+		tile.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		tile.add_child(StarterTubes.new(theme_def))
+		row.add_child(tile)
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 7)
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(col)
+		var coins_row := HBoxContainer.new()
+		coins_row.add_theme_constant_override("separation", 12)
+		col.add_child(coins_row)
+		var coin := _icon("coin", 44)
+		coin.name = "InlineIcon"
+		coins_row.add_child(coin)
+		var amount: int = int(GameConfig.get_value("iap_starter_coins"))
+		var coins_text := _text(
+			coins_row, str(tr("shop_starter_coins")) % amount, 44, UiTokens.TEXT
+		)
+		coins_text.autowrap_mode = TextServer.AUTOWRAP_OFF
+		var name_key: String = "theme_name_" + str(GameConfig.get_value("iap_starter_theme"))
+		_text(col, str(tr("shop_starter_theme")) % tr(name_key), 30, UiTokens.TEXT_SOFT)
+		desc = _text(col, _desc(sku), 24, UiTokens.TEXT_MUTED)
 		wrap.add_child(b)
 	else:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 26)
+		panel.add_child(row)
+		var icon_panel := PanelContainer.new()
+		icon_panel.add_theme_stylebox_override(
+			"panel", _style(33, UiTokens.CARD_ICON, [26, 26, 26, 26])
+		)
+		icon_panel.add_child(_icon(SKU_ICONS[sku], 51))
+		icon_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon_panel)
+		var col := VBoxContainer.new()
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(col)
+		_text(col, _title(sku), 33, UiTokens.TEXT)
+		var bonus: bool = sku == "coins_large"
+		desc = _text(col, _desc(sku), 26, UiTokens.PRIMARY if bonus else UiTokens.TEXT_MUTED)
 		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(b)
-	row.add_child(icon_panel)
-	row.add_child(col)
-	row.move_child(icon_panel, 0)
-	if not starter:
-		row.move_child(b, row.get_child_count() - 1)
-	cards[sku] = {"panel": panel, "button": b, "desc": desc, "extra": extra}
+	cards[sku] = {"panel": panel, "button": b, "desc": desc, "extra": extra, "badge": badge}
+
+
+## Miniatura 2 probowek motywu startowego (makieta 07): 3 i 4 warstwy.
+class StarterTubes:
+	extends Control
+
+	const TUBE_PX := Vector2(37, 137)
+	const GAP_PX := 11.0
+	const LAYER_H := 31.0
+	const OUTLINE_W := 4.0
+	const PICKS: Array = [[0, 5, 2], [3, 7, 1, 6]]
+	var def: Dictionary
+
+	func _init(theme_def: Dictionary) -> void:
+		def = theme_def
+		custom_minimum_size = Vector2(TUBE_PX.x * 2.0 + GAP_PX, TUBE_PX.y)
+
+	func _draw() -> void:
+		var liquids: Array = def.get("liquids", [])
+		var glass := Color(str(def.get("glass", "#FFFFFF")), 0.8)
+		var radius: float = TUBE_PX.x * 0.5
+		for t: int in 2:
+			var r := Rect2(Vector2(t * (TUBE_PX.x + GAP_PX), 0.0), TUBE_PX)
+			var layers: Array = PICKS[t]
+			for j: int in layers.size():
+				var lr := Rect2(r.position.x, r.end.y - LAYER_H * (j + 1), r.size.x, LAYER_H)
+				var c := Color(str(liquids[int(layers[j]) % liquids.size()]))
+				draw_colored_polygon(TubeView.layer_polygon(lr, j == 0, radius), c)
+			var half: float = OUTLINE_W * 0.5
+			var line := Rect2(
+				r.position.x + half, r.position.y, r.size.x - OUTLINE_W, r.size.y - half
+			)
+			draw_polyline(TubeView.bottom_round_path(line, radius - half), glass, OUTLINE_W, true)
