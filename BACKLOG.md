@@ -46,41 +46,43 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: wariant wybrany regułą (tabela `measure_hint.gd` przed/po w PR): **(A)**, jeśli istnieje `hint_solver_max_states` ∈ {2000, 5000, 10 000} (opcjonalnie z przebiegiem ważonym uruchamianym od razu po przekroczeniu limitu exact), przy którym bramka T-210 jest spełniona, a podpowiedź pozostaje poprawna — w ≥ 95 % stanów T-210 po wykonaniu podpowiedzi solver nadal znajduje rozwiązanie (`moves_to_goal()` ≥ 0) — wtedy zmiana tylko w `DEFAULTS`/`RANGES` (+ ewentualnie `_solve_cached`) i testy gdUnit4 ≥ 2 (limit respektowany; podpowiedź na 10 stanach z T-210 prowadzi do rozwiązania); **(B)** inaczej — obliczenie na `WorkerThreadPool` wzorem `LevelPrefetch` (ADR-011): przycisk podpowiedzi zablokowany ze stanem „…” do wyniku, `hint_cost_coins` pobierane dopiero po wyniku, `StuckPanel` bez liczby ruchów do czasu wyniku, zadanie anulowane przy ruchu/restarcie/wyjściu (`_exit_tree`); nowy ADR-014 (uzupełnia ADR-011) + testy gdUnit4 ≥ 4 (wynik async = sync; ruch w trakcie liczenia → wynik odrzucony, monety nie pobrane; wyjście z `Level` → brak wiszących zadań; `StuckPanel` bez liczby → z liczbą). Generator, `solver_max_states`, poziomy i golden hashe bez zmian. GDD → Mechaniki (Podpowiedź, Wykrywanie utknięcia) zaktualizowane. `make check` zielone. ≤ ~60 linii (A) / ≤ ~200 linii (B).
   Skill: `godot-dev`
 
+<!-- BLOKADA (Hubert 2026-10-25): T-228…T-236 czekają na zatwierdzony projekt z Claude Design. Po akceptacji sesja interaktywna wrzuca specyfikację do `docs/ui/` (makiety PNG + tokeny) i przestawia zadania na `todo`; KA zostaną dopasowane do projektu. Nie odblokowywać samodzielnie. -->
+
 <!-- Zlecenie Huberta 2026-10-25 (sesja interaktywna): redesign UI — gra jest kompletna funkcjonalnie, ale wygląda jak prototyp (domyślne szare przyciski Godota, drobny tekst, HUD z 6 przyciskami w 2 rzędach, ekrany Home/Themes/Shop jako lista identycznych prostokątów). Screenshoty sklepowe przegrywają z Water Sort / Magic Sort → ryzyko dla store conversion (KPI 25 %) i D1. Priorytet: przed kolejnymi zadaniami higieny/sim. Kolejność = zależności. Każde zadanie ≤ 300 linii kodu, bez obcych assetów (tylko `tools/gen_assets.py` + Nunito OFL), bez nowych addonów. Po każdym zadaniu `make screenshots` i zmienione PNG w PR (przed/po). -->
 
-- [ ] T-228 `todo` UI v2: system wizualny — tokeny + pełny `ui_theme.tres` (przyciski, panele, etykiety)
+- [ ] T-228 `blocked` UI v2: system wizualny — tokeny + pełny `ui_theme.tres` (przyciski, panele, etykiety)
   KA: `game/src/ui/ui_tokens.gd` (`class_name UiTokens`, stałe: kolory z `tools/palette.json`/GDD, rozmiary fontu `XS=28 S=34 M=40 L=56 XL=80`, odstępy `4/8/16/24/32`, promienie `16/24/40`, min. wysokość przycisku 112 px = ~56 dp, cel dotyku ≥ 96 px). `ui_theme.tres` dostaje warianty `Button` (normal/hover/pressed/disabled/focus jako `StyleBoxFlat`: zaokrąglenie 40, cień dolny 6 px w ciemniejszym odcieniu = efekt „wypukłego” przycisku casual) oraz type variations `ButtonPrimary` (#2EC4B6, tekst #14213D), `ButtonSecondary` (#1F3A6B + obrys 3 px), `ButtonAccent` (#FFD166, monety/rewarded), `ButtonIcon` (okrągły 128 px), `LabelTitle`, `LabelCaption`, `Card` (PanelContainer). Test gdUnit4: każdy wariant istnieje w Theme, kontrast tekstu do tła ≥ 4,5:1 (liczony z hex), wysokość min. przycisków ≥ 112. Brak zmian w logice. GDD → „Styl wizualny”: sekcja „UI v2 — tokeny”. ~200 linii.
   Skill: `godot-dev` + `asset-gen`
 
-- [ ] T-229 `todo` UI v2: zestaw ikon UI generowany w `gen_assets.py` (zależy od T-228)
+- [ ] T-229 `blocked` UI v2: zestaw ikon UI generowany w `gen_assets.py` (zależy od T-228)
   KA: `tools/gen_assets.py` rysuje (Pillow, wektorowo w 4× i skalowanie) 14 ikon PNG 128 px, białe na przezroczystym, grubość linii jednolita: undo, restart, pause, hint (żarówka), extra_tube (+probówka), coin, flame (seria), calendar (Poziom dnia), palette (motywy), cart (sklep), gear, play, close, video (rewarded). `tools/test_tools.py`: 14 plików, 128×128, kanał alfa, żaden piksel poza bielą/przezroczystością, deterministyczny hash (2 przebiegi identyczne). Ikony załadowane w `UiTokens.icon(name)`. `docs/LICENSES.md` bez zmian. ~220 linii.
   Skill: `asset-gen`
 
-- [ ] T-230 `todo` UI v2: HUD planszy — 1 górny pasek + dolny pasek ikon (zależy od T-228, T-229)
+- [ ] T-230 `blocked` UI v2: HUD planszy — 1 górny pasek + dolny pasek ikon (zależy od T-228, T-229)
   KA: góra: „Poziom N” (`LabelTitle`), ruchy, monety z ikoną; dół: 4 okrągłe `ButtonIcon` (cofnij z badge licznika, restart, podpowiedź z ceną, +probówka z ceną/ikoną video gdy rewarded) + pauza w rogu górnym. Żadnego tekstu na przyciskach poza badge/ceną. Wysokość górnego paska ≤ 180 px, dolnego ≤ 220 px (stałe w `UiTokens`, jedna prawda dla `Level.fit_board_*`). Wszystkie istniejące sygnały/testy HUD i `LevelOffers` zachowane (zmienione tylko selektory węzłów). Test: każdy przycisk ≥ 96 px, plansza poziomu 60 (14 probówek) mieści się między paskami w 1080×1920 i 1080×2340. Kadry 01/02 przegenerowane. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-231 `todo` UI v2: plansza — probówki i tło (zależy od T-228)
+- [ ] T-231 `blocked` UI v2: plansza — probówki i tło (zależy od T-228)
   KA: `TubeView`: szkło z obrysem 4 px + jaśniejszy refleks pionowy (pasek alfa 25 % przy lewej krawędzi), zaokrąglone dno, podniesienie wybranej probówki 48 px z cieniem; warstwy płynu z lekkim gradientem pionowym (±8 % jasności) i półokrągłym menisk na górnej warstwie. Tło `Level`: pionowy gradient z 2 odcieni tła motywu (rysowany w `_draw`, bez tekstury) + delikatna winieta. Rozmieszczenie: max 6 probówek w rzędzie, rzędy wyśrodkowane, odstęp skalowany do szerokości. Test: geometria (n probówek → pozycje w granicach ekranu dla n=4..14), brak regresji `test_board_view*`. Kadry 01/02 przegenerowane. ~250 linii.
   Skill: `godot-dev`
 
-- [ ] T-232 `todo` UI v2: Home jako ekran „kartowy” (zależy od T-228, T-229)
+- [ ] T-232 `blocked` UI v2: Home jako ekran „kartowy” (zależy od T-228, T-229)
   KA: góra: monety + seria (ikony coin/flame, pill-label); środek: duży `ButtonPrimary` „Graj · poziom N” (≥ 160 px wys.) z podglądem 3 miniprobówek; karta `Card` Poziomu dnia (ikona calendar, licznik, „Nowość!” jako badge accent); pasek postępu motywu jako zaokrąglony `ProgressBar` w kolorach tokenów; dół: 3 `ButtonIcon` z podpisem `LabelCaption` (Motywy, Sklep, Ustawienia) zamiast 3 pełnoszerokich prostokątów. Istniejące testy Home zielone (zmiana selektorów dozwolona, asercje logiki bez zmian). Kadry 03/04 przegenerowane. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-233 `todo` UI v2: overlaye — LevelComplete, StuckPanel, DailyRewardPopup (zależy od T-228, T-229)
+- [ ] T-233 `blocked` UI v2: overlaye — LevelComplete, StuckPanel, DailyRewardPopup (zależy od T-228, T-229)
   KA: wspólny styl `Card` z wejściem (scale 0,9→1 + fade 0,18 s, wyłączone przy `App.effects_enabled=false`). LevelComplete: duży tytuł, licznik monet z animacją „zliczania” (0→N w 0,6 s), „Idealnie!” jako badge, `ButtonAccent` „×2 ▶” z ikoną video, `ButtonPrimary` „Dalej”. DailyRewardPopup: 7 kafelków jako karty z ikoną coin, dzisiejszy podświetlony obrysem accent, odebrane przygaszone z ✓. StuckPanel: opcje jako wiersze ikona + opis + cena. Testy istniejących overlayów zielone; nowy test: zliczanie kończy się dokładną kwotą `win_reward`. Kadry 02/04 przegenerowane. ~290 linii.
   Skill: `godot-dev`
 
-- [ ] T-234 `todo` UI v2: Themes, Shop, Settings w nowym stylu (zależy od T-228, T-229)
+- [ ] T-234 `blocked` UI v2: Themes, Shop, Settings w nowym stylu (zależy od T-228, T-229)
   KA: Themes: siatka 2 kolumny kart z większym podglądem (4 probówki), stan Aktywny = obrys accent + badge, cena z ikoną coin. Shop: karty produktów z ikoną, ceną z `IapProvider` w `ButtonAccent`, starter pack wyróżniony (badge + obrys). Settings: wiersze z ikoną i `CheckButton` w stylu tokenów, sekcje z nagłówkami `LabelCaption`. Testy ekranów zielone. Kadr 05 przegenerowany. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-235 `todo` UI v2: mikroanimacje i feedback dotyku (zależy od T-230, T-232)
+- [ ] T-235 `blocked` UI v2: mikroanimacje i feedback dotyku (zależy od T-230, T-232)
   KA: wspólny helper `UiFx` (czysta klasa + tweeny na przekazanym węźle): wciśnięcie przycisku scale 0,95 (0,08 s) i powrót, „pop” badge'a przy zmianie licznika, pulsowanie przycisku podpowiedzi po 20 s bez ruchu (klucz `hint_nudge_seconds` w `GameConfig`), lot monet z LevelComplete do licznika na Home/HUD (5 sprite'ów coin, 0,5 s). Wszystko wyłączone przy `effects_enabled=false` (screenshoty deterministyczne). Testy: `UiFx` nie zostawia aktywnych tweenów po `kill_all`, nudge pojawia się po `hint_nudge_seconds` z wstrzykniętym zegarem i znika po ruchu. ~220 linii.
   Skill: `godot-dev`
 
-- [ ] T-236 `todo` UI v2: odbiór — kadry sklepowe od nowa + ocena wizualna (zależy od T-230…T-235)
+- [ ] T-236 `blocked` UI v2: odbiór — kadry sklepowe od nowa + ocena wizualna (zależy od T-230…T-235)
   KA: `make screenshots --store` → 15 PNG EN/PL/DE; podpisy ASO czytelne (min. 64 px, kontrast ≥ 4,5:1) na tle w kolorach tokenów. Subagent `qa-playtester` wykonuje checklistę wizualną (Read na każdym PNG): brak szarych domyślnych przycisków, brak tekstu < 28 px, brak ucięć/nakładania w 1080×1920 i 1080×2340, wszystkie stany (wybrana probówka, utknięcie, wygrana, nagroda, motywy, sklep) w jednym stylu — raport PASS/FAIL per kadr w opisie PR i w `docs/LOG.md`. FAIL → zadania naprawcze do P1. ~80 linii + PNG.
   Skill: `aso` + `godot-test`
 
