@@ -3,7 +3,7 @@
 export/
 # Tools and addons cloned by `make setup`
 .tools/
-game/addons/gdUnit4/
+game/addons/gdUnit4
 # Test reports (keep .gitkeep)
 game/test/reports/*.xml
 game/test/reports/*.json
@@ -35,3 +35,5 @@ vendor/bundle/
 # Android gradle build template installed by make setup (from export templates)
 game/android/build/
 game/android/.build_version
+# Per-checkout Godot user:// dir for make test/playtest (XDG_DATA_HOME, see Makefile)
+.godot-userdata/

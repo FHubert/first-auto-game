@@ -4,6 +4,8 @@ GODOT_VERSION ?= 4.7.2-stable
 GDUNIT_REF ?= master
 PROJECT := game
 ROOT := $(CURDIR)
+# make test/playtest: XDG_DATA_HOME gives each checkout its own user:// dir (Godot on Linux),
+# so parallel worktrees do not share ~/.local/share/godot/app_userdata (SaveSystem rename failures).
 
 # Prefer repo-local binary, fall back to godot from PATH.
 ifneq ($(wildcard $(ROOT)/.tools/godot),)
@@ -22,8 +24,8 @@ setup:
 	bash tools/setup_env.sh
 
 test:
-	mkdir -p $(PROJECT)/test/reports
-	$(GODOT_BIN) --headless --path $(PROJECT) -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
+	mkdir -p $(PROJECT)/test/reports $(ROOT)/.godot-userdata
+	XDG_DATA_HOME=$(ROOT)/.godot-userdata $(GODOT_BIN) --headless --path $(PROJECT) -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
 		--ignoreHeadlessMode -a res://test/unit -rd res://test/reports -c
 
 test-tools:
@@ -35,16 +37,16 @@ lint:
 PLAYTEST_SEED ?= 42
 
 playtest:
-	mkdir -p $(PROJECT)/test/reports
-	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --rounds=200 --seed=$(PLAYTEST_SEED) \
+	mkdir -p $(PROJECT)/test/reports $(ROOT)/.godot-userdata
+	XDG_DATA_HOME=$(ROOT)/.godot-userdata $(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --rounds=200 --seed=$(PLAYTEST_SEED) \
 		--report=$(ROOT)/$(PROJECT)/test/reports/playtest.json && \
-	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --random --rounds=200 --seed=$(PLAYTEST_SEED) \
+	XDG_DATA_HOME=$(ROOT)/.godot-userdata $(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --random --rounds=200 --seed=$(PLAYTEST_SEED) \
 		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_random.json && \
-	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --rounds=200 --seed=$(PLAYTEST_SEED) \
+	XDG_DATA_HOME=$(ROOT)/.godot-userdata $(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --rounds=200 --seed=$(PLAYTEST_SEED) \
 		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_greedy.json && \
-	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --stay --rounds=400 --seed=$(PLAYTEST_SEED) \
+	XDG_DATA_HOME=$(ROOT)/.godot-userdata $(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --greedy --campaign --stay --rounds=400 --seed=$(PLAYTEST_SEED) \
 		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_greedy_stay.json && \
-	$(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --assist --rounds=400 --seed=$(PLAYTEST_SEED) \
+	XDG_DATA_HOME=$(ROOT)/.godot-userdata $(GODOT_BIN) --headless --path $(PROJECT) -- --playtest --assist --rounds=400 --seed=$(PLAYTEST_SEED) \
 		--report=$(ROOT)/$(PROJECT)/test/reports/playtest_assist.json
 
 sim:
