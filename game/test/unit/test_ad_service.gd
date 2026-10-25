@@ -17,7 +17,7 @@ func before_test() -> void:
 	_provider = FakeAdProvider.new()
 	_ads = auto_free(load("res://src/systems/ad_service.gd").new())
 	_ads.provider = _provider
-	_ads.clock = func() -> float: return _now[0]
+	_ads.clock = TestClock.ticking_float(_now)
 
 
 func after_test() -> void:
