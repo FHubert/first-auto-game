@@ -96,6 +96,7 @@ const DEFAULTS: Dictionary = {
 	# IAP
 	"iap_coins_small": 500,
 	"iap_coins_large": 1500,
+	"iap_coins_large_bonus_pct": 20,
 	"iap_starter_coins": 800,
 	"iap_starter_theme": "neon",
 	"starter_offer_min_level": 12,
@@ -183,6 +184,7 @@ const RANGES: Dictionary = {
 	"hint_nudge_seconds": [2.0, 120.0],
 	"iap_coins_small": [0, 100000],
 	"iap_coins_large": [0, 100000],
+	"iap_coins_large_bonus_pct": [0, 100],
 	"iap_starter_coins": [0, 100000],
 	"starter_offer_min_level": [0, 1000],
 	"starter_offer_hours": [0, 8760],
