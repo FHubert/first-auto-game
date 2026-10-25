@@ -74,6 +74,8 @@ Plan eksperymentów z próbkami: `docs/EXPERIMENTS.md` (T-208)
 
 ### Przewidywanie `make sim` (seed 1, 1000 graczy, 30 dni)
 
+Szum (T-209): `--json` podaje `impressions_per_player_day` {mean, sd, n} i `ads_per_dau_ci95` (rewarded / interstitial / total; mean ± 1,96 × sd / √n, gracz-dni traktowane jako niezależne, więc przedział jest optymistyczny). Seed 1, DEFAULTS, połowa CI total: 0,095 przy 1000 graczy, 0,041 przy 5000, 0,029 przy 10 000. Domyślne `--players` = 5000 (T-209; poniższa tabela nadal z 1000 graczy do T-216): przy porównaniach wariantów różnica mniejsza niż nakładające się CI to szum.
+
 `python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 --overlay docs/remote_config/<wariant>.json` (default = bez `--overlay`; klucze nieznane symulacji, np. `starter_offer_min_level`, są ignorowane z ostrzeżeniem na stderr, a `remote_config_variant` jako klucz meta jest pomijany po cichu). Stan po T-178/T-185/T-189/T-199 (pomoc na plateau jako mnożnik porażki `plateau_assist_fail_mult_*`, metryki motywów z n i progiem `MIN_N` = 30; wiersze `default` i H4 przeliczone w T-199, h1–h3 nadal z T-190 — stara baza 26/3).
 
 | wariant | impresje/DAU (rewarded + interstitial = total) | rewarded `extra_tube`/DAU | 1. motyw (dzień kalendarzowy, mediana) | 3. motyw (dzień, n) | mediana monet d30 / d1 | exit code |

@@ -22,7 +22,7 @@ Exit code 1 when the economy
 Ad density (interstitial <= 2.5, total >= 3.0 per DAU) only prints a WARN, it does not fail.
 Statistics are taken over *engaged* players (active on >= 2 of the first 7 days).
 
-Usage: python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 [--json] [--always-active] [--config PATH] [--overlay PATH]
+Usage: python3 tools/balance_sim.py --players 5000 --days 30 --seed 1 [--json] [--always-active] [--config PATH] [--overlay PATH]
 """
 from __future__ import annotations
 
@@ -214,6 +214,15 @@ def stat(xs: list, q: float = 0.5) -> dict:
     return {"value": pct_of(xs, q) if len(xs) >= MIN_N else None, "n": len(xs)}
 
 
+def mean_sd_ci(xs: list) -> tuple[float, float, list]:
+    """(mean, sample sd, [lo, hi]) with the 95 % CI of the mean = mean +- 1.96 * sd / sqrt(n) (T-209)."""
+    n = len(xs)
+    mean = sum(xs) / n if n else 0.0
+    sd = statistics.stdev(xs) if n > 1 else 0.0
+    half = 1.96 * sd / math.sqrt(n) if n else 0.0
+    return mean, sd, [mean - half, mean + half]
+
+
 def fmt(m: dict) -> str:
     return f"n/a (n={m['n']})" if m["value"] is None else f"{m['value']:.0f} (n={m['n']})"
 
@@ -250,6 +259,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
     act14_buy_active: list[list[int]] = [[], [], []]  # active day of the 1st/2nd/3rd purchase
     negative_players = engaged = active_days = sessions_total = interstitials = 0
     rewarded = {k: 0 for k in PLACEMENTS}
+    rew_day: list[int] = []  # rewarded impressions per active player-day (T-209)
+    int_day: list[int] = []  # interstitial impressions per active player-day (T-209)
     earned_at = {d: [] for d in EARNED_DAYS}  # cumulative EARNED coins at the end of active day d (T-202)
     thresholds = theme_thresholds(cfg)
     afford_active: list[list[int]] = [[] for _ in thresholds]  # first active day earned >= threshold
@@ -296,6 +307,7 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         for day in range(days):
             if activity[day]:
                 active_days += 1
+                rew0, int0 = sum(rewarded.values()), interstitials
                 active_count += 1
                 gap = None if last_active is None else day - last_active
                 if gap is None:
@@ -394,6 +406,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
                     earned_at[active_count].append(earned)
                 while len(afford) < len(thresholds) and earned >= thresholds[len(afford)]:
                     afford.append(active_count)
+                rew_day.append(sum(rewarded.values()) - rew0)
+                int_day.append(interstitials - int0)
             balances.append(coins)
             if day == 6:
                 themes_at_7 = themes
@@ -443,6 +457,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         "active_days": active_days,
         "sessions": sessions_total,
         "interstitials": interstitials,
+        "rew_day": rew_day,
+        "int_day": int_day,
         "rewarded": rewarded,
         "assist_coins": assist_coins,
         "assist_buys": assist_buys,
@@ -452,7 +468,7 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
 
 def main(argv: list | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--players", type=int, default=1000)
+    ap.add_argument("--players", type=int, default=5000, help="domyslnie 5000: polowa CI 95 %% ads/DAU przy 1000 graczy ~0,1 (T-209)")
     ap.add_argument("--days", type=int, default=30)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
@@ -530,6 +546,9 @@ def main(argv: list | None = None) -> int:
     if res["negative_players"] > 0:
         problems.append(f"negative balances: {neg_pct:.2f} % of players (must be 0)")
 
+    tot_day = [a + b for a, b in zip(res["rew_day"], res["int_day"])]
+    ci = {name: mean_sd_ci(xs) for name, xs in (("rewarded", res["rew_day"]), ("interstitial", res["int_day"]), ("total", tot_day))}
+    imp_sd = ci["total"][1]
     by_place = {k: round(v / dau, 3) for k, v in res["rewarded"].items()}
     out = {
         "players": args.players,
@@ -568,6 +587,8 @@ def main(argv: list | None = None) -> int:
         "plateau_assist_buys": res["assist_buys"],
         "plateau_assist_attempts": res["assist_attempts"],
         "impressions_per_dau": round(imp_dau, 3),
+        "impressions_per_player_day": {"mean": round(ci["total"][0], 3), "sd": round(imp_sd, 3), "n": len(tot_day)},
+        "ads_per_dau_ci95": {k: [round(v[2][0], 3), round(v[2][1], 3)] for k, v in ci.items()},
         "sessions_per_dau": round(res["sessions"] / dau, 2),
         "negative_balance_pct": round(neg_pct, 3),
         "ok": not problems,
@@ -593,6 +614,8 @@ def main(argv: list | None = None) -> int:
         print(f"median coins after 7th active day: {med(res['coins_active7']):.0f}")
         parts = ", ".join(f"{k} {v:.2f}" for k, v in by_place.items())
         print(f"ads/DAU: interstitial {inter_dau:.2f}, rewarded {rew_dau:.2f} ({parts}), total {imp_dau:.2f}")
+        print(f"impressions per player-day: mean {ci['total'][0]:.2f}, sd {imp_sd:.2f}, n={len(tot_day)}; 95 % CI ads/DAU: " + ", ".join(
+            f"{k} [{v[2][0]:.2f}, {v[2][1]:.2f}]" for k, v in ci.items()))
         print(f"plateau assist: coins/DAU {out['plateau_assist_coins_per_dau']}, rewarded extra_tube/DAU {out['rewarded_extra_tube_per_dau']}, buys/attempts {res['assist_buys']}/{res['assist_attempts']}")
         print(f"players with a negative balance: {neg_pct:.2f} %  (sessions/DAU {out['sessions_per_dau']})")
         if inter_dau > 2.5:
