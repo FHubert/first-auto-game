@@ -202,3 +202,20 @@ func test_geometry_de_with_starter() -> void:
 				)
 		s.queue_free()
 	TranslationServer.set_locale("en")
+
+
+func test_icons_v2_textures() -> void:
+	var shop: ShopScreen = _shop()
+	assert_str(shop.find_child("OfferClock", true, false).texture.resource_path).ends_with(
+		"clock.png"
+	)
+	var found: Array[String] = []
+	_collect_icon_paths(shop, found)
+	assert_array(found).contains(["coins_stack.png", "video_off.png"])
+
+
+func _collect_icon_paths(n: Node, out: Array[String]) -> void:
+	if n is TextureRect and (n as TextureRect).texture != null:
+		out.append((n as TextureRect).texture.resource_path.get_file())
+	for c in n.get_children():
+		_collect_icon_paths(c, out)

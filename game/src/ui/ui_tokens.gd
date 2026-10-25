@@ -105,6 +105,10 @@ const ICON_NAMES: Array[String] = [
 	"shield",
 	"bell",
 	"chevron_right",
+	"clock",
+	"coins_stack",
+	"video_off",
+	"undo_clock",
 ]
 
 

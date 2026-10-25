@@ -8,7 +8,10 @@ signal purchase_requested(sku: String)
 const GAP: int = 30
 const UI_THEME: Theme = preload("res://assets/fonts/ui_theme.tres")
 const SKU_ICONS: Dictionary = {
-	"starter_pack": "coin", "remove_ads": "video", "coins_small": "coin", "coins_large": "coin"
+	"starter_pack": "coin",
+	"remove_ads": "video_off",
+	"coins_small": "coin",
+	"coins_large": "coins_stack"
 }
 const SKU_ORDER: Array[String] = ["starter_pack", "coins_small", "coins_large", "remove_ads"]
 
@@ -23,7 +26,7 @@ var status_label: Label
 var scroll: ScrollContainer
 var restore_button: LinkButton
 var back_button: Button
-## sku -> {"panel": Control, "button": Button, "desc": Label, "extra": Label, "badge": Label}
+## sku -> {"panel", "button", "desc", "extra", "badge", "clock"} (Control/Button/Label/TextureRect)
 var cards: Dictionary = {}
 
 
@@ -56,8 +59,10 @@ func refresh() -> void:
 		var panel: Control = cards[sku]["panel"]
 		var b: Button = cards[sku]["button"]
 		var extra: Label = cards[sku]["extra"]
+		var clock_icon: TextureRect = cards[sku]["clock"]
 		if extra != null:
 			extra.visible = false
+			clock_icon.visible = false
 		if sku == Purchases.SKU_STARTER:
 			var now: int = int(clock.call())
 			panel.visible = Purchases.starter_offer_visible(state.level, now)
@@ -66,6 +71,7 @@ func refresh() -> void:
 				var left_s: int = state.starter_offer_start_day + window_s - now
 				extra.text = str(tr("shop_offer_left")) % format_hms(left_s)
 				extra.visible = true
+				clock_icon.visible = true
 		if Purchases.NON_CONSUMABLE.has(sku) and state.has_purchase(sku):
 			b.text = tr("btn_owned")
 			b.disabled = true
@@ -234,6 +240,7 @@ func _build_card(box: Control, sku: String) -> void:
 	var extra: Label
 	var badge: Label
 	var desc: Label
+	var clock_icon: TextureRect
 	if starter:
 		var wrap := VBoxContainer.new()
 		wrap.add_theme_constant_override("separation", 26)
@@ -247,9 +254,18 @@ func _build_card(box: Control, sku: String) -> void:
 		badge = _text(pill, tr("shop_starter_badge"), 24, UiTokens.ON_ACCENT)
 		badge.autowrap_mode = TextServer.AUTOWRAP_OFF
 		badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		extra = _text(top, "", 26, UiTokens.ACCENT)
-		extra.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		var offer := HBoxContainer.new()
+		offer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		offer.alignment = BoxContainer.ALIGNMENT_END
+		offer.add_theme_constant_override("separation", 8)
+		top.add_child(offer)
+		clock_icon = _icon("clock", 32)
+		clock_icon.name = "OfferClock"
+		clock_icon.modulate = UiTokens.ACCENT
+		clock_icon.visible = false
+		offer.add_child(clock_icon)
+		extra = _text(offer, "", 26, UiTokens.ACCENT)
+		extra.autowrap_mode = TextServer.AUTOWRAP_OFF
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 30)
 		wrap.add_child(row)
@@ -301,7 +317,14 @@ func _build_card(box: Control, sku: String) -> void:
 		desc = _text(col, _desc(sku), 26, UiTokens.PRIMARY if bonus else UiTokens.TEXT_MUTED)
 		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(b)
-	cards[sku] = {"panel": panel, "button": b, "desc": desc, "extra": extra, "badge": badge}
+	cards[sku] = {
+		"panel": panel,
+		"button": b,
+		"desc": desc,
+		"extra": extra,
+		"badge": badge,
+		"clock": clock_icon
+	}
 
 
 ## Miniatura 2 probowek motywu startowego (makieta 07): 3 i 4 warstwy.
