@@ -40,6 +40,10 @@ func after_test() -> void:
 	Ads.provider = _prev_provider
 	Ads.clock = _prev_clock
 	_reset_ads()
+	# Lambda w fake'u przechwytuje self (cykl RefCounted) - bez tego wyciek przy wyjsciu (T-297).
+	_consent.pending_form_callback = Callable()
+	_consent.pending_att_callback = Callable()
+	_consent.pending_info_callback = Callable()
 	Purchases.state = _prev_purchases_state
 	TestSaveCleanup.remove(SAVE_PATH)
 	SaveSystem.save_path = _old_path

@@ -59,9 +59,23 @@ class LogBudgetTest(unittest.TestCase):
         counts = log_budget.collect(["\x1b[91mERROR: bad 3\x1b[0m"])
         self.assertEqual(counts, {"ERROR: bad N": 1})
 
+    def test_warnings_counted_and_sorted_descending(self):
+        lines = ["WARNING: a 1", "\x1b[33mWARNING: b 2\x1b[0m", "WARNING: b 7", "WARNING: b 9", "WARNING: a 4", "x"]
+        counts = log_budget.collect_warnings(lines)
+        self.assertEqual(counts, {"WARNING: a N": 2, "WARNING: b N": 3})
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "w.txt"
+            log_budget.write_warnings(counts, out)
+            self.assertEqual(out.read_text(encoding="utf-8").splitlines(), ["    3x  WARNING: b N", "    2x  WARNING: a N"])
+
+    def test_only_warnings_exit_zero_and_summary(self):
+        code, out, _ = run_main("WARNING: leak 3\nWARNING: leak 5\n")
+        self.assertEqual(code, 0)
+        self.assertIn("log budget: 1 WARNING signatures (2 lines) -> ", out)
+
     def test_repo_allowlist_parses(self):
         allow = log_budget.load_allow(log_budget.DEFAULT_ALLOW)
-        self.assertEqual(len(allow), 4)
+        self.assertEqual(len(allow), 3)
 
 
 if __name__ == "__main__":
