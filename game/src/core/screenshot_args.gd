@@ -24,6 +24,8 @@ const KNOWN_FIXTURES: Array[String] = [
 	"aso_home",
 	"aso_daily",
 	"aso_themes",
+	"aso_shop",
+	"daily",
 	"symbols",
 	"symbols_neon",
 	"plateau_assist",

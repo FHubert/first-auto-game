@@ -17,7 +17,13 @@ const SYMBOLS_LEVEL: int = 32  # 8 colors with the default curve
 const PLATEAU_LEVEL: int = 56
 ## Restarts played by the screenshot driver before the capture (attempt 3 shows the bar).
 const PLATEAU_RESTARTS: int = 2
-const ASO_THEMES: Array = ["classic", "pastel", "neon", "ocean"]
+## aso_themes: two of four owned, so a priced locked theme shows and ASO_COINS < its cost.
+const THEMES_OWNED: Array = ["classic", "neon"]
+const THEMES_ACTIVE: String = "neon"
+## aso_shop: starter offer with ~11 h left; daily: streak shown as 3 claimed days.
+const SHOP_OFFER_HOURS_LEFT: int = 11
+const DAILY_STREAK: int = 3
+const SECONDS_PER_DAY: int = 86400
 
 
 ## Pre-win LevelComplete values, derived from Economy (never literals).
@@ -50,8 +56,9 @@ static func apply_win(level: Level) -> void:
 
 
 ## Returns a fresh state for the fixture name, or null when unknown.
-## `utc_day` (today) is only used by fixtures that depend on the calendar (aso_daily).
-static func make(fixture: String, utc_day: int = 0) -> GameState:
+## `utc_day` (today) is only used by calendar fixtures (aso_daily, daily, aso_shop);
+## `now_unix` (0 = start of `utc_day`) anchors the starter offer window of aso_shop.
+static func make(fixture: String, utc_day: int = 0, now_unix: int = 0) -> GameState:
 	var state := GameState.new()
 	state.settings[GameState.SETTING_TUTORIAL_DONE] = true
 	match fixture:
@@ -81,6 +88,20 @@ static func make(fixture: String, utc_day: int = 0) -> GameState:
 			state.streak_days = ASO_STREAK
 			state.last_play_utc_day = maxi(utc_day - 1, 0)
 			state.daily_reward_last_claim_day = maxi(utc_day - 1, 0)
+		"daily":
+			state.level = ASO_LEVEL
+			state.levels_completed = ASO_LEVEL - 1
+			state.coins = ASO_COINS
+			state.streak_days = DAILY_STREAK
+			state.last_play_utc_day = maxi(utc_day - 1, 0)
+			state.daily_reward_last_claim_day = maxi(utc_day - 1, 0)
+		"aso_shop":
+			state.level = maxi(ASO_LEVEL, int(GameConfig.get_value("starter_offer_min_level")))
+			state.levels_completed = state.level - 1
+			state.coins = ASO_COINS
+			var now: int = now_unix if now_unix > 0 else utc_day * SECONDS_PER_DAY
+			var window_s: int = int(GameConfig.get_value("starter_offer_hours")) * 3600
+			state.starter_offer_start_day = maxi(now + SHOP_OFFER_HOURS_LEFT * 3600 - window_s, 1)
 		"symbols", "symbols_neon":
 			state.level = SYMBOLS_LEVEL
 			state.levels_completed = SYMBOLS_LEVEL - 1
@@ -95,8 +116,8 @@ static func make(fixture: String, utc_day: int = 0) -> GameState:
 		"aso_themes":
 			state.level = ASO_LEVEL
 			state.coins = ASO_COINS
-			state.themes_owned = ASO_THEMES.duplicate()
-			state.theme_active = str(ASO_THEMES[1])
+			state.themes_owned = THEMES_OWNED.duplicate()
+			state.theme_active = THEMES_ACTIVE
 		_:
 			return null
 	return state
