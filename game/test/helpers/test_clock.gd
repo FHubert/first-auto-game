@@ -15,3 +15,9 @@ static func fixed() -> Callable:
 ## Clock reading t[0] (unix seconds); the test advances time by mutating t.
 static func ticking(t: Array) -> Callable:
 	return func() -> int: return t[0]
+
+
+## Float clock reading t[0] (seconds). Classes taking a `float` clock: ConsentFlow, AdService
+## (`Ads.clock`); `ticking` (int) is for unix-time clocks (App, Home).
+static func ticking_float(t: Array) -> Callable:
+	return func() -> float: return t[0]
