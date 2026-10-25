@@ -23,10 +23,16 @@ export GODOT_VERSION GDUNIT_REF
 setup:
 	bash tools/setup_env.sh
 
+# T-255: pelne wyjscie (stdout+stderr) idzie na konsole i do test_output.log; kod wyjscia gdUnit zachowany
+# (POSIX sh, bez pipefail); potem budzet sygnatur ERROR (tools/log_budget.py + log_budget_allow.txt).
 test:
 	mkdir -p $(PROJECT)/test/reports $(ROOT)/.godot-userdata
-	XDG_DATA_HOME=$(ROOT)/.godot-userdata $(GODOT_BIN) --headless --path $(PROJECT) -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
-		--ignoreHeadlessMode -a res://test/unit -rd res://test/reports -c
+	( XDG_DATA_HOME=$(ROOT)/.godot-userdata $(GODOT_BIN) --headless --path $(PROJECT) -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
+		--ignoreHeadlessMode -a res://test/unit -rd res://test/reports -c 2>&1; echo $$? > $(PROJECT)/test/reports/test_exit ) \
+		| tee $(PROJECT)/test/reports/test_output.log; \
+	rc=$$(cat $(PROJECT)/test/reports/test_exit); \
+	python3 tools/log_budget.py $(PROJECT)/test/reports/test_output.log --allow tools/log_budget_allow.txt || exit 1; \
+	exit $$rc
 
 test-tools:
 	python3 -m unittest discover -s tools -p "test_*.py"
