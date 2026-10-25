@@ -13,15 +13,18 @@ const SAMPLE_LEVEL: int = 2
 
 var btn_copy_result: Button
 var clipboard_setter: Callable = DisplayServer.clipboard_set
+var effects_enabled: bool = true
 var _share_text: String = ""
 
-@onready var title_label: Label = $Panel/Box/TitleLabel
-@onready var coins_label: Label = $Panel/Box/CoinsLabel
-@onready var perfect_label: Label = $Panel/Box/PerfectLabel
+@onready var level_caption: Label = $Header/LevelCaption
+@onready var title_label: Label = $Header/TitleLabel
+@onready var coins_label: Label = $Panel/Box/CoinRow/CoinsLabel
+@onready var perfect_badge: PanelContainer = $Panel/Box/PerfectBadge
+@onready var perfect_label: Label = $Panel/Box/PerfectBadge/PerfectLabel
 @onready var progress_label: Label = $Panel/Box/ProgressLabel
 @onready var double_button: Button = $Panel/Box/DoubleButton
-@onready var next_button: Button = $Panel/Box/Buttons/NextButton
-@onready var home_button: Button = $Panel/Box/Buttons/HomeButton
+@onready var next_button: Button = $Panel/Box/NextButton
+@onready var home_button: Button = $Panel/Box/HomeButton
 
 
 ## Odleglosc gornej krawedzi panelu od dolnej krawedzi ekranu (px, Z marginesem `-offset_bottom`):
@@ -41,6 +44,15 @@ func _ready() -> void:
 	Locale.ensure_installed()
 	$Panel.minimum_size_changed.connect(func() -> void: panel_height_changed.emit())
 	next_button.text = tr("btn_next")
+	next_button.icon = UiTokens.icon("arrow_right")
+	next_button.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	double_button.icon = UiTokens.icon("video")
+	_style_icon(next_button, UiTokens.ON_PRIMARY)
+	_style_icon(double_button, UiTokens.ON_ACCENT)
+	$Panel/Box/CoinRow/CoinIcon.texture = UiTokens.icon("coin")
+	_style_badge()
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		home_button.add_theme_color_override(state, UiTokens.TEXT_SOFT)
 	next_button.pressed.connect(func() -> void: next_pressed.emit())
 	double_button.pressed.connect(func() -> void: double_pressed.emit())
 	home_button.text = tr("btn_menu")
@@ -48,11 +60,31 @@ func _ready() -> void:
 	btn_copy_result = Button.new()
 	btn_copy_result.visible = false
 	btn_copy_result.pressed.connect(_on_copy_pressed)
+	btn_copy_result.theme_type_variation = &"ButtonSecondary"
+	btn_copy_result.custom_minimum_size.y = UiTokens.TOUCH_MIN
 	$Panel/Box.add_child(btn_copy_result)
-	$Panel/Box.move_child(btn_copy_result, $Panel/Box/Buttons.get_index())
+	$Panel/Box.move_child(btn_copy_result, next_button.get_index())
 	if get_parent() == get_tree().root:
 		show_result(SAMPLE_COINS, true, SAMPLE_LEVEL, "", {"key": "lc_new_color", "args": []})
 		set_double_offer(SAMPLE_COINS, true)
+
+
+func _style_icon(b: Button, color: Color) -> void:
+	b.add_theme_constant_override("icon_max_width", UiTokens.TILE_ICON)
+	for state in ["normal", "hover", "pressed", "focus"]:
+		b.add_theme_color_override("icon_%s_color" % state, color)
+
+
+func _style_badge() -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(UiTokens.ACCENT, 0.16)
+	sb.set_corner_radius_all(UiTokens.TILE_RADIUS)
+	sb.content_margin_left = 30
+	sb.content_margin_right = 30
+	sb.content_margin_top = 8
+	sb.content_margin_bottom = 8
+	perfect_badge.add_theme_stylebox_override("panel", sb)
+	perfect_label.add_theme_color_override("font_color", UiTokens.ACCENT)
 
 
 ## Jeden komunikat po wygranej kampanii: "+1 kolor" (priorytet) albo postep do motywu.
@@ -79,10 +111,13 @@ static func progress_message(
 func show_result(
 	coins: int, perfect: bool, level_no: int, title: String = "", progress: Dictionary = {}
 ) -> void:
-	title_label.text = title if title != "" else tr("lc_title") % level_no
+	title_label.text = title if title != "" else tr("lc_great")
+	level_caption.visible = title == ""
+	level_caption.text = (tr("hud_level") % level_no).to_upper()
 	coins_label.text = tr("lc_coins") % coins
 	perfect_label.text = tr("lc_perfect")
 	perfect_label.visible = perfect
+	perfect_badge.visible = perfect
 	progress_label.visible = not progress.is_empty()
 	if not progress.is_empty():
 		var args: Array = progress.get("args", [])
@@ -92,6 +127,7 @@ func show_result(
 	double_button.visible = false
 	hide_share()
 	visible = true
+	OverlayFx.enter($Panel, OverlayFx.enabled_for(self, effects_enabled))
 
 
 func set_share(share_text: String) -> void:
