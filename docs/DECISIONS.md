@@ -259,7 +259,7 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 ## ADR-013: Ładowanie reklam — preload i ponawianie w `AdService`, provider bez logiki retry
 
 **Data:** 2026-10-25
-**Status:** Proposed (refill #15; Accepted w T-225)
+**Status:** Accepted (2026-10-25, T-225: `AdProvider.load_*` + sygnały, preload/ponawianie w `AdService` wg `AdLoadPolicy`, eventy `ads:load:*`)
 
 **Kontekst:**
 - `AdProvider` (ADR-003) ma dziś tylko `is_*_ready()` i `show_*()` — bez pojęcia ładowania. `FakeAdProvider` jest „zawsze gotowy”, więc żadna ścieżka testowa nie sprawdza, co się dzieje po pokazie albo po błędzie sieci.

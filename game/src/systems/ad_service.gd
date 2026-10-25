@@ -17,6 +17,8 @@ var interstitials_shown: int = 0
 var consent_state: int = ConsentState.NOT_STARTED
 var consent_provider: ConsentProvider
 var consent_result: Dictionary = {}
+## Set by Purchases / interstitial calls; no interstitial loading while true (T-225).
+var ads_removed: bool = false
 var _consent_flow: ConsentFlow
 
 var _last_interstitial_s: float = -INF
@@ -28,6 +30,12 @@ var _break_id: int = 0
 ## Breaks closed by the watchdog whose SDK callback has not arrived yet (id -> true).
 var _watchdog_ids: Dictionary = {}
 var _interstitial_ids: Array[int] = []
+## Ad loading (T-225, ADR-013): one AdLoadPolicy and one in-flight flag per format.
+var _policies: Dictionary = {"rewarded": AdLoadPolicy.new(), "interstitial": AdLoadPolicy.new()}
+var _loading: Dictionary = {"rewarded": false, "interstitial": false}
+var _giveup_tracked: Dictionary = {}
+var _preload_started: bool = false
+var _signals_provider: AdProvider
 
 
 func _ready() -> void:
@@ -41,6 +49,7 @@ func _process(_delta: float) -> void:
 	if consent_state == ConsentState.PENDING and _consent_flow != null:
 		_consent_flow.poll()
 	poll_watchdog()
+	poll_loads()
 
 
 ## Unmutes audio when an ad break outlives ad_unmute_timeout_seconds (lost SDK callback).
@@ -54,6 +63,7 @@ func poll_watchdog() -> void:
 		_watchdog_ids[_break_id] = true
 		Audio.set_app_muted(false)
 		Analytics.track_design("ads:watchdog:unmute")
+		_reload_after_close()
 
 
 func _begin_ad_break() -> int:
@@ -71,6 +81,7 @@ func _close_break(id: int, kind: String) -> bool:
 	if _watchdog_ids.has(id):
 		_watchdog_ids.erase(id)
 		Analytics.track_design("ads:watchdog:late:%s" % kind)
+		_reload_after_close()
 		return true
 	if _ad_break_open and id == _break_id:
 		_end_ad_break()
@@ -160,6 +171,7 @@ func _on_consent_finished(result: Dictionary) -> void:
 	consent_state = ConsentState.DONE
 	if provider != null:
 		provider.set_personalized(bool(result.get("personalized", false)))
+	poll_loads()
 	consent_finished.emit(result)
 
 
@@ -170,7 +182,8 @@ func _make_default_consent_provider() -> ConsentProvider:
 
 ## True when an interstitial was shown. Needs: ads not removed, level >= min level,
 ## level hits the every-N cap, min-seconds gap, no rewarded ad in this break, ad ready.
-func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
+func maybe_show_interstitial(level_no: int, p_ads_removed: bool = false) -> bool:
+	set_ads_removed(p_ads_removed)
 	var every_n: int = int(GameConfig.get_value("interstitial_every_n_rounds"))
 	var min_seconds: float = float(GameConfig.get_value("interstitial_min_seconds"))
 	var min_level: int = int(GameConfig.get_value("interstitial_min_level"))
@@ -178,7 +191,7 @@ func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
 	var rewarded_in_break: bool = _rewarded_in_break
 	_rewarded_in_break = false
 	var gated: bool = consent_state == ConsentState.PENDING
-	if gated or provider == null or ads_removed or level_no < min_level:
+	if gated or provider == null or p_ads_removed or level_no < min_level:
 		return false
 	if every_n <= 0 or level_no <= 0 or level_no % every_n != 0:
 		return false
@@ -202,6 +215,7 @@ func maybe_show_interstitial(level_no: int, ads_removed: bool = false) -> bool:
 
 
 func _on_interstitial_closed() -> void:
+	_reload("interstitial")
 	if _interstitial_ids.is_empty():
 		return
 	_close_break(_interstitial_ids.pop_front(), "interstitial")
@@ -239,6 +253,7 @@ func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 			if rewarded_done[0]:
 				return
 			rewarded_done[0] = true
+			_reload("rewarded")
 			_close_break(break_id, "rewarded")
 			if granted:
 				Analytics.track_design("ads:rewarded:%s:granted" % placement_id)
@@ -261,3 +276,82 @@ func _make_default_provider() -> AdProvider:
 		return FakeAdProvider.new()
 	# TODO: real AdMob provider; until then fall back to the fake one.
 	return FakeAdProvider.new()
+
+
+## Remove-ads purchase / restored save: no more interstitial loads.
+func set_ads_removed(value: bool) -> void:
+	ads_removed = value
+
+
+## Starts the first loads once consent is not pending, then retries failed formats when due.
+func poll_loads() -> void:
+	if provider == null or consent_state == ConsentState.PENDING:
+		return
+	_connect_load_signals()
+	var now: float = float(clock.call())
+	if not _preload_started:
+		_preload_started = true
+		_request_load("rewarded", now)
+		_request_load("interstitial", now)
+		return
+	for kind: String in _policies:
+		if (_policies[kind] as AdLoadPolicy).is_due(now):
+			_request_load(kind, now)
+
+
+## After a close: load again unless already loading/ready/failed (failures wait for backoff).
+func _reload(kind: String) -> void:
+	if provider == null or consent_state == ConsentState.PENDING:
+		return
+	_connect_load_signals()
+	var policy: AdLoadPolicy = _policies[kind]
+	var ready: bool = (
+		provider.is_rewarded_ready() if kind == "rewarded" else provider.is_interstitial_ready()
+	)
+	if ready or policy.failures() > 0:
+		return
+	_request_load(kind, float(clock.call()))
+
+
+func _reload_after_close() -> void:
+	_reload("rewarded")
+	_reload("interstitial")
+
+
+func _request_load(kind: String, now: float) -> void:
+	var policy: AdLoadPolicy = _policies[kind]
+	if _loading[kind] or policy.gave_up() or (kind == "interstitial" and ads_removed):
+		return
+	_loading[kind] = true
+	policy.on_requested(now)
+	if kind == "rewarded":
+		provider.load_rewarded()
+	else:
+		provider.load_interstitial()
+
+
+func _connect_load_signals() -> void:
+	if _signals_provider == provider:
+		return
+	_signals_provider = provider
+	provider.rewarded_loaded.connect(_on_load_done.bind("rewarded", true))
+	provider.rewarded_load_failed.connect(
+		func(_code: int) -> void: _on_load_done("rewarded", false)
+	)
+	provider.interstitial_loaded.connect(_on_load_done.bind("interstitial", true))
+	provider.interstitial_load_failed.connect(
+		func(_code: int) -> void: _on_load_done("interstitial", false)
+	)
+
+
+func _on_load_done(kind: String, ok: bool) -> void:
+	var policy: AdLoadPolicy = _policies[kind]
+	_loading[kind] = false
+	if ok:
+		policy.on_loaded()
+		return
+	policy.on_failed(float(clock.call()))
+	Analytics.track_design("ads:load:fail:%s" % kind, float(policy.failures()))
+	if policy.gave_up() and not _giveup_tracked.has(kind):
+		_giveup_tracked[kind] = true
+		Analytics.track_design("ads:load:giveup:%s" % kind)

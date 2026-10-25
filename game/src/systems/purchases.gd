@@ -32,6 +32,8 @@ func _ready() -> void:
 
 func bind_state(s: GameState) -> void:
 	state = s
+	if s != null:
+		Ads.set_ads_removed(bool(s.settings.get("ads_removed", false)))
 
 
 ## Localized price from the store; "" when unknown (UI never hardcodes prices).
@@ -64,6 +66,7 @@ func grant(sku: String) -> bool:
 	match sku:
 		SKU_REMOVE_ADS:
 			state.settings["ads_removed"] = true
+			Ads.set_ads_removed(true)
 		SKU_COINS_SMALL:
 			Economy.earn(state, int(GameConfig.get_value("iap_coins_small")), Economy.SOURCE_IAP)
 		SKU_COINS_LARGE:

@@ -5,9 +5,24 @@ extends RefCounted
 ## Emitted when a rewarded ad closes; granted tells if the reward was earned.
 signal rewarded_closed(granted: bool)
 signal interstitial_closed
+## Load results (T-225, ADR-013); code is the SDK error code. Retry policy lives in AdService.
+signal rewarded_loaded
+signal rewarded_load_failed(code: int)
+signal interstitial_loaded
+signal interstitial_load_failed(code: int)
 
 
 func initialize() -> void:
+	pass
+
+
+## Starts loading a rewarded ad; result arrives as rewarded_loaded / rewarded_load_failed.
+func load_rewarded() -> void:
+	pass
+
+
+## Starts loading an interstitial; result arrives as interstitial_loaded / ..._load_failed.
+func load_interstitial() -> void:
 	pass
 
 
