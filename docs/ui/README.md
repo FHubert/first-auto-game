@@ -65,7 +65,7 @@ Kolory (bez zmian palety z GDD, doszły odcienie pochodne):
 
 Typografia: **Nunito** (już w repo, OFL), wagi 700/800/900. Nagłówki 900, przyciski 900, opisy 700.
 
-Kształty: przyciski w pełni zaokrąglone (promień = wysokość/2), karty promień 22–32 pt, kafelki 18–20 pt. **Efekt „wypukły”:** cień pełny, bez rozmycia, przesunięty w dół o 4–7 pt, w kolorze `*_SHADOW` (w `StyleBoxFlat`: `shadow_size=0`, `shadow_offset=(0, N)`, `shadow_color`). Po wciśnięciu: cień 0, przycisk przesunięty o N w dół.
+Kształty: przyciski w pełni zaokrąglone (promień = wysokość/2), karty promień 22–32 pt, kafelki 18–20 pt. **Efekt „wypukły”:** cień pełny, bez rozmycia, przesunięty w dół o 4–7 pt, w kolorze `*_SHADOW` (w `StyleBoxFlat`: `shadow_size=0`, `shadow_offset=(0, N)`, `shadow_color`). Po wciśnięciu: cień 0, przycisk przesunięty o N w dół. Uwaga implementacyjna (T-228): Godot rysuje cień `StyleBoxFlat` tylko przy `shadow_size > 0` i zawsze z gradientem, dlatego efekt wypukły jest zrealizowany jako `border_width_bottom = N` w kolorze `*_SHADOW` (pressed: 0 + przesunięcie treści o N).
 
 Warianty przycisków: `Primary`, `Accent` (z ikoną video, gdy rewarded), `Secondary` (`CARD_ROW`), `Icon` (koło, `CARD`, cień `BG_DEEP`), `Nav` (zaokrąglony kwadrat 68 pt, promień 24 + podpis pod spodem).
 
