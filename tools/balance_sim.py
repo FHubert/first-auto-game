@@ -66,7 +66,7 @@ BUILTIN = {
     "difficulty_midpoint_level": 20,
     "difficulty_steepness": 0.15,
     "plateau_assist_min_level": 26,
-    "plateau_assist_from_attempt": 3,
+    "plateau_assist_from_attempt": 2,
     # --- sim-only model parameters ---
     "sessions_per_day": 3.0,  # sim-only
     "levels_per_session": 3.5,  # sim-only

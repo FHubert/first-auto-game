@@ -55,10 +55,8 @@ func _first_legal_move() -> Vector2i:
 	return Vector2i(-1, -1)
 
 
-func test_bar_visible_on_third_attempt() -> void:
+func test_bar_visible_on_second_attempt() -> void:
 	_level.load_level(56)
-	assert_bool(_level.assist_bar.visible).is_false()
-	_level.restart()
 	assert_bool(_level.assist_bar.visible).is_false()
 	_level.restart()
 	assert_bool(_level.assist_bar.visible).is_true()

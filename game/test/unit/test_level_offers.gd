@@ -89,9 +89,12 @@ func test_assist_below_min_level_hidden() -> void:
 	assert_bool(_assist(25, 2, 999).plateau_assist()["show"]).is_false()
 
 
-func test_assist_first_attempts_hidden() -> void:
+func test_assist_first_attempt_hidden() -> void:
 	assert_bool(_assist(26, 0, 999).plateau_assist()["show"]).is_false()
-	assert_bool(_assist(26, 1, 999).plateau_assist()["show"]).is_false()
+
+
+func test_assist_second_attempt_shown() -> void:
+	assert_bool(_assist(26, 1, 999).plateau_assist()["show"]).is_true()
 
 
 func test_assist_third_attempt_shown() -> void:

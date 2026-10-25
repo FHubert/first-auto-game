@@ -68,7 +68,7 @@ const DEFAULTS: Dictionary = {
 	"undo_refill_amount": 3,
 	"extra_tube_max_per_level": 1,
 	"plateau_assist_min_level": 26,
-	"plateau_assist_from_attempt": 3,
+	"plateau_assist_from_attempt": 2,
 	"skip_unlock_restarts": 2,
 	"par_slack_moves": 2,
 	"hint_solver_max_states": 20000,
