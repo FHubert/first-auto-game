@@ -10,12 +10,12 @@ signal round_won
 signal tube_pulsed(index: int)
 
 const TEXTURE_DIR: String = "res://assets/sprites/tubes/"
-const COLUMNS_PER_ROW: int = 5
-const TUBE_WIDTH: float = 90.0
-const TUBE_HEIGHT: float = 300.0
-const GAP_X: float = 24.0
-const GAP_Y: float = 40.0
-const LIFT_PX: float = 30.0
+const COLUMNS_PER_ROW: int = UiTokens.BOARD_MAX_COLS
+const TUBE_WIDTH: float = float(UiTokens.TUBE_W)
+const TUBE_HEIGHT: float = float(UiTokens.TUBE_H)
+const GAP_X: float = float(UiTokens.TUBE_GAP_X)
+const GAP_Y: float = float(UiTokens.TUBE_GAP_Y)
+const LIFT_PX: float = float(UiTokens.TUBE_LIFT)
 const SHAKE_PX: float = 12.0
 const POUR_LIFT_RATIO: float = 0.25
 const POUR_TRANSFER_RATIO: float = 0.5
@@ -35,6 +35,7 @@ var _selected: int = -1
 var _busy: bool = false
 var _bg: ColorRect
 var _slice: Dictionary = {}
+var _scale: float = 1.0
 var _pour_tween: Tween
 var _pour_pending: Vector2i = Vector2i(-1, -1)
 var _pulse_tween: Tween
@@ -95,7 +96,8 @@ func tap(index: int) -> void:
 		return
 	if _selected == -1:
 		_selected = index
-		_move_to(_views[index], _rest[index] + Vector2(0, -LIFT_PX), _lift_time())
+		_views[index].set_selected(true)
+		_move_to(_views[index], _rest[index] + Vector2(0, -_lift()), _lift_time())
 		tube_selected.emit(index)
 	elif _selected == index:
 		_deselect()
@@ -145,7 +147,15 @@ func view_rotation(index: int) -> float:
 
 
 func tube_rect(index: int) -> Rect2:
-	return Rect2(global_position + _rest[index], Vector2(TUBE_WIDTH, TUBE_HEIGHT))
+	return Rect2(global_position + _rest[index], _tube_size())
+
+
+func _tube_size() -> Vector2:
+	return Vector2(TUBE_WIDTH, TUBE_HEIGHT) * _scale
+
+
+func _lift() -> float:
+	return LIFT_PX * _scale
 
 
 func _lift_time() -> float:
@@ -155,6 +165,7 @@ func _lift_time() -> float:
 func _deselect() -> void:
 	var prev: int = _selected
 	if prev >= 0 and prev < _views.size():
+		_views[prev].set_selected(false)
 		_move_to(_views[prev], _rest[prev], _lift_time())
 	_selected = -1
 	if prev >= 0:
@@ -178,9 +189,10 @@ func _pour(from: int, to: int) -> void:
 	var dst_before: Array = (board.tubes[to] as Array).slice(0, board.tubes[to].size() - moved)
 	var total: float = pour_duration()
 	var dir: float = -1.0 if _rest[to].x < _rest[from].x else 1.0
-	var target: Vector2 = _rest[to] + Vector2(dir * TUBE_WIDTH * 0.5, -LIFT_PX)
+	var target: Vector2 = _rest[to] + Vector2(dir * _tube_size().x * 0.5, -_lift())
 	var v: TubeView = _views[from]
-	v.pivot_offset = Vector2(TUBE_WIDTH * 0.5, TUBE_HEIGHT)
+	v.set_selected(false)
+	v.pivot_offset = Vector2(_tube_size().x * 0.5, _tube_size().y)
 	v.z_index = 1
 	var tw: Tween = create_tween()
 	_pour_tween = tw
@@ -309,7 +321,7 @@ func _rebuild() -> void:
 		liquids.append(Color(c))
 	for i: int in board.tube_count():
 		var v := TubeView.new()
-		v.size = Vector2(TUBE_WIDTH, TUBE_HEIGHT)
+		v.size = _tube_size()
 		v.setup(i, board.capacity, tex, _slice, glass, liquids)
 		v.show_symbols = show_symbols
 		v.tapped.connect(tap)
@@ -319,10 +331,29 @@ func _rebuild() -> void:
 	refresh()
 
 
-## Wysokosc zawartosci (rzedy probowek z odstepami).
+## Liczba kolumn: <= 8 probowek -> max 4 w rzedzie; wiecej -> polowa (max 7).
+static func columns_for(n: int) -> int:
+	if n < UiTokens.BOARD_SCALED_FROM:
+		return clampi(n, 1, UiTokens.BOARD_MAX_COLS)
+	return mini(UiTokens.BOARD_MAX_COLS_SCALED, ceili(n / 2.0))
+
+
+## Wspolczynnik skali planszy dla n probowek w obszarze avail (px).
+static func scale_for(n: int, avail: Vector2) -> float:
+	if avail.x <= 0.0 or avail.y <= 0.0:
+		return 1.0
+	var cols: int = columns_for(n)
+	var rows: int = ceili(float(n) / float(cols))
+	var w: float = cols * TUBE_WIDTH + (cols - 1) * GAP_X
+	var h: float = rows * TUBE_HEIGHT + (rows - 1) * GAP_Y + LIFT_PX
+	return minf(1.0, minf(avail.x / w, avail.y / h))
+
+
+## Wysokosc zawartosci (rzedy probowek z odstepami, po skalowaniu).
 func content_height() -> float:
-	var rows: int = ceili(float(_views.size()) / float(COLUMNS_PER_ROW))
-	return maxi(rows, 1) * TUBE_HEIGHT + (maxi(rows, 1) - 1) * GAP_Y
+	var cols: int = columns_for(_views.size())
+	var rows: int = maxi(ceili(float(_views.size()) / float(cols)), 1)
+	return (rows * TUBE_HEIGHT + (rows - 1) * GAP_Y) * _scale
 
 
 func _layout() -> void:
@@ -332,19 +363,24 @@ func _layout() -> void:
 	var n: int = _views.size()
 	if n == 0:
 		return
-	var cols: int = mini(COLUMNS_PER_ROW, n)
+	var cols: int = columns_for(n)
 	var rows: int = ceili(float(n) / float(cols))
-	var total_h: float = rows * TUBE_HEIGHT + (rows - 1) * GAP_Y
-	var origin_y: float = maxf((size.y - total_h) * 0.5, LIFT_PX)
+	var avail := Vector2(size.x - 2.0 * UiTokens.SCREEN_PAD, size.y)
+	_scale = scale_for(n, avail)
+	var tsize: Vector2 = _tube_size()
+	var gap := Vector2(GAP_X, GAP_Y) * _scale
+	var total_h: float = rows * tsize.y + (rows - 1) * gap.y
+	var origin_y: float = maxf((size.y - total_h) * 0.5, _lift())
 	for i: int in n:
 		var row: int = i / cols
 		var in_row: int = mini(cols, n - row * cols)
-		var row_w: float = in_row * TUBE_WIDTH + (in_row - 1) * GAP_X
-		var x: float = (size.x - row_w) * 0.5 + (i % cols) * (TUBE_WIDTH + GAP_X)
-		var pos := Vector2(x, origin_y + row * (TUBE_HEIGHT + GAP_Y))
+		var row_w: float = in_row * tsize.x + (in_row - 1) * gap.x
+		var x: float = (size.x - row_w) * 0.5 + (i % cols) * (tsize.x + gap.x)
+		var pos := Vector2(x, origin_y + row * (tsize.y + gap.y))
 		_rest.append(pos)
 		_views[i].position = pos
-		_views[i].size = Vector2(TUBE_WIDTH, TUBE_HEIGHT)
+		_views[i].size = tsize
+		_views[i].set_selected(false)
 	_selected = -1
 	if prev >= 0:
 		tube_deselected.emit(prev)

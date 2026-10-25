@@ -118,7 +118,8 @@ func _attempt_from() -> int:
 
 
 func _rows() -> int:
-	return ceili(float(_level.round.board().tube_count()) / float(BoardView.COLUMNS_PER_ROW))
+	var n: int = _level.round.board().tube_count()
+	return ceili(float(n) / float(BoardView.columns_for(n)))
 
 
 func _assert_bar_clear(info: String) -> void:
@@ -149,9 +150,9 @@ func test_bar_geometry_per_level_and_viewport(
 	test_parameters := [
 		[26, 2, Vector2(1080, 1920)],
 		[26, 2, Vector2(1080, 2400)],
-		[38, 3, Vector2(1080, 1920)],
-		[55, 3, Vector2(1080, 1920)],
-		[55, 3, Vector2(1080, 2400)],
+		[38, 2, Vector2(1080, 1920)],
+		[55, 2, Vector2(1080, 1920)],
+		[55, 2, Vector2(1080, 2400)],
 	]
 ) -> void:
 	assert_that(test_parameters).is_not_null()
