@@ -61,12 +61,12 @@ func test_stuck_panel_rows_touch_size() -> void:
 	await get_tree().process_frame
 	assert_str(panel.close_button.text).is_empty()
 	assert_object(panel.close_button.icon).is_not_null()
+	panel.hint_button.visible = true
 	for b: Button in [
 		panel.undo_button,
-		panel.extra_tube_button,
 		panel.extra_tube_ad_button,
-		panel.undo_refill_button,
 		panel.undo_refill_ad_button,
+		panel.hint_button,
 		panel.restart_button,
 		panel.close_button,
 	]:
@@ -97,6 +97,7 @@ func test_german_labels_not_clipped() -> void:
 	var prev: String = TranslationServer.get_locale()
 	TranslationServer.set_locale("de")
 	var panel := _stuck()
+	panel.show_sample_rows()
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var limit: float = W - 2.0 * 22 - 2.0 * UiTokens.SCREEN_PAD
@@ -104,3 +105,59 @@ func test_german_labels_not_clipped() -> void:
 	_wide_labels(panel, limit, wide)
 	TranslationServer.set_locale(prev)
 	assert_array(wide).is_empty()
+
+
+func test_offer_rows_are_ad_or_price() -> void:
+	var panel := _stuck()
+	panel.show_for(_round(), true, {"extra_tube": true, "undo_refill": false})
+	assert_bool(panel.extra_tube_ad_button.visible).is_true()
+	assert_bool(panel.extra_tube_button.visible).is_false()
+	assert_bool(panel.undo_refill_ad_button.visible).is_false()
+	assert_bool(panel.undo_refill_button.visible).is_true()
+	panel.show_for(_round(), true, {"extra_tube": false, "undo_refill": true})
+	assert_bool(panel.extra_tube_ad_button.visible).is_false()
+	assert_bool(panel.extra_tube_button.visible).is_true()
+	assert_bool(panel.undo_refill_ad_button.visible).is_true()
+	assert_bool(panel.undo_refill_button.visible).is_false()
+
+
+func test_at_most_four_action_rows_visible() -> void:
+	var panel := _stuck()
+	for tube in [true, false]:
+		for refill in [true, false]:
+			panel.show_for(_round(), true, {"extra_tube": tube, "undo_refill": refill})
+			panel.hint_button.visible = true
+			var rows: int = 0
+			for c in panel.get_node("Panel/Box").get_children():
+				if c is Button and c != panel.close_button and (c as Button).visible:
+					rows += 1
+			assert_int(rows).is_less_equal(4)
+
+
+func test_hint_row_emits_and_hides() -> void:
+	var panel := _stuck()
+	var fired: Array[int] = [0]
+	panel.hint_pressed.connect(func() -> void: fired[0] += 1)
+	panel.show_sample_rows()
+	assert_bool(panel.hint_button.visible).is_true()
+	panel.hint_button.pressed.emit()
+	assert_int(fired[0]).is_equal(1)
+	assert_bool(panel.visible).is_false()
+
+
+func test_hint_row_hidden_without_solution() -> void:
+	var panel := _stuck()
+	assert_bool(panel.hint_button.visible).is_equal(_round().moves_to_goal() >= 0)
+
+
+func test_price_rows_touch_size() -> void:
+	var panel := _stuck()
+	panel.show_for(_round(), true, {"extra_tube": false, "undo_refill": false})
+	panel.hint_button.visible = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+	for b: Button in [
+		panel.undo_button, panel.extra_tube_button, panel.undo_refill_button, panel.hint_button
+	]:
+		assert_bool(b.is_visible_in_tree()).is_true()
+		assert_int(int(b.size.y)).is_greater_equal(UiTokens.TOUCH_MIN)

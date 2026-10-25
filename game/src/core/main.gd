@@ -80,6 +80,8 @@ func _show_screenshot_screen(app: App, action: String, fixture: String = "defaul
 			app.show_level()
 			var level := app.current_screen() as Level
 			level.stuck_panel.show_for(level.round, true, level.offers.ad_offers())
+			level.stuck_panel.show_sample_rows()
+			level.fit_board_above_stuck()
 
 
 func _run_playtest(args: PackedStringArray) -> int:
