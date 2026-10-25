@@ -61,6 +61,8 @@ Ceny lokalne (PLN, EUR) pobierane ze sklepu (`IapProvider`), nigdy z kodu. Integ
 ## Hipotezy do A/B
 *Każda hipoteza: co zmieniamy, która metryka z `KPI.md` ma wzrosnąć i do jakiego progu. Testy A/B działają dopiero od Fazy 6 (Firebase Remote Config, ADR-004).*
 
+Plan eksperymentów z próbkami: `docs/EXPERIMENTS.md` (T-208)
+
 | id | hipoteza | metryka | próg (KPI.md) | wariant A | wariant B |
 |---|---|---|---|---|---|
 | H1 | Mnożnik ×3 na `double_coins` zwiększa odsetek wygranych z obejrzaną reklamą bez inflacji, która przyspiesza zakup motywów i obniża D7 | Ad impressions / DAU; kontrolnie D7 | ≥ 3,0 impr./DAU przy D7 ≥ 12 % | `rewarded_multiplier` = 2.0 | `rewarded_multiplier` = 3.0 |
