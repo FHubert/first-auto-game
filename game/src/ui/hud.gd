@@ -31,6 +31,7 @@ var hint_cost_label: Label
 var extra_tube_cost_label: Label
 var extra_tube_ad_button: TextureRect
 var undo_refill_ad_button: TextureRect
+var effects_enabled: bool = true
 
 var _backdrops: Array[ColorRect] = []
 var _round: GameRound
@@ -51,6 +52,8 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_build_top()
 	_build_bottom()
+	for b: Button in [pause_button, undo_button, restart_button, hint_button, extra_tube_button]:
+		UiFx.attach_press(b, func() -> bool: return effects_enabled)
 	refresh()
 
 
@@ -81,7 +84,11 @@ func refresh() -> void:
 	moves_label.text = tr("hud_moves_goal") % [moves, goal]
 	if _state != null:
 		coins_label.text = str(_state.coins)
-	undo_badge.text = str(charges)
+	var badge_text: String = str(charges)
+	var changed: bool = undo_badge.text != badge_text
+	undo_badge.text = badge_text
+	if changed:
+		UiFx.pop(undo_badge, effects_enabled)
 	_update_undo_state(charges)
 
 
@@ -92,6 +99,16 @@ func set_hint_pending(pending: bool) -> void:
 	hint_button.disabled = pending
 	hint_cost_label.text = "…" if pending else str(Economy.hint_cost())
 	_hint_coin.visible = not pending
+
+
+func start_hint_nudge() -> void:
+	if hint_button != null and hint_button.visible:
+		UiFx.pulse(hint_button, effects_enabled)
+
+
+func stop_hint_nudge() -> void:
+	if hint_button != null:
+		UiFx.stop_pulse(hint_button)
 
 
 func set_boosters_visible(v: bool) -> void:

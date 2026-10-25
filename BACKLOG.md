@@ -99,7 +99,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: Themes: siatka 2 × 2 kart z podglądem 4 probówek w palecie motywu, aktywny = obrys `ACCENT` + ptaszek, cena z monetą, pasek „do motywu” pod siatką. Shop: wyróżniona karta pakietu startowego (obrys `ACCENT`, licznik okna oferty), wiersze produktów z ceną z `IapProvider` w `ButtonAccent`, „Przywróć zakupy” jako link na dole. Settings: nagłówki sekcji (`LabelSection`), wiersze z ikoną, przełączniki w kolorze `PRIMARY`. Testy ekranów zielone. Kadr 05 przegenerowany + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-235 `todo` UI v2: mikroanimacje (zależy od T-230, T-232)
+- [ ] T-235 `review` UI v2: mikroanimacje (zależy od T-230, T-232) → PR #226
   KA: `UiFx` (czysta klasa, tweeny na przekazanym węźle): wciśnięcie przycisku = zejście w cień (0,08 s) i powrót, „pop” badge'a przy zmianie licznika, zliczanie kwoty w LevelComplete (0→N w 0,6 s, kończy na dokładnym `win_reward`), pulsowanie podpowiedzi po `hint_nudge_seconds` bez ruchu (nowy klucz `GameConfig`), lot monet do pilla (5 sprite'ów, 0,5 s). Wszystko wyłączone przy `effects_enabled=false`. Testy: brak aktywnych tweenów po `kill_all`, nudge z wstrzykniętym zegarem pojawia się i znika po ruchu, zliczanie kończy się dokładną kwotą. ~220 linii.
   Skill: `godot-dev`
 

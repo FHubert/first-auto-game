@@ -91,6 +91,8 @@ const DEFAULTS: Dictionary = {
 	"shake_seconds": 0.2,
 	"tube_full_pulse_seconds": 0.25,
 	"confetti_seconds": 1.2,
+	# T-235: bez ruchu przez tyle sekund przycisk podpowiedzi zaczyna pulsować
+	"hint_nudge_seconds": 8.0,
 	# IAP
 	"iap_coins_small": 500,
 	"iap_coins_large": 1500,
@@ -178,6 +180,7 @@ const RANGES: Dictionary = {
 	"shake_seconds": [0.0, 5.0],
 	"tube_full_pulse_seconds": [0.0, 5.0],
 	"confetti_seconds": [0.0, 5.0],
+	"hint_nudge_seconds": [2.0, 120.0],
 	"iap_coins_small": [0, 100000],
 	"iap_coins_large": [0, 100000],
 	"iap_starter_coins": [0, 100000],
