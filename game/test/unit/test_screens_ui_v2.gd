@@ -162,3 +162,71 @@ func test_settings_de_no_truncation() -> void:
 				assert_float(l.get_minimum_size().x).is_less_equal(l.size.x + 1.0)
 		assert_bool(found).is_true()
 	TranslationServer.set_locale("en")
+
+
+func _themes(coins: int, locale: String = "en", size: Vector2 = SIZES[0]) -> ThemesScreen:
+	TranslationServer.set_locale(locale)
+	var st := GameState.new()
+	st.level = 12
+	st.coins = coins
+	st.themes_owned = ["classic"]
+	st.theme_active = "classic"
+	var s := ThemesScreen.new()
+	s.state = st
+	auto_free(s)
+	s.size = size
+	add_child(s)
+	return s
+
+
+func test_themes_locked_price_button() -> void:
+	var s := _themes(350)
+	for id: String in ["pastel", "neon", "ocean"]:
+		var b := s.card_button(id)
+		assert_str(b.text).is_equal(str(ThemeCatalog.cost(id)))
+		assert_bool(b.disabled).is_true()
+		assert_bool((s.cards[id]["coin"] as Control).visible).is_true()
+		var sb := b.get_theme_stylebox("normal") as StyleBoxFlat
+		assert_float(sb.border_color.r).is_equal_approx(UiTokens.ACCENT.r, 0.01)
+		assert_float(sb.border_color.g).is_equal_approx(UiTokens.ACCENT.g, 0.01)
+		assert_float(sb.border_color.a).is_equal_approx(0.5, 0.01)
+		assert_that(b.get_theme_color("font_color")).is_equal(UiTokens.ACCENT)
+		assert_that(b.get_theme_color("font_disabled_color")).is_equal(UiTokens.ACCENT)
+	TranslationServer.set_locale("en")
+
+
+func test_themes_active_check_marker() -> void:
+	var s := _themes(350)
+	assert_bool((s.cards["classic"]["check"] as Control).visible).is_true()
+	var sb := (s.cards["classic"]["check"] as Control).get_theme_stylebox("panel") as StyleBoxFlat
+	assert_that(sb.bg_color).is_equal(UiTokens.ACCENT)
+	assert_that((s.cards["classic"]["check_icon"] as Control).modulate).is_equal(UiTokens.ON_ACCENT)
+	assert_bool((s.cards["pastel"]["check"] as Control).visible).is_false()
+
+
+func test_themes_progress_hint() -> void:
+	var s := _themes(350)
+	assert_bool(s.progress_hint.visible).is_true()
+	assert_str(s.progress_hint.text).is_equal(tr("themes_hint"))
+	assert_str(s.progress_hint.text).is_not_equal("themes_hint")
+	assert_str(s.progress_amount.text).is_equal("350 / %d" % ThemeCatalog.cost("pastel"))
+
+
+func test_themes_geometry_fits_and_no_overlap() -> void:
+	for locale: String in ["en", "de"]:
+		for size: Vector2 in SIZES:
+			var s := _themes(350, locale, size)
+			await get_tree().process_frame
+			await get_tree().process_frame
+			assert_float(s.progress_panel.get_global_rect().end.y).is_less_equal(size.y)
+			for pv: Control in s.previews:
+				assert_float(pv.size.y).is_greater_equal(float(ThemesScreen.PREVIEW_MIN_H))
+				for i: int in 4:
+					var tr_rect: Rect2 = pv.call("tube_rect", i)
+					assert_bool(Rect2(Vector2.ZERO, pv.size).encloses(tr_rect)).is_true()
+			for id: String in s.cards:
+				var nl := s.card_name_label(id)
+				var chk := s.cards[id]["check"] as Control
+				if chk.visible:
+					assert_bool(nl.get_global_rect().intersects(chk.get_global_rect())).is_false()
+	TranslationServer.set_locale("en")
