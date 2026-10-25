@@ -192,3 +192,18 @@ func test_watchdog_timeout_follows_config() -> void:
 	_now[0] = 6.0
 	_ads.poll_watchdog()
 	assert_int(_watchdog_events()).is_equal(1)
+
+
+func test_deferred_provider_grants_on_later_frame_once() -> void:
+	_provider.deferred = true
+	var calls: Array[int] = [0]
+	var granted: Array[int] = [0]
+	_ads.rewarded_granted.connect(func(_id: String) -> void: granted[0] += 1)
+	assert_bool(_ads.request_rewarded("double_coins", func() -> void: calls[0] += 1)).is_true()
+	assert_int(calls[0]).is_equal(0)
+	assert_int(granted[0]).is_equal(0)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_int(calls[0]).is_equal(1)
+	assert_int(granted[0]).is_equal(1)
+	assert_int(_provider.releases).is_equal(1)
