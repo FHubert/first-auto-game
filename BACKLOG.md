@@ -135,7 +135,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-277 `review` UI v2 naprawa: Themes wg makiety 06 — miniatury z zaokrąglonymi probówkami (wspólny rysunek z T-276), cena z monetą dla zablokowanych motywów, karta postępu „Do motywu …” pod siatką, wyśrodkowana strzałka wstecz w `ScreenHeader` (zależy od T-280 — fixture z zablokowanymi motywami)
   KA: kadr `05_themes` z ≥ 1 zablokowanym motywem i ceną; zestawienie `docs/ui/compare/06_themes_T-277.png`. ≤ 250 linii. Pliki: `themes_screen.gd`, `screen_header.gd`.
   Skill: `godot-dev`
-- [ ] T-278 `todo` UI v2 naprawa: Shop wg makiety 07 — karta „Pakiet startowy” (obrys `ACCENT`, licznik okna oferty, CTA), podtytuły produktów („około N prób”, „+20 % gratis”), „Przywróć zakupy” jako link z podkreśleniem (zależy od T-280 — fixture z aktywnym pakietem startowym; scala część Inbox T-266)
+- [ ] T-278 `in_progress` UI v2 naprawa: Shop wg makiety 07 — karta „Pakiet startowy” (obrys `ACCENT`, licznik okna oferty, CTA), podtytuły produktów („około N prób”, „+20 % gratis”), „Przywróć zakupy” jako link z podkreśleniem (zależy od T-280 — fixture z aktywnym pakietem startowym; scala część Inbox T-266)
   KA: kadr smoke Shop z pakietem startowym; zestawienie `docs/ui/compare/07_shop_T-278.png`; stringi EN/PL/DE. ≤ 250 linii. Pliki: `shop_screen.gd`, `strings.csv`, `screenshot_fixtures.gd`.
   Skill: `godot-dev`
 - [x] T-279 `done` UI v2 naprawa: Settings wg makiety 08 — kafelki ikon `CARD_ICON`, separatory wierszy, przełączniki 112×64 wg makiety, wiersz „Język: Polski ›” zamiast `OptionButton`, wiersz „Opcje prywatności” (consent), właściwa ikona powiadomień (dzwonek — T-266), stopka „Vialo · wersja X” (scala część Inbox T-266) → PR #233 (depends on #232)
