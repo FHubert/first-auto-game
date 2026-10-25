@@ -4,6 +4,11 @@
 # Store (`--store` or SCREENSHOT_STORE=1): tools/screens_store.txt x {en-US,pl-PL,de-DE}
 #   -> fastlane/metadata/android/<locale>/images/phoneScreenshots/NN_<caption_key>.png (1080x1920)
 #
+# Usage: gen_screenshots.sh [--store] [--size WxH] [--print-config] [--help]
+#   --size WxH      capture resolution (default 1080x1920, env SCREENSHOT_RESOLUTION; the flag wins);
+#                   works with --store in any order, store framing uses the same size
+#   --print-config  print "RESOLUTION=... STORE=..." and exit 0 (no Godot needed)
+#
 # Capture needs a real GL context: runs under xvfb-run with --rendering-driver opengl3 (not --headless).
 # Add every new screen to tools/screens.txt (smoke) and, if it is a store shot, tools/screens_store.txt
 # (format: <scene>|<fixture>|<caption_key>).
@@ -13,7 +18,28 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GODOT="${GODOT_BIN:-$ROOT/.tools/godot}"
 RESOLUTION="${SCREENSHOT_RESOLUTION:-1080x1920}"
 STORE="${SCREENSHOT_STORE:-0}"
-[ "${1:-}" = "--store" ] && STORE=1
+PRINT_CONFIG=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --store) STORE=1 ;;
+    --print-config) PRINT_CONFIG=1 ;;
+    --size)
+      [ $# -ge 2 ] || { echo "--size needs a WxH value" >&2; exit 2; }
+      RESOLUTION="$2"; shift ;;
+    --size=*) RESOLUTION="${1#--size=}" ;;
+    -h|--help) sed -n '2,/^set -euo/p' "${BASH_SOURCE[0]}" | grep '^#' | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+if ! [[ "$RESOLUTION" =~ ^[0-9]+x[0-9]+$ ]]; then
+  echo "invalid size '$RESOLUTION' (expected WxH, e.g. 720x1560)" >&2
+  exit 2
+fi
+if [ "$PRINT_CONFIG" = "1" ]; then
+  echo "RESOLUTION=$RESOLUTION STORE=$STORE"
+  exit 0
+fi
 LOCALES=(en-US pl-PL de-DE)
 
 [ -x "$GODOT" ] || GODOT="$(command -v godot || true)"
@@ -60,7 +86,7 @@ if [ "$STORE" = "1" ]; then
     capture "$ROOT/tools/screens_store.txt" "$ROOT/export/screenshots_raw/$locale" "$lang"
     python3 "$ROOT/tools/frame_screenshots.py" --in "$ROOT/export/screenshots_raw/$locale" \
       --out "$ROOT/fastlane/metadata/android/$locale/images/phoneScreenshots" \
-      --lang "$lang" --captions "$ROOT/tools/captions.json" --size 1080x1920
+      --lang "$lang" --captions "$ROOT/tools/captions.json" --size "$RESOLUTION"
   done
 else
   OUT="${SCREENSHOT_OUT:-$ROOT/export/screenshots_framed}"

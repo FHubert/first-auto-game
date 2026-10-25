@@ -623,6 +623,43 @@ class StoreScreenshotsTest(unittest.TestCase):
                 self.assertEqual(im.size, (1080, 1920))
 
 
+class GenScreenshotsArgsTest(unittest.TestCase):
+    SCRIPT = TOOLS / "gen_screenshots.sh"
+
+    def cfg(self, *args, env_size=None):
+        env = {k: v for k, v in os.environ.items() if k not in ("SCREENSHOT_RESOLUTION", "SCREENSHOT_STORE")}
+        if env_size:
+            env["SCREENSHOT_RESOLUTION"] = env_size
+        return subprocess.run(["bash", str(self.SCRIPT), *args, "--print-config"],
+                              capture_output=True, text=True, env=env)
+
+    def test_size_flag(self):
+        r = self.cfg("--size", "720x1560")
+        self.assertEqual((r.returncode, r.stdout.strip()), (0, "RESOLUTION=720x1560 STORE=0"))
+
+    def test_store_and_size_any_order(self):
+        for args in (("--store", "--size", "720x1280"), ("--size", "720x1280", "--store")):
+            r = self.cfg(*args)
+            self.assertEqual(r.stdout.strip(), "RESOLUTION=720x1280 STORE=1", args)
+
+    def test_bad_size_exits_2(self):
+        r = self.cfg("--size", "abc")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("invalid size", r.stderr)
+
+    def test_defaults(self):
+        self.assertEqual(self.cfg().stdout.strip(), "RESOLUTION=1080x1920 STORE=0")
+
+    def test_env_and_flag_precedence(self):
+        self.assertIn("RESOLUTION=720x1280", self.cfg(env_size="720x1280").stdout)
+        self.assertIn("RESOLUTION=720x1560", self.cfg("--size", "720x1560", env_size="720x1280").stdout)
+
+    def test_help(self):
+        r = subprocess.run(["bash", str(self.SCRIPT), "--help"], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("Usage", r.stdout)
+
+
 class StoreMetadataTest(unittest.TestCase):
     TITLE_MAX, SHORT_MAX, FULL_MAX, CHANGELOG_MAX, KEYWORDS_MAX_BYTES = 30, 80, 4000, 500, 100
     META = ROOT / "fastlane" / "metadata"

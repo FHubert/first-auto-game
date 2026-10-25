@@ -10,3 +10,6 @@ res://src/ui/shop_screen.tscn
 res://src/levels/level.tscn|symbols|symbols
 res://src/levels/level.tscn|symbols_neon|symbols_neon
 res://src/levels/level.tscn|plateau_assist|plateau_assist
+res://src/ui/shop_screen.tscn|aso_shop|shop_starter
+res://src/ui/daily_reward_popup.tscn|daily|daily_streak3
+res://src/ui/themes_screen.tscn|aso_themes|themes_locked

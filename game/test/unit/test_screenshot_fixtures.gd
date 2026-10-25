@@ -46,10 +46,42 @@ func test_aso_daily_previews_cycle_day_five() -> void:
 	assert_bool(bool(preview["can_claim"])).is_true()
 
 
-func test_aso_themes_owns_all_four() -> void:
+func test_aso_themes_has_priced_locked_theme_unaffordable() -> void:
 	var state: GameState = ScreenshotFixtures.make("aso_themes")
-	assert_int(state.themes_owned.size()).is_equal(4)
 	assert_bool(state.themes_owned.has(state.theme_active)).is_true()
+	var next_id: String = ThemeCatalog.next_theme_id(state)
+	assert_str(next_id).is_not_equal("")
+	assert_int(ThemeCatalog.cost(next_id)).is_greater(0)
+	assert_bool(ThemeCatalog.can_buy(state, next_id)).is_false()
+
+
+func test_aso_shop_shows_starter_offer_with_eleven_hours_left() -> void:
+	var today: int = 20000
+	var now: int = today * ScreenshotFixtures.SECONDS_PER_DAY
+	var state: GameState = ScreenshotFixtures.make("aso_shop", today)
+	var purchases: Node = auto_free(load("res://src/systems/purchases.gd").new())
+	purchases.state = state
+	assert_bool(purchases.starter_offer_visible(state.level, now)).is_true()
+	var window_s: int = int(GameConfig.get_value("starter_offer_hours")) * 3600
+	var left_s: int = state.starter_offer_start_day + window_s - now
+	assert_int(left_s).is_equal(ScreenshotFixtures.SHOP_OFFER_HOURS_LEFT * 3600)
+	assert_int(state.coins).is_equal(ScreenshotFixtures.ASO_COINS)
+
+
+func test_daily_shows_three_claimed_days() -> void:
+	var today: int = 20000
+	var state: GameState = ScreenshotFixtures.make("daily", today)
+	assert_int(state.streak_days).is_equal(3)
+	assert_bool(DailyRewards.preview(state, today)["can_claim"]).is_true()
+	var popup: DailyRewardPopup = load("res://src/ui/daily_reward_popup.tscn").instantiate()
+	add_child(popup)
+	popup.show_for(state, today)
+	var checked: int = 0
+	for c in popup.checks:
+		if c.visible:
+			checked += 1
+	assert_int(checked).is_equal(3)
+	popup.free()
 
 
 func test_win_result_matches_economy() -> void:

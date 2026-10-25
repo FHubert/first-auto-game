@@ -38,7 +38,7 @@ func _run_screenshot(args: PackedStringArray) -> void:
 	SaveSystem.read_only = true
 	var now_unix: int = int(parsed["now"])
 	var today: int = DailyRewards.utc_day_from_unix(now_unix)
-	var state: GameState = ScreenshotFixtures.make(str(parsed["fixture"]), today)
+	var state: GameState = ScreenshotFixtures.make(str(parsed["fixture"]), today, now_unix)
 	if str(parsed["lang"]) != "":
 		state.settings["locale"] = parsed["lang"]
 	var action: String = ScreenshotArgs.action_for(str(parsed["scene"]))
