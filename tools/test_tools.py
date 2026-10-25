@@ -149,10 +149,11 @@ class BalanceSimTest(unittest.TestCase):
         self.assertFalse(j["always_active"])
         self.assertEqual({k: j[k] for k in golden}, golden)
 
-    def _yday_json(self, on, *extra, players="400"):
+    def _yday_json(self, on, *extra, players="400", goal=20):
+        # goal=20: test T-226 mierzy cel 20 (stary DEFAULT); T-259 obnizyl DEFAULTS do 15, wiec przypinamy go jawnie
         with tempfile.TemporaryDirectory() as d:
             ov = Path(d) / "o.json"
-            ov.write_text('{"sim_yesterday_daily": %d}' % on)
+            ov.write_text('{"sim_yesterday_daily": %d, "daily_month_goal": %d}' % (on, goal))
             return self._sim_json("--overlay", ov, *extra, players=players)
 
     def test_t226_lever_off_by_default_and_raises_rewarded_per_dau(self):
@@ -222,6 +223,29 @@ class BalanceSimTest(unittest.TestCase):
         j = self._sim_json("--always-active", players="1000")
         self.assertLessEqual(j["theme3_buy_day_active_p50"], 14)
         self.assertGreaterEqual(j["theme1_buy_day_active_p50"], 2)
+
+    def _month_goal_hit(self, goal, k, players="600"):
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "o.json"
+            ov.write_text('{"daily_month_goal": %d}' % goal)
+            j = self._sim_json("--overlay", ov, "--active-pattern", str(k), players=players)
+        return j["daily_month_goal_hit_pct"]
+
+    def test_t259_lower_month_goal_never_lowers_hit_pct_at_k6(self):
+        # T-259: nizszy cel miesiaca => co najmniej tylu graczy go osiaga (K=6 dni z 7, 600 graczy, seed 1)
+        hits = [self._month_goal_hit(g, 6) for g in (10, 15, 20)]
+        self.assertGreaterEqual(hits[0], hits[1])
+        self.assertGreaterEqual(hits[1], hits[2])
+        self.assertGreater(hits[0], hits[2])
+
+    def test_t259_default_month_goal_meets_selection_rule(self):
+        # T-259: regula wyboru (5000 graczy, seed 1: cel 15 -> K=6 59,5 %, K=7 86,1 %; cel 20 -> 3,0 % / 20,6 %).
+        # Przy 600 graczach tolerancja ok. +-6 pp wokol zmierzonych wartosci; progi reguly: K=6 >= 50, K=7 >= 80.
+        goal = load_sim().BUILTIN["daily_month_goal"]
+        self.assertEqual(goal, 15)
+        for k, floor in ((6, 50.0), (7, 80.0)):  # bez overlay: czyta DEFAULTS z config.gd
+            self.assertGreaterEqual(self._sim_json("--active-pattern", str(k), players="600")["daily_month_goal_hit_pct"], floor)
+        self.assertLessEqual(self._month_goal_hit(20, 6), 15.0)  # stary cel 20: meta D30 dla prawie nikogo (T-226)
 
     def test_coins_earned_cum_monotonic_by_active_day(self):
         j = self._sim_json("--always-active")
