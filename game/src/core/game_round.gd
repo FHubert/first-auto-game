@@ -1,3 +1,4 @@
+# gdlint: ignore=max-public-methods
 class_name GameRound
 extends RefCounted
 ## Runda water sort: ruchy, cofnij, dodatkowa probówka, restart, podpowiedź.

@@ -107,6 +107,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-145 `todo` SortBoard: probówka jako pakowany int (zmiana architektury `SortBoard` + osobny ADR) — **odłożone w refillu #9**, warunek podjęcia: p95 `Level.load_level` na urządzeniu budżetowym (T-054) > 100 ms mimo prefetchu, albo mediana generatora na CI > 30 ms po T-129. Stan: po T-134 generator 14,0 ms/poziom (−70 %), a T-136 zdjął generację kampanii z wątku głównego; największe udziały profilu: `clone_poured` 29 %, `legal_moves` 18 %, `fast_key` 17 % (odkryte w T-134). Skill: godot-dev
 
 ## Inbox (nieprzeanalizowane — przegląd w cotygodniowym refreshu)
+- [ ] T-227 `todo` GameRound > 20 metod publicznych (gdlint max-public-methods ignorowane od T-214) — rozważyć podział (np. liczniki do osobnej klasy). Skill: godot-dev
 <!-- Refill #10: T-155 → T-161; T-156 → T-161 (2. seed) + T-162; T-157 (część o stałych; decyzja UTC zapisana w T-151) + T-158 + T-159 → T-164; T-160 → T-166. -->
 <!-- Refill #11: T-169 → P2 T-169; T-171 → P2 T-171; T-172 zrobione w refillu #11 (GDD → Generator contentu; ADR-011 bez edycji — Accepted, punkt T-167 już opisuje stan); T-170 zostaje (decyzja Huberta, pytanie T-162); T-173 → P1 (orkiestrator). -->
 <!-- Refill #12: T-180 → P1 T-180 (h2 + `gen_exact_max_colors_daily`; zrobione PR #156, zmiana wycofana wg KA); sugestie QA sesji #16 → P2 T-183, T-184. -->
