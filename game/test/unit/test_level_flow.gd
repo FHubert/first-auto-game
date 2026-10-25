@@ -146,7 +146,7 @@ func test_next_no_interstitial_when_ads_removed() -> void:
 
 
 func test_undo_and_restart() -> void:
-	var charges: int = _level.round.undo_charges()
+	var charges: int = _level.round.counters.undo_charges
 	var m: Vector2i = _level.round.board().legal_moves()[0]
 	_level.board.tap(m.x)
 	_level.board.tap(m.y)
@@ -209,10 +209,10 @@ func test_watch_extra_tube_is_free() -> void:
 
 
 func test_watch_undo_refill_adds_charges() -> void:
-	var before: int = _level.round.undo_charges()
+	var before: int = _level.round.counters.undo_charges
 	assert_bool(_level.offers.watch_undo_refill()).is_true()
 	var amount: int = int(GameConfig.get_value("undo_refill_amount"))
-	assert_int(_level.round.undo_charges()).is_equal(before + amount)
+	assert_int(_level.round.counters.undo_charges).is_equal(before + amount)
 
 
 func test_double_button_flow() -> void:
