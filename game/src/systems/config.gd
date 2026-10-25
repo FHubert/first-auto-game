@@ -194,10 +194,21 @@ const STRING_RULES: Dictionary = {
 }
 
 var _values: Dictionary = DEFAULTS.duplicate(true)
+var _revision: int = 0
 
 
 func get_value(key: String, default: Variant = null) -> Variant:
 	return _values.get(key, default)
+
+
+## Gleboka kopia biezacych wartosci - dla watkow roboczych (ADR-015).
+func snapshot() -> Dictionary:
+	return _values.duplicate(true)
+
+
+## Licznik zmian konfiguracji (reset, set_for_test, apply_remote z >= 1 zastosowanym kluczem).
+func revision() -> int:
+	return _revision
 
 
 ## Overrides known keys only; wrong types / out-of-range values are skipped.
@@ -221,11 +232,14 @@ func apply_remote(remote: Dictionary) -> int:
 		push_warning("GameConfig: remote batch breaks invariants, rolled back")
 		return 0
 	_values = next
+	if applied > 0:
+		_revision += 1
 	return applied
 
 
 func reset() -> void:
 	_values = DEFAULTS.duplicate(true)
+	_revision += 1
 
 
 ## TYLKO TESTY: ustawia wartosc z pominieciem RANGES/niezmiennikow (np. wartosc poza zakresem).
@@ -234,6 +248,7 @@ func set_for_test(key: String, value: Variant) -> void:
 		push_error("GameConfig.set_for_test: unknown key '%s'" % key)
 		return
 	_values[key] = value
+	_revision += 1
 
 
 ## Returns value converted to the default's type, or null if incompatible.

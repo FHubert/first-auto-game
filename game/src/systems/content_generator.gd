@@ -12,6 +12,15 @@ const MIX_MASK: int = 0x7FFFFFFF
 const MIX_SHIFT: int = 15
 const MIN_COLORS: int = 2
 
+## Migawka konfiguracji (GameConfig.snapshot()): generator NIE czyta GameConfig, wiec moze
+## dzialac na watku roboczym bez wyscigu z reset()/apply_remote() (ADR-015).
+var _snapshot: Dictionary = {}
+
+
+## Bez argumentu: migawka z chwili utworzenia (wolac na watku glownym).
+func _init(snapshot: Dictionary = {}) -> void:
+	_snapshot = snapshot if not snapshot.is_empty() else GameConfig.snapshot()
+
 
 ## Level for (seed, level) in the ADR-009 contract: {seed, level, difficulty, payload}.
 func generate(seed_value: int, level: int) -> Dictionary:
@@ -28,7 +37,7 @@ func generate(seed_value: int, level: int) -> Dictionary:
 ## Daily Level for a UTC day number (level 0, seed from daily_seed_salt).
 func generate_daily(utc_day: int) -> Dictionary:
 	var params: Dictionary = daily_params(utc_day)
-	var salt: int = int(GameConfig.get_value("daily_seed_salt"))
+	var salt: int = _cfg_int("daily_seed_salt")
 	var data: Dictionary = _generate_with_params(_mix(salt, utc_day), params, 0)
 	return {
 		"seed": salt,
@@ -60,9 +69,7 @@ func _mix(a: int, b: int) -> int:
 func _generate_with_params(level_seed: int, params: Dictionary, level: int) -> Dictionary:
 	# level 0 = Poziom dnia (osobny limit kolorów exact, T-180)
 	var exact_colors: int = (
-		int(GameConfig.get_value("gen_exact_max_colors_daily"))
-		if level == 0
-		else int(GameConfig.get_value("gen_exact_max_colors"))
+		_cfg_int("gen_exact_max_colors_daily") if level == 0 else _cfg_int("gen_exact_max_colors")
 	)
 	var result: Dictionary = _search(level_seed, params, exact_colors)
 	if result.is_empty():
@@ -83,9 +90,9 @@ func _generate_with_params(level_seed: int, params: Dictionary, level: int) -> D
 ## Tries gen_max_attempts shuffles; returns the first board reaching the floor,
 ## else the best solvable one, else {}.
 func _search(level_seed: int, params: Dictionary, exact_max_colors: int) -> Dictionary:
-	var max_states: int = int(GameConfig.get_value("solver_max_states"))
+	var max_states: int = _cfg_int("solver_max_states")
 	# Cheap pass first: boards the solver cannot crack quickly are skipped (reshuffled).
-	var quick_budget: int = int(GameConfig.get_value("gen_quick_state_budget"))
+	var quick_budget: int = _cfg_int("gen_quick_state_budget")
 	var quick: Dictionary = _search_pass(
 		level_seed, params, mini(max_states, quick_budget), exact_max_colors
 	)
@@ -98,8 +105,8 @@ func _search(level_seed: int, params: Dictionary, exact_max_colors: int) -> Dict
 func _search_pass(
 	level_seed: int, params: Dictionary, max_states: int, exact_max_colors: int
 ) -> Dictionary:
-	var attempts: int = int(GameConfig.get_value("gen_max_attempts"))
-	var weight: float = float(GameConfig.get_value("solver_fallback_weight"))
+	var attempts: int = _cfg_int("gen_max_attempts")
+	var weight: float = _cfg_float("solver_fallback_weight")
 	var floor_moves: int = int(params["min_moves_floor"])
 	var best: Dictionary = {}
 	var best_moves: int = 0
@@ -111,7 +118,7 @@ func _search_pass(
 		# Exact A* is too slow on big boards (~0.4 ms/state), so try a small budget first.
 		var res: Dictionary = {"moves": SortSolver.NO_SOLUTION, "exact": false}
 		if int(params["colors"]) <= exact_max_colors:
-			var exact_budget: int = int(GameConfig.get_value("gen_exact_state_budget"))
+			var exact_budget: int = _cfg_int("gen_exact_state_budget")
 			res = SortSolver.solve(board, mini(max_states, exact_budget))
 		if int(res["moves"]) == SortSolver.NO_SOLUTION and not res["exact"]:
 			res = SortSolver.solve(board, max_states, weight)
@@ -184,26 +191,23 @@ func _empty_payload(params: Dictionary) -> Dictionary:
 
 ## Level parameters from GameConfig (colors, tubes, breather, difficulty, min moves).
 func level_params(level: int) -> Dictionary:
-	var colors: int = int(GameConfig.get_value("tutorial_colors"))
+	var colors: int = _cfg_int("tutorial_colors")
 	if level > 1:
-		var per_extra: int = maxi(1, int(GameConfig.get_value("levels_per_extra_color")))
+		var per_extra: int = maxi(1, _cfg_int("levels_per_extra_color"))
 		var extra: int = (level - 2) / per_extra
-		colors = mini(
-			int(GameConfig.get_value("colors_max")),
-			int(GameConfig.get_value("colors_start")) + extra
-		)
-	var every: int = maxi(1, int(GameConfig.get_value("breather_every")))
+		colors = mini(_cfg_int("colors_max"), _cfg_int("colors_start") + extra)
+	var every: int = maxi(1, _cfg_int("breather_every"))
 	var breather: bool = level % every == 0
 	var d: float = difficulty_curve(level)
 	if breather:
-		d *= float(GameConfig.get_value("breather_factor"))
+		d *= _cfg_float("breather_factor")
 	d = clampf(d, 0.0, 1.0)
-	var easy: float = float(GameConfig.get_value("min_moves_factor_easy"))
-	var hard: float = float(GameConfig.get_value("min_moves_factor_hard"))
-	var empty: int = int(GameConfig.get_value("empty_tubes"))
+	var easy: float = _cfg_float("min_moves_factor_easy")
+	var hard: float = _cfg_float("min_moves_factor_hard")
+	var empty: int = _cfg_int("empty_tubes")
 	return {
 		"level": level,
-		"capacity": int(GameConfig.get_value("tube_capacity")),
+		"capacity": _cfg_int("tube_capacity"),
 		"empty_tubes": empty,
 		"colors": colors,
 		"tubes": colors + empty,
@@ -215,16 +219,16 @@ func level_params(level: int) -> Dictionary:
 
 ## Parameters for the Daily Level (level 0, fixed colors and move factor).
 func daily_params(utc_day: int) -> Dictionary:
-	var colors: int = int(GameConfig.get_value("daily_colors"))
-	var factor: float = float(GameConfig.get_value("daily_min_moves_factor"))
-	var easy: float = float(GameConfig.get_value("min_moves_factor_easy"))
-	var hard: float = float(GameConfig.get_value("min_moves_factor_hard"))
-	var empty: int = int(GameConfig.get_value("empty_tubes"))
+	var colors: int = _cfg_int("daily_colors")
+	var factor: float = _cfg_float("daily_min_moves_factor")
+	var easy: float = _cfg_float("min_moves_factor_easy")
+	var hard: float = _cfg_float("min_moves_factor_hard")
+	var empty: int = _cfg_int("empty_tubes")
 	var span: float = maxf(hard - easy, 0.0001)
 	return {
 		"level": 0,
 		"utc_day": utc_day,
-		"capacity": int(GameConfig.get_value("tube_capacity")),
+		"capacity": _cfg_int("tube_capacity"),
 		"empty_tubes": empty,
 		"colors": colors,
 		"tubes": colors + empty,
@@ -236,8 +240,16 @@ func daily_params(utc_day: int) -> Dictionary:
 
 ## Logistic curve between difficulty_min and difficulty_max (all from GameConfig).
 func difficulty_curve(level: int) -> float:
-	var d_min: float = float(GameConfig.get_value("difficulty_min"))
-	var d_max: float = float(GameConfig.get_value("difficulty_max"))
-	var mid: float = float(GameConfig.get_value("difficulty_midpoint_level"))
-	var k: float = float(GameConfig.get_value("difficulty_steepness"))
+	var d_min: float = _cfg_float("difficulty_min")
+	var d_max: float = _cfg_float("difficulty_max")
+	var mid: float = _cfg_float("difficulty_midpoint_level")
+	var k: float = _cfg_float("difficulty_steepness")
 	return d_min + (d_max - d_min) / (1.0 + exp(-k * (float(level) - mid)))
+
+
+func _cfg_int(key: String) -> int:
+	return int(_snapshot[key])
+
+
+func _cfg_float(key: String) -> float:
+	return float(_snapshot[key])

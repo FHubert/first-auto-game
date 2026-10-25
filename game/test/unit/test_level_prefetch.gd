@@ -80,5 +80,5 @@ func test_empty_thread_result_falls_back_to_sync() -> void:
 class NoWorkPrefetch:
 	extends LevelPrefetch
 
-	func _work(_seed_value: int, _level: int) -> void:
+	func _work(_gen: ContentGenerator, _seed_value: int, _level: int) -> void:
 		pass

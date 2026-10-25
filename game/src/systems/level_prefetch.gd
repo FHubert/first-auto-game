@@ -2,8 +2,9 @@ class_name LevelPrefetch
 extends RefCounted
 ## Generacja poziomu N+1 w tle (ADR-011). Cache = 1 wpis.
 ## Watek robi dokladnie to samo co wywolanie synchroniczne (ContentGenerator.generate),
-## wiec wynik jest identyczny (ADR-009). Generator w watku TYLKO czyta GameConfig;
-## apply_remote nie jest wolany w trakcie rundy (remote config przy starcie aplikacji).
+## wiec wynik jest identyczny (ADR-009). Watek NIE dotyka GameConfig (ADR-015): migawka
+## i revision() sa brane w request() na watku glownym; take() przy innej revision()
+## odrzuca wynik i generuje synchronicznie z biezaca konfiguracja.
 
 ## Ile razy take() musialo generowac synchronicznie (diagnostyka/testy).
 var sync_generations: int = 0
@@ -11,6 +12,7 @@ var sync_generations: int = 0
 var _task_id: int = -1
 var _seed: int = 0
 var _level: int = -1
+var _revision: int = 0
 ## Pisane wylacznie przez watek roboczy; czytane dopiero po wait_for_task_completion
 ## (ta funkcja daje happens-before), wiec Mutex nie jest potrzebny.
 var _result: Dictionary = {}
@@ -22,15 +24,18 @@ func request(seed_value: int, level: int) -> void:
 	cancel_all()
 	_seed = seed_value
 	_level = level
-	_task_id = WorkerThreadPool.add_task(_work.bind(seed_value, level), false, "LevelPrefetch")
+	_revision = GameConfig.revision()
+	var gen: ContentGenerator = ContentGenerator.new(GameConfig.snapshot())
+	_task_id = WorkerThreadPool.add_task(_work.bind(gen, seed_value, level), false, "LevelPrefetch")
 
 
 func take(seed_value: int, level: int) -> Dictionary:
 	if _task_id != -1 and _seed == seed_value and _level == level:
 		WorkerThreadPool.wait_for_task_completion(_task_id)
 		var out: Dictionary = _result
+		var fresh: bool = _revision == GameConfig.revision()
 		_reset()
-		if not out.is_empty():
+		if not out.is_empty() and fresh:
 			return out
 		# Watek mogl nie zapisac wyniku - zamiast pustego slownika generujemy synchronicznie.
 		sync_generations += 1
@@ -47,8 +52,8 @@ func cancel_all() -> void:
 	_reset()
 
 
-func _work(seed_value: int, level: int) -> void:
-	_result = ContentGenerator.new().generate(seed_value, level)
+func _work(gen: ContentGenerator, seed_value: int, level: int) -> void:
+	_result = gen.generate(seed_value, level)
 
 
 func _reset() -> void:
