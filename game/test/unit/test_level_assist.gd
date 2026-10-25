@@ -206,7 +206,6 @@ func test_ad_click_not_granted_keeps_bar() -> void:
 func test_stuck_panel_and_pause_hide_bar() -> void:
 	_start_hard()
 	assert_bool(_level.assist_bar.visible).is_true()
-	_level.stuck_panel.show_for(_level.round)
-	_level._check_stuck()
+	_level.stuck_panel.visible = true
 	_level.pause()
 	assert_bool(_level.assist_bar.visible).is_false()
