@@ -131,3 +131,65 @@ func test_tubes_mini_is_tall() -> void:
 	var mini := Home.TubesMini.new([] as Array[Color])
 	assert_int(int(mini.custom_minimum_size.y)).is_greater_equal(2 * 84)
 	mini.free()
+
+
+func test_streak_text_plural_forms() -> void:
+	var prev: String = TranslationServer.get_locale()
+	var one: Dictionary = {"en": "day", "pl": "dzień", "de": "Tag"}
+	var many: Dictionary = {"en": "days", "pl": "dni", "de": "Tage"}
+	for loc: String in ["en", "pl", "de"]:
+		TranslationServer.set_locale(loc)
+		var t1: String = Home.streak_text(1)
+		var t5: String = Home.streak_text(5)
+		assert_str(t1).is_equal("1 " + str(one[loc]))
+		assert_str(t5).is_equal("5 " + str(many[loc]))
+		assert_str(t1).is_not_equal("home_streak_one")
+	TranslationServer.set_locale(prev)
+
+
+func test_theme_bar_label_and_amount() -> void:
+	var home := _home()
+	var cost: int = ThemeCatalog.cost("pastel")
+	home.state.coins = 350
+	home.refresh()
+	assert_str(ThemeCatalog.next_theme_id(home.state)).is_equal("pastel")
+	assert_str(home.theme_label.text).is_equal(tr("home_theme_to") % tr("theme_name_pastel"))
+	assert_str(home.theme_amount.text).is_equal("350 / %d" % cost)
+	assert_that(home.theme_amount.get_theme_color("font_color")).is_equal(UiTokens.ACCENT)
+	home.state.themes_owned = Array(ThemeCatalog.ids())
+	home.refresh()
+	assert_str(home.theme_label.text).is_equal(tr("home_all_themes"))
+	assert_bool(home.theme_amount.visible).is_false()
+
+
+func _de_geometry(h: int) -> void:
+	var prev: String = TranslationServer.get_locale()
+	TranslationServer.set_locale("de")
+	var home := _home(h)
+	home.state.streak_days = 5
+	home.state.streak_best = 12
+	home.state.coins = 350
+	home.refresh()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var screen := Rect2(0, 0, W, h)
+	var pill: Rect2 = home.streak_label.get_parent().get_parent().get_global_rect()
+	var a: Rect2 = home.streak_label.get_global_rect()
+	var b: Rect2 = home.streak_best_label.get_global_rect()
+	assert_bool(pill.encloses(a)).is_true()
+	assert_bool(pill.encloses(b)).is_true()
+	assert_bool(a.intersects(b)).is_false()
+	var t: Rect2 = home.theme_label.get_global_rect()
+	var m: Rect2 = home.theme_amount.get_global_rect()
+	assert_bool(t.intersects(m)).is_false()
+	assert_bool(screen.encloses(t)).is_true()
+	assert_bool(screen.encloses(m)).is_true()
+	TranslationServer.set_locale(prev)
+
+
+func test_de_streak_and_theme_geometry_1280() -> void:
+	await _de_geometry(1280)
+
+
+func test_de_streak_and_theme_geometry_1560() -> void:
+	await _de_geometry(1560)

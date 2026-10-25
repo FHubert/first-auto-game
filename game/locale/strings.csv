@@ -28,7 +28,7 @@ tut_finish,Finish it - sort the colors!,Dokończ — posortuj kolory!,Mach weite
 home_play_title,Play,Graj,Spielen
 home_play_level,Level %d,Poziom %d,Level %d
 home_streak,Streak: %d,Seria: %d,Serie: %d
-home_streak_best,Best: %d,Rekord: %d,Rekord: %d
+home_streak_best,· best %d,· rekord %d,· Rekord %d
 home_daily_month,This month: %d/%d,W tym miesiącu: %d/%d,Diesen Monat: %d/%d
 home_daily_month_done,Monthly goal reached!,Cel miesiąca zdobyty!,Monatsziel erreicht!
 lc_month_goal,Monthly goal: +%d coins!,Cel miesiąca: +%d monet!,Monatsziel: +%d Münzen!
@@ -39,7 +39,6 @@ home_daily_next_cap,New in,Nowy za,Neu in
 home_daily_new,New!,Nowość!,Neu!
 lc_new_color,Next level: +1 color,Następny poziom: +1 kolor,Nächstes Level: +1 Farbe
 lc_theme_progress,Next theme: %d / %d,Następny motyw: %d / %d,Nächstes Thema: %d / %d
-home_theme_progress,to next theme: %d / %d,do następnego motywu: %d / %d,bis zum nächsten Thema: %d / %d
 btn_themes,Themes,Motywy,Themen
 btn_shop,Shop,Sklep,Shop
 btn_settings,Settings,Ustawienia,Einstellungen
@@ -131,3 +130,6 @@ shop_buy_for,Buy for %s,Kup za %s,Kaufen für %s
 shop_coins_amount,%d coins,%d monet,%d Münzen
 shop_desc_tubes,About %d extra tubes,Około %d dodatkowych probówek,Etwa %d zusätzliche Röhrchen
 shop_desc_bonus,+%d %% free,+%d %% gratis,+%d %% gratis
+home_streak_one,%d day,%d dzień,%d Tag
+home_streak_many,%d days,%d dni,%d Tage
+home_theme_to,To %s theme,Do motywu %s,Bis %s
