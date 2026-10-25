@@ -75,11 +75,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: górny pasek: `ButtonIcon` pauza · „Poziom N” (`LabelTitle`, 48 px) + „Ruchy: X · cel Y” (`TEXT_MUTED`, 28 px) · pill monet; dolny pasek: 4 przyciski HUD 118 px z ikoną i podpisem pod spodem (Cofnij z badge licznika ładunków, Od nowa, Podpowiedź z ceną, +Probówka z ceną / ikoną video przy rewarded). Brak tekstu w przyciskach. Wysokości pasków jako stałe `UiTokens` używane przez `Level.fit_board_*` (jedna prawda). Istniejące sygnały HUD/`LevelOffers` i asercje testów bez zmian. Test: każdy przycisk ≥ `TOUCH_MIN`, plansza poziomu 60 mieści się między paskami w 720×1280 i 720×1560. Kadry sklepowe 01/02 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-231 `todo` UI v2: probówki i plansza wg `docs/ui/README.md` → „Plansza i probówki” (zależy od T-228)
+- [x] T-231 `done` UI v2: probówki i plansza wg `docs/ui/README.md` → „Plansza i probówki” (zależy od T-228) → PR #218 (zmergowany 2026-10-25)
   KA: `TubeView`: wymiary, obrys, alfy szkła (0,55 / wybrana 0,95), rant, zaokrąglone dno, refleks i podniesienie wybranej dokładnie wg README (×1,846). Układ: ≤ 8 probówek → max 4 w rzędzie; > 8 → skalowanie proporcjonalne, rzędy po max 7. Tło płaskie w kolorze `background` motywu. Test: dla n = 4…14 wszystkie probówki w granicach ekranu i bez nakładania; brak regresji `test_board_view*`/`test_tube_view*`. Kadry 01/02 przegenerowane + zestawienie z makietą. ~250 linii.
   Skill: `godot-dev`
 
-- [ ] T-232 `review` UI v2: Home wg `mockups/04_home.png` (zależy od T-228, T-229) → PR #219
+- [x] T-232 `done` UI v2: Home wg `mockups/04_home.png` (zależy od T-228, T-229) → PR #219 (zmergowany 2026-10-25)
   KA: pill monet + pill serii z rekordem; logo „Vialo” (96 px, 900); miniatura 5 probówek; `ButtonPrimary` „Graj / Poziom N” 140 px; karta Poziomu dnia (ikona kalendarza, badge NOWOŚĆ, nagroda, licznik, `ButtonAccent` „Zagraj”, „ukończone N”); pasek „Do motywu X” (`ACCENT` na `BG_DEEP`); 3 × `ButtonNav` (Motywy, Sklep, Ustawienia) zamiast pełnoszerokich przycisków. Istniejące testy Home zielone (dozwolona zmiana ścieżek węzłów). Kadry 03/04 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
@@ -95,7 +95,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `UiFx` (czysta klasa, tweeny na przekazanym węźle): wciśnięcie przycisku = zejście w cień (0,08 s) i powrót, „pop” badge'a przy zmianie licznika, zliczanie kwoty w LevelComplete (0→N w 0,6 s, kończy na dokładnym `win_reward`), pulsowanie podpowiedzi po `hint_nudge_seconds` bez ruchu (nowy klucz `GameConfig`), lot monet do pilla (5 sprite'ów, 0,5 s). Wszystko wyłączone przy `effects_enabled=false`. Testy: brak aktywnych tweenów po `kill_all`, nudge z wstrzykniętym zegarem pojawia się i znika po ruchu, zliczanie kończy się dokładną kwotą. ~220 linii.
   Skill: `godot-dev`
 
-- [ ] T-265 `in_progress` UI v2: wagi fontu Nunito 700/800/900 przez `FontVariation` w `ui_theme.tres` (`nunito.ttf` to font zmienny, oś `wght` 200–1000 — zweryfikowane fontTools w sesji #23; dziś wszystkie etykiety i przyciski renderują się w wadze domyślnej — kadry T-231/T-232/T-234 wyglądają „cienko” względem makiet; zależy od T-228)
+- [ ] T-265 `review` UI v2: wagi fontu Nunito 700/800/900 przez `FontVariation` w `ui_theme.tres` (`nunito.ttf` to font zmienny, oś `wght` 200–1000 — zweryfikowane fontTools w sesji #23; dziś wszystkie etykiety i przyciski renderują się w wadze domyślnej — kadry T-231/T-232/T-234 wyglądają „cienko” względem makiet; zależy od T-228) → PR #221
   KA: w `ui_theme.tres` 3 `FontVariation` (`variation_opentype = {"wght": 700|800|900}`) na bazie `nunito.ttf`; `default_font` = 700; `LabelTitle`/`LabelSection`/wszystkie warianty `Button*` = 900, `LabelCaption` = 700 (README → „Typografia”); test gdUnit4: `theme.get_font("font", "LabelTitle")` jest `FontVariation` z `wght` 900; kadr smoke Home przed/po w opisie PR. Bez nowych plików fontów, `docs/LICENSES.md` bez zmian. ≤ ~40 linii.
   Skill: `godot-dev`
 
@@ -204,6 +204,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-261 `todo` Rewarded przy mediacji: kolejność `onUserEarnedReward` vs zamknięcie reklamy ustala źródło mediacji (dla reklam Google nagroda przed zamknięciem — https://developers.google.cn/admob/android/rewarded?hl=en, 2026-10-25) — adapter AdMob w Fazie 5 musi scalić oba callbacki w jedno `rewarded_closed(granted)` z oknem oczekiwania (czysta klasa + `TestClock`); robić razem z adapterem, tylko jeśli włączymy mediację. Skill: ads-iap
 - [ ] T-262 `todo` `StuckPanel`: linia „%d ruchów od celu” w grze nigdy się nie pokazuje (panel otwierany tylko bez legalnych ruchów → zawsze „Brak rozwiązania z tego stanu”); widać ją tylko w kadrze `--screenshot` (`main.gd` `stuck_panel`), więc kadr nie odpowiada grze (ryzyko jak T-111) — do decyzji przy UI v2 T-233 (GDD pytanie 27). Skill: godot-dev
 - [ ] T-263 `todo` `tools/test_ui_icons.py`: `Image.getdata()` daje DeprecationWarning w Pillow 14 → `get_flattened_data()` (odkryte w T-229, sesja #23). Skill: asset-gen
+- [ ] T-264 `todo` `Level.fit_board_above_panel` po T-231 centruje planszę w obszarze HUD–panel wygranej zamiast przyklejać ją tuż nad panel (jak przed UI v2); do decyzji przy T-233 (LevelComplete jako dolny arkusz nad planszą — makieta 03). Skill: godot-dev
 
 ## Pytania do Huberta
 - Refill #17 (T-259, GDD pytanie 26): cel miesiąca Poziomów dnia — sim T-226: cel 20 osiąga 20,6 % graczy grających codziennie, 3,0 % przy 6 dniach z 7, 0,0 % przy 5; przyjęto: wartość z reguły T-259 (największy cel z {10, 12, 15, 20}, który K = 6 osiąga ≥ 50 % i K = 7 ≥ 80 %, d30/d1 ≤ 2,0) trafia do `DEFAULTS` bez czekania (remote config pozwala cofnąć), premia 300 bez zmian; do zmiany (alternatywy: zostawić 20 jako cel „dla najwierniejszych”; cel proporcjonalny w miesiącu instalacji).

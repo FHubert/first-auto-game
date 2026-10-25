@@ -5,7 +5,7 @@ const VIEW := Vector2(BoardView.TUBE_WIDTH, BoardView.TUBE_HEIGHT)
 
 
 func test_inner_rect() -> void:
-	assert_that(TubeView.inner_rect(Vector2(90, 300))).is_equal(Rect2(12, 40, 65, 247))
+	assert_that(TubeView.inner_rect(VIEW)).is_equal(Rect2(12, 16, 61, 304))
 
 
 func test_bottom_layer_inside_inner_rect() -> void:
