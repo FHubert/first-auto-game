@@ -88,6 +88,13 @@ theme_type_variation = &"LabelTitle"
 theme_override_font_sizes/font_size = 96
 horizontal_alignment = 1
 
+[node name="BreakdownLabel" type="Label" parent="Panel/Box"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"LabelCaption"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="ProgressLabel" type="Label" parent="Panel/Box"]
 visible = false
 layout_mode = 2
@@ -95,16 +102,41 @@ theme_type_variation = &"LabelCaption"
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="ThemeRow" type="VBoxContainer" parent="Panel/Box"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NameRow" type="HBoxContainer" parent="Panel/Box/ThemeRow"]
+layout_mode = 2
+
+[node name="ThemeNameLabel" type="Label" parent="Panel/Box/ThemeRow/NameRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"LabelCaption"
+autowrap_mode = 3
+
+[node name="ThemeValueLabel" type="Label" parent="Panel/Box/ThemeRow/NameRow"]
+layout_mode = 2
+theme_type_variation = &"LabelCaption"
+horizontal_alignment = 2
+
+[node name="ThemeBar" type="ProgressBar" parent="Panel/Box/ThemeRow"]
+layout_mode = 2
+show_percentage = false
+
 [node name="DoubleButton" type="Button" parent="Panel/Box"]
 visible = false
 custom_minimum_size = Vector2(0, 103)
 layout_mode = 2
 theme_type_variation = &"ButtonAccent"
+alignment = 1
 
 [node name="NextButton" type="Button" parent="Panel/Box"]
 custom_minimum_size = Vector2(0, 103)
 layout_mode = 2
 theme_type_variation = &"ButtonPrimary"
+alignment = 1
 
 [node name="HomeButton" type="Button" parent="Panel/Box"]
 custom_minimum_size = Vector2(0, 81)

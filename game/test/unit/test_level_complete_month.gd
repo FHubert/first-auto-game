@@ -114,3 +114,9 @@ func test_normal_day_has_no_message() -> void:
 	await _start(3)
 	assert_bool(_level.level_complete.progress_label.visible).is_false()
 	_assert_panel_fits(_level.level_complete)
+
+
+func test_daily_win_hides_theme_bar_and_breakdown() -> void:
+	await _start(3)
+	assert_bool(_level.level_complete.theme_row.visible).is_false()
+	assert_bool(_level.level_complete.breakdown_label.visible).is_false()

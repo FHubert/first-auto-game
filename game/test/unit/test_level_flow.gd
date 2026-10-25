@@ -184,12 +184,19 @@ func test_double_coins_once_on_level_two() -> void:
 
 func test_double_coins_updates_progress_label() -> void:
 	_win_level_two()
-	var label: Label = _level.level_complete.progress_label
-	assert_bool(label.visible).is_true()
+	var lc: LevelComplete = _level.level_complete
+	var label: Label = lc.progress_label
+	var theme_progress: bool = lc.theme_row.visible
+	# Postep do motywu pokazuje pasek (ThemeRow), a nie progress_label.
+	assert_bool(label.visible or theme_progress).is_true()
 	assert_bool(_level.offers.watch_double_coins()).is_true()
 	var expected: Dictionary = LevelComplete.progress_message(2, _level.mode, _level.state)
 	if expected["key"] == "lc_theme_progress":
-		assert_str(label.text).is_equal(tr("lc_theme_progress") % expected["args"])
+		assert_bool(lc.theme_row.visible).is_true()
+		assert_bool(label.visible).is_false()
+		assert_float(lc.theme_bar.value).is_equal(
+			float(mini(_level.state.coins, lc.theme_bar.max_value))
+		)
 		assert_int(expected["args"][0]).is_equal(_level.state.coins)
 
 

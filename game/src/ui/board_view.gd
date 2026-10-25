@@ -28,6 +28,8 @@ var theme_data: Dictionary = {}
 var theme_id: String = ""
 var animate: bool = true
 var show_symbols: bool = false
+## Wszystkie probowki w jednym rzedzie (ekran wygranej); scale_for skaluje w dol.
+var single_row: bool = false
 
 var _views: Array[TubeView] = []
 var _rest: Array[Vector2] = []
@@ -49,6 +51,12 @@ static func load_theme(theme_id: String) -> Dictionary:
 func _ready() -> void:
 	animate = DisplayServer.get_name() != "headless"
 	resized.connect(_layout)
+
+
+func set_single_row(on: bool) -> void:
+	single_row = on
+	if not _views.is_empty():
+		_layout()
 
 
 func set_show_symbols(on: bool) -> void:
@@ -332,17 +340,19 @@ func _rebuild() -> void:
 
 
 ## Liczba kolumn: <= 8 probowek -> max 4 w rzedzie; wiecej -> polowa (max 7).
-static func columns_for(n: int) -> int:
+static func columns_for(n: int, single_row: bool = false) -> int:
+	if single_row:
+		return maxi(n, 1)
 	if n < UiTokens.BOARD_SCALED_FROM:
 		return clampi(n, 1, UiTokens.BOARD_MAX_COLS)
 	return mini(UiTokens.BOARD_MAX_COLS_SCALED, ceili(n / 2.0))
 
 
 ## Wspolczynnik skali planszy dla n probowek w obszarze avail (px).
-static func scale_for(n: int, avail: Vector2) -> float:
+static func scale_for(n: int, avail: Vector2, single_row: bool = false) -> float:
 	if avail.x <= 0.0 or avail.y <= 0.0:
 		return 1.0
-	var cols: int = columns_for(n)
+	var cols: int = columns_for(n, single_row)
 	var rows: int = ceili(float(n) / float(cols))
 	var w: float = cols * TUBE_WIDTH + (cols - 1) * GAP_X
 	var h: float = rows * TUBE_HEIGHT + (rows - 1) * GAP_Y + LIFT_PX
@@ -351,7 +361,7 @@ static func scale_for(n: int, avail: Vector2) -> float:
 
 ## Wysokosc zawartosci (rzedy probowek z odstepami, po skalowaniu).
 func content_height() -> float:
-	var cols: int = columns_for(_views.size())
+	var cols: int = columns_for(_views.size(), single_row)
 	var rows: int = maxi(ceili(float(_views.size()) / float(cols)), 1)
 	return (rows * TUBE_HEIGHT + (rows - 1) * GAP_Y) * _scale
 
@@ -363,10 +373,10 @@ func _layout() -> void:
 	var n: int = _views.size()
 	if n == 0:
 		return
-	var cols: int = columns_for(n)
+	var cols: int = columns_for(n, single_row)
 	var rows: int = ceili(float(n) / float(cols))
 	var avail := Vector2(size.x - 2.0 * UiTokens.SCREEN_PAD, size.y)
-	_scale = scale_for(n, avail)
+	_scale = scale_for(n, avail, single_row)
 	var tsize: Vector2 = _tube_size()
 	var gap := Vector2(GAP_X, GAP_Y) * _scale
 	var total_h: float = rows * tsize.y + (rows - 1) * gap.y

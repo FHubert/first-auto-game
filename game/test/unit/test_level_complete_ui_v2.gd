@@ -51,7 +51,7 @@ func test_german_labels_not_clipped() -> void:
 	var prev: String = TranslationServer.get_locale()
 	TranslationServer.set_locale("de")
 	var lc := _complete()
-	lc.show_result(25, true, 20, "", {"key": "lc_new_color", "args": []})
+	lc.show_result(25, true, 20, "", {"key": "lc_new_color", "args": []}, _breakdown())
 	lc.set_double_offer(25, true)
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -60,3 +60,45 @@ func test_german_labels_not_clipped() -> void:
 	_wide_labels(lc, limit, wide)
 	TranslationServer.set_locale(prev)
 	assert_array(wide).is_empty()
+
+
+func _breakdown() -> Dictionary:
+	return {
+		"win": 15,
+		"perfect": 10,
+		"moves": 19,
+		"theme_name": "Pastel",
+		"theme_cost": 600,
+		"coins": 375,
+	}
+
+
+func test_breakdown_and_theme_bar() -> void:
+	var lc := _complete()
+	var progress: Dictionary = {"key": "lc_theme_progress", "args": [375, 600]}
+	lc.show_result(25, true, 20, "", progress, _breakdown())
+	assert_bool(lc.breakdown_label.visible).is_true()
+	assert_str(lc.breakdown_label.text).is_equal(tr("lc_breakdown") % [15, 10])
+	assert_bool(lc.theme_row.visible).is_true()
+	assert_float(lc.theme_bar.value).is_equal(375.0)
+	assert_float(lc.theme_bar.max_value).is_equal(600.0)
+	assert_bool(lc.progress_label.visible).is_false()
+	assert_str(lc.perfect_label.text).is_equal(tr("lc_perfect_moves") % 19)
+
+
+func test_no_breakdown_hides_extras() -> void:
+	var lc := _complete()
+	lc.show_result(25, true, 20)
+	assert_bool(lc.breakdown_label.visible).is_false()
+	assert_bool(lc.theme_row.visible).is_false()
+	assert_str(lc.perfect_label.text).is_equal(tr("lc_perfect"))
+
+
+func test_no_next_theme_keeps_progress_label() -> void:
+	var lc := _complete()
+	var bd: Dictionary = _breakdown()
+	bd["theme_cost"] = 0
+	lc.show_result(25, true, 20, "", {"key": "lc_new_color", "args": []}, bd)
+	assert_bool(lc.theme_row.visible).is_false()
+	assert_bool(lc.progress_label.visible).is_true()
+	assert_str(lc.progress_label.text).is_equal(tr("lc_new_color"))
