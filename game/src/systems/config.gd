@@ -130,7 +130,7 @@ const RANGES: Dictionary = {
 	"win_reward_coins": [0, 100000],
 	"par_bonus_coins": [0, 100000],
 	"hint_cost_coins": [0, 100000],
-	"extra_tube_cost_coins": [0, 100000],
+	"extra_tube_cost_coins": [1, 100000],
 	"undo_refill_cost_coins": [0, 100000],
 	"theme_cost_base": [0, 100000],
 	"theme_cost_growth": [1.0, 5.0],

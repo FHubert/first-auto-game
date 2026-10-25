@@ -13,6 +13,8 @@ const SKU_ICONS: Dictionary = {
 	"coins_small": "coin",
 	"coins_large": "coins_stack"
 }
+## Ponizej tej wysokosci viewportu karta startowa jest kompaktowa (mniejsza miniatura, bez motywu).
+const COMPACT_BELOW_H: float = 1400.0
 const SKU_ORDER: Array[String] = ["starter_pack", "coins_small", "coins_large", "remove_ads"]
 
 var state: GameState
@@ -28,6 +30,9 @@ var restore_button: LinkButton
 var back_button: Button
 ## sku -> {"panel", "button", "desc", "extra", "badge", "clock"} (Control/Button/Label/TextureRect)
 var cards: Dictionary = {}
+var compact: bool = false
+var _theme_label: Label
+var _tubes: StarterTubes
 
 
 func _ready() -> void:
@@ -39,7 +44,9 @@ func _ready() -> void:
 	Purchases.products_updated.connect(func(_p: Array) -> void: refresh())
 	Purchases.purchase_granted.connect(func(_s: String) -> void: refresh())
 	Purchases.restore_done.connect(_on_restore_done)
+	resized.connect(_apply_compact)
 	refresh()
+	_apply_compact()
 
 
 func has_card(sku: String) -> bool:
@@ -82,6 +89,13 @@ func refresh() -> void:
 			var price: String = Purchases.price_text(sku)
 			b.text = str(tr("shop_buy_for")) % price if sku == Purchases.SKU_STARTER else price
 			b.disabled = false
+
+
+func _apply_compact() -> void:
+	compact = size.y > 0.0 and size.y < COMPACT_BELOW_H
+	if _theme_label != null:
+		_theme_label.visible = not compact
+		_tubes.set_compact(compact)
 
 
 func _on_buy(sku: String) -> void:
@@ -156,9 +170,14 @@ func _build() -> void:
 	for side: String in ["left", "top", "right", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, UiTokens.SCREEN_PAD)
 	add_child(margin)
+	## Zewnetrzny box bez odstepu: lista przylega do stopki (restore + status).
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 0)
+	margin.add_child(outer)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", GAP)
-	margin.add_child(box)
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	outer.add_child(box)
 	var header: Dictionary = ScreenHeader.build(box, tr("shop_title"), true)
 	back_button = header["back"]
 	coins_label = header["coins"]
@@ -175,7 +194,7 @@ func _build() -> void:
 	scroll.add_child(list)
 	for sku in SKU_ORDER:
 		_build_card(list, sku)
-	status_label = _label(box, "", &"LabelCaption")
+	status_label = _label(outer, "", &"LabelCaption")
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	restore_button = LinkButton.new()
 	restore_button.text = tr("btn_restore")
@@ -186,7 +205,7 @@ func _build() -> void:
 	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		restore_button.add_theme_color_override(c, UiTokens.TEXT_SOFT)
 	restore_button.pressed.connect(Purchases.restore)
-	box.add_child(restore_button)
+	outer.add_child(restore_button)
 
 
 func _style(radius: int, bg: Color, margins: Array[int], border: int = 0) -> StyleBoxFlat:
@@ -276,7 +295,8 @@ func _build_card(box: Control, sku: String) -> void:
 		var bg: Color = Color(str(theme_def.get("background", "#000000")))
 		tile.add_theme_stylebox_override("panel", _style(30, bg, [22, 18, 22, 18]))
 		tile.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		tile.add_child(StarterTubes.new(theme_def))
+		_tubes = StarterTubes.new(theme_def)
+		tile.add_child(_tubes)
 		row.add_child(tile)
 		var col := VBoxContainer.new()
 		col.add_theme_constant_override("separation", 7)
@@ -294,7 +314,9 @@ func _build_card(box: Control, sku: String) -> void:
 		)
 		coins_text.autowrap_mode = TextServer.AUTOWRAP_OFF
 		var name_key: String = "theme_name_" + str(GameConfig.get_value("iap_starter_theme"))
-		_text(col, str(tr("shop_starter_theme")) % tr(name_key), 30, UiTokens.TEXT_SOFT)
+		_theme_label = _text(
+			col, str(tr("shop_starter_theme")) % tr(name_key), 30, UiTokens.TEXT_SOFT
+		)
 		desc = _text(col, _desc(sku), 24, UiTokens.TEXT_MUTED)
 		wrap.add_child(b)
 	else:
@@ -336,13 +358,21 @@ class StarterTubes:
 	const LAYER_H := 31.0
 	const OUTLINE_W := 4.0
 	const PICKS: Array = [[0, 5, 2], [3, 7, 1, 6]]
+	const COMPACT_K := 0.6
 	var def: Dictionary
+	var _k: float = 1.0
 
 	func _init(theme_def: Dictionary) -> void:
 		def = theme_def
-		custom_minimum_size = Vector2(TUBE_PX.x * 2.0 + GAP_PX, TUBE_PX.y)
+		set_compact(false)
+
+	func set_compact(on: bool) -> void:
+		_k = COMPACT_K if on else 1.0
+		custom_minimum_size = Vector2(TUBE_PX.x * 2.0 + GAP_PX, TUBE_PX.y) * _k
+		queue_redraw()
 
 	func _draw() -> void:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(_k, _k))
 		var liquids: Array = def.get("liquids", [])
 		var glass := Color(str(def.get("glass", "#FFFFFF")), 0.8)
 		var radius: float = TUBE_PX.x * 0.5
