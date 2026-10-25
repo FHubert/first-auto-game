@@ -48,8 +48,11 @@ func test_button_contrast_and_raised_effect() -> void:
 	for v in BUTTONS:
 		var n: StyleBoxFlat = THEME.get_stylebox("normal", v)
 		var p: StyleBoxFlat = THEME.get_stylebox("pressed", v)
+		var d: StyleBoxFlat = THEME.get_stylebox("disabled", v)
 		var fg: Color = THEME.get_color("font_color", v)
+		var fgd: Color = THEME.get_color("font_disabled_color", v)
 		assert_float(UiTokens.contrast_ratio(fg, n.bg_color)).is_greater_equal(4.5)
+		assert_float(UiTokens.contrast_ratio(fgd, d.bg_color)).is_greater_equal(4.5)
 		assert_int(n.shadow_size).is_equal(0)
 		assert_int(n.border_width_bottom).is_between(7, 13)
 		assert_int(p.border_width_bottom).is_equal(0)
@@ -70,3 +73,15 @@ func test_button_min_height() -> void:
 		assert_float(n.content_margin_top + n.content_margin_bottom + fs).is_greater_equal(
 			UiTokens.TOUCH_MIN
 		)
+
+
+func test_variants_match_tokens() -> void:
+	var cases: Array = [
+		["ButtonPrimary", UiTokens.PRIMARY, UiTokens.ON_PRIMARY],
+		["ButtonAccent", UiTokens.ACCENT, UiTokens.ON_ACCENT],
+		["ButtonSecondary", UiTokens.CARD_ROW, UiTokens.TEXT],
+	]
+	for c in cases:
+		var n: StyleBoxFlat = THEME.get_stylebox("normal", c[0])
+		assert_bool(n.bg_color.is_equal_approx(c[1])).is_true()
+		assert_bool(THEME.get_color("font_color", c[0]).is_equal_approx(c[2])).is_true()
