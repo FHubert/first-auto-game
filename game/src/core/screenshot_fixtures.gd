@@ -34,6 +34,7 @@ static func apply_win(level: Level) -> void:
 	)
 	level.level_complete.show_result(int(result["coins"]), true, level.level_no, "", progress)
 	level.level_complete.set_double_offer(int(result["double_bonus"]), true)
+	level.hud.visible = false
 	level.fit_board_above_panel()
 
 

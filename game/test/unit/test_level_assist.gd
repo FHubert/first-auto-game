@@ -130,11 +130,12 @@ func _assert_bar_clear(info: String) -> void:
 		. override_failure_message("bar poza viewportem " + info)
 		. is_true()
 	)
-	(
-		assert_bool(bar.intersects(_level.hud.get_global_rect()))
-		. override_failure_message("bar na HUD " + info)
-		. is_false()
-	)
+	for hud_bar: Control in [_level.hud.top_bar, _level.hud.bottom_bar]:
+		(
+			assert_bool(bar.intersects(hud_bar.get_global_rect()))
+			. override_failure_message("bar na HUD " + info)
+			. is_false()
+		)
 	for i in _level.round.board().tube_count():
 		(
 			assert_bool(bar.intersects(_level.board.tube_rect(i)))

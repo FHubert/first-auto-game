@@ -1,6 +1,9 @@
 keys,en,pl,de
 hud_level,Level %d,Poziom %d,Level %d
 hud_moves,Moves: %d,Ruchy: %d,Züge: %d
+hud_moves_goal,Moves: %d · goal %d,Ruchy: %d · cel %d,Züge: %d · Ziel %d
+btn_undo_short,Undo,Cofnij,Zurück
+hud_ad,Ad,Reklama,Werbung
 btn_undo,Undo (%d),Cofnij (%d),Rückgängig (%d)
 btn_restart,Restart,Od nowa,Neustart
 btn_pause,Pause,Pauza,Pause

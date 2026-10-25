@@ -18,6 +18,7 @@ const STREAK := Color("#FB8500")
 const TEXT := Color("#FFFFFF")
 const TEXT_MUTED := Color("#A9B8D6")
 const TEXT_SECTION := Color("#8EA0C4")
+const TEXT_SOFT := Color("#C9D4EA")
 const DIM := Color(0.0235, 0.0471, 0.1098, 0.66)
 
 const FONT_XS := 24
@@ -36,6 +37,12 @@ const HUD_BTN := 118
 const NAV_BTN := 126
 const PLAY_BTN := 140
 const SCREEN_PAD := 37
+## HUD planszy (T-230): wysokosci pasków - jedna prawda dla Hud i Level.fit_board_*.
+const HUD_TOP_H := 163
+const HUD_BOTTOM_H := 230
+const HUD_BADGE := 44
+const HUD_ICON := 52
+const HUD_COST_ICON := 30
 ## Probówka i plansza (T-231); README -> "Plansza i probówki".
 const TUBE_W := 85
 const TUBE_H := 332

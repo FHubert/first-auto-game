@@ -17,8 +17,8 @@ var ad_button: Button
 func _ready() -> void:
 	Locale.ensure_installed()
 	set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	offset_top = -(BAR_HEIGHT + BOTTOM_MARGIN)
-	offset_bottom = -BOTTOM_MARGIN
+	offset_top = -(UiTokens.HUD_BOTTOM_H + BAR_HEIGHT + BOTTOM_MARGIN)
+	offset_bottom = -(UiTokens.HUD_BOTTOM_H + BOTTOM_MARGIN)
 	var rows := VBoxContainer.new()
 	add_child(rows)
 	title_label = Label.new()

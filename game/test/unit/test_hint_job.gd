@@ -121,14 +121,14 @@ func test_hint_pending_then_move_discards_result() -> void:
 	var coins: int = _level.state.coins
 	_level.hud.hint_pressed.emit()
 	assert_bool(_level.hud.hint_button.disabled).is_true()
-	assert_str(_level.hud.hint_button.text).is_equal("…")
+	assert_str(_level.hud.hint_cost_label.text).is_equal("…")
 	assert_int(_level.state.coins).is_equal(coins)
 	var m: Vector2i = _first_move()
 	assert_bool(_level.round.try_move(m.x, m.y)).is_true()
 	_release = true
 	await _wait_job()
 	assert_bool(_level.hud.hint_button.disabled).is_false()
-	assert_str(_level.hud.hint_button.text).is_equal(tr("btn_hint") % Economy.hint_cost())
+	assert_str(_level.hud.hint_cost_label.text).is_equal(str(Economy.hint_cost()))
 	assert_int(_level.state.coins).is_equal(coins)
 	assert_int(_level.round.result()["boosters_used"]).is_equal(0)
 	var key: String = SolverCache.key_of(_level.round.board(), _exact_limit())

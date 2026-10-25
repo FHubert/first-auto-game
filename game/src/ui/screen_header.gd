@@ -40,27 +40,33 @@ static func build(parent: Control, title: String, with_coins: bool) -> Dictionar
 	row.add_child(label)
 	var coins: Label = null
 	if with_coins:
-		var pill := PanelContainer.new()
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = UiTokens.BG_DEEP
-		sb.set_corner_radius_all(UiTokens.BTN_ICON)
-		sb.set_content_margin_all(14)
-		sb.content_margin_left = 24
-		sb.content_margin_right = 24
-		pill.add_theme_stylebox_override("panel", sb)
-		row.add_child(pill)
-		var inner := HBoxContainer.new()
-		pill.add_child(inner)
-		var icon := TextureRect.new()
-		icon.texture = UiTokens.icon("coin")
-		icon.custom_minimum_size = Vector2(48, 48)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		inner.add_child(icon)
-		coins = Label.new()
-		coins.add_theme_font_size_override("font_size", UiTokens.FONT_BTN)
-		inner.add_child(coins)
+		coins = coins_pill(row)
 	return {"back": back, "coins": coins}
+
+
+## Pill monet (ikona + liczba) dodany do `parent`; zwraca etykiete z liczba.
+static func coins_pill(parent: Control, font_size: int = UiTokens.FONT_BTN) -> Label:
+	var pill := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = UiTokens.BG_DEEP
+	sb.set_corner_radius_all(UiTokens.BTN_ICON)
+	sb.set_content_margin_all(14)
+	sb.content_margin_left = 24
+	sb.content_margin_right = 24
+	pill.add_theme_stylebox_override("panel", sb)
+	parent.add_child(pill)
+	var inner := HBoxContainer.new()
+	pill.add_child(inner)
+	var icon := TextureRect.new()
+	icon.texture = UiTokens.icon("coin")
+	icon.custom_minimum_size = Vector2(48, 48)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	inner.add_child(icon)
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", font_size)
+	inner.add_child(label)
+	return label
 
 
 ## Przycisk bez tla i bez paddingu stylu (wiersz listy).

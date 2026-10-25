@@ -102,9 +102,14 @@ func test_board_content_height_grows_with_rows() -> void:
 func test_restart_after_win_resets_board_fit() -> void:
 	_win()
 	_level.restart()
-	assert_float(_level.board.offset_top).is_equal(0.0)
-	assert_float(_level.board.offset_bottom).is_equal(0.0)
+	assert_float(_level.board.offset_top).is_equal(float(UiTokens.HUD_TOP_H))
+	assert_float(_level.board.offset_bottom).is_equal(float(-UiTokens.HUD_BOTTOM_H))
 
 
 func test_hud_height_matches_bar_height_in_scene() -> void:
-	assert_float(_level.hud.offset_bottom).is_equal(Hud.BAR_HEIGHT)
+	await get_tree().process_frame
+	assert_float(_level.hud.top_bar.size.y).is_equal(float(UiTokens.HUD_TOP_H))
+	assert_float(_level.hud.bottom_bar.size.y).is_equal(float(UiTokens.HUD_BOTTOM_H))
+	_level.load_level(1)
+	assert_float(_level.board.offset_top).is_equal(float(UiTokens.HUD_TOP_H))
+	assert_float(_level.board.offset_bottom).is_equal(float(-UiTokens.HUD_BOTTOM_H))
