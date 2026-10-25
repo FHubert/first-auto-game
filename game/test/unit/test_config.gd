@@ -63,3 +63,12 @@ func test_reset_restores_defaults() -> void:
 	_cfg.apply_remote({"daily_reward_base": 99})
 	_cfg.reset()
 	assert_int(_cfg.get_value("daily_reward_base")).is_equal(50)
+
+
+func test_hint_exact_budget_above_solver_budget_rejects_batch() -> void:
+	assert_int(_cfg.get_value("hint_exact_max_states")).is_equal(2000)
+	var applied: int = _cfg.apply_remote({"hint_exact_max_states": 30000, "starting_coins": 150})
+	assert_int(applied).is_equal(0)
+	assert_int(_cfg.get_value("hint_exact_max_states")).is_equal(2000)
+	assert_int(_cfg.get_value("starting_coins")).is_equal(100)
+	assert_int(_cfg.apply_remote({"hint_exact_max_states": 5000})).is_equal(1)

@@ -15,8 +15,12 @@ const MAX_STEPS: int = 400
 const USEC_PER_MS: float = 1000.0
 const P95_Q: float = 0.95
 const BRACKETS: Array = ["8-25", "26-55", "56+", "daily"]
-const GATE_P95_MS: float = 100.0
+const GATE_P95_MS: float = 100.0  # moves_to_goal (limit hint_solver_max_states)
 const GATE_MAX_MS: float = 500.0
+## T-237: podpowiedz (limit hint_exact_max_states), tez czas do wyniku z watku.
+const GATE_HINT_P95_MS: float = 500.0
+const GATE_HINT_MAX_MS: float = 1000.0
+const GATE_SOLVED_PCT: float = 95.0
 
 ## Skrypty ladowane dynamicznie w _initialize: statyczne nazwy klas kompiluja sie przed
 ## rejestracja autoloadu GameConfig (jak w measure_curve.gd).
@@ -34,7 +38,7 @@ func _initialize() -> void:
 		out_path = args[idx + 1]
 	var lim: int = args.find("--limit")
 	if lim >= 0 and lim + 1 < args.size():
-		_cfg().set_for_test("hint_solver_max_states", int(args[lim + 1]))
+		_cfg().set_for_test("hint_exact_max_states", int(args[lim + 1]))
 	_round_cls = load("res://src/core/game_round.gd")
 	_solver_cls = load("res://src/core/sort_solver.gd")
 	_bot_cls = load("res://test/integration/playtest_bot.gd")
@@ -50,7 +54,8 @@ func _initialize() -> void:
 		rows.append_array(_measure_level(daily_cls.level_for_day(day), day, "daily", "daily"))
 	var summary: Dictionary = _summary(rows)
 	var report: Dictionary = {
-		"limit": int(_cfg().get_value("hint_solver_max_states")),
+		"limit_exact": int(_cfg().get_value("hint_exact_max_states")),
+		"limit_moves": int(_cfg().get_value("hint_solver_max_states")),
 		"summary": summary,
 		"states": rows,
 	}
@@ -59,12 +64,18 @@ func _initialize() -> void:
 	var f := FileAccess.open(abs_path, FileAccess.WRITE)
 	f.store_string(JSON.stringify(report, "\t"))
 	f.close()
-	print("| przedzial | n | hint med/p95/max ms | moves_to_goal med/p95/max ms | bramka |")
+	print("| przedzial | n | hint ms | m2g ms | po podp. | dluzsze | bramka podp. | bramka m2g |")
 	for b: String in BRACKETS:
 		var s: Dictionary = summary[b]
 		var h: Array = s["hint_ms"]
 		var m: Array = s["moves_to_goal_ms"]
-		print("| %s | %d | %s | %s | %s |" % [b, s["n"], _fmt(h), _fmt(m), s["gate"]])
+		var sv: String = "%d/%d (%.0f%%)" % [s["solved"], s["solvable"], s["solved_pct"]]
+		print(
+			(
+				"| %s | %d | %s | %s | %s | %d | %s | %s |"
+				% [b, s["n"], _fmt(h), _fmt(m), sv, s["longer"], s["gate"], s["moves_gate"]]
+			)
+		)
 	print("| przedzial | HintJob.request (watek glowny) med/p95/max ms | do wyniku (worker) |")
 	for b: String in BRACKETS:
 		print("| %s | %s | %s |" % [b, _fmt(summary[b]["main_ms"]), _fmt(summary[b]["worker_ms"])])
@@ -100,6 +111,8 @@ func _measure_level(data: Dictionary, level: int, mode: String, bracket: String)
 			var moves: int = r.moves_to_goal()
 			goal_us.append(Time.get_ticks_usec() - t0)
 		var probe: RefCounted = _round_cls.from_dict(snap)
+		var optimal: int = probe.moves_to_goal()
+		var after: int = _moves_after_hint(snap)
 		var limit: int = int(_cfg().get_value("hint_solver_max_states"))
 		var first: Dictionary = _solver_cls.solve(probe.board(), limit, _solver_cls.EXACT_WEIGHT)
 		(
@@ -113,13 +126,26 @@ func _measure_level(data: Dictionary, level: int, mode: String, bracket: String)
 					"hint_ms": _median(hint_us) / USEC_PER_MS,
 					"async_ms": _measure_async(snap),
 					"moves_to_goal_ms": _median(goal_us) / USEC_PER_MS,
-					"moves": probe.moves_to_goal(),
+					"moves": optimal,
+					"solvable": optimal > 0,
+					"solved_after_hint": optimal > 0 and after >= 0,
+					"longer_than_optimal": after >= 0 and optimal > 0 and after + 1 > optimal,
 					"exact": int(first["moves"]) > 0,
 					"states_expanded": int(first["expanded"]),
 				}
 			)
 		)
 	return rows
+
+
+## T-237: ruchy do celu po podpowiedzi (hint_solver_max_states); -1 = brak. "Rozwiazane" liczone
+## wsrod stanow rozwiazywalnych w pelnym budzecie (moves_to_goal > 0), jak w T-222.
+func _moves_after_hint(snap: Dictionary) -> int:
+	var r: RefCounted = _round_cls.from_dict(snap)
+	var h: Vector2i = r.hint()
+	if h.x < 0 or not r.try_move(h.x, h.y):
+		return -1
+	return r.moves_to_goal()
 
 
 ## T-222: [czas request() na watku glownym, czas do wyniku] w ms (mediana z REPEATS).
@@ -130,7 +156,7 @@ func _measure_async(snap: Dictionary) -> Array:
 		var board: RefCounted = _round_cls.from_dict(snap).board()
 		var job: RefCounted = _job_cls.new()
 		var t0: int = Time.get_ticks_usec()
-		job.request(board, int(_cfg().get_value("hint_solver_max_states")), 3.0)
+		job.request(board, int(_cfg().get_value("hint_exact_max_states")), 3.0)
 		main_us.append(Time.get_ticks_usec() - t0)
 		while job.poll().is_empty():
 			OS.delay_msec(1)
@@ -167,23 +193,38 @@ func _summary(rows: Array) -> Dictionary:
 		var m: Array = []
 		var am: Array = []
 		var aw: Array = []
+		var solvable: int = 0
+		var solved: int = 0
+		var longer: int = 0
 		for row: Dictionary in rows:
 			if row["bracket"] == b:
 				h.append(row["hint_ms"])
 				m.append(row["moves_to_goal_ms"])
 				am.append(row["async_ms"][0])
 				aw.append(row["async_ms"][1])
+				solvable += 1 if row["solvable"] else 0
+				solved += 1 if row["solved_after_hint"] else 0
+				longer += 1 if row["longer_than_optimal"] else 0
 		var hs: Array = _stats(h)
 		var ms: Array = _stats(m)
-		var ok: bool = hs[1] <= GATE_P95_MS and ms[1] <= GATE_P95_MS
-		ok = ok and hs[2] <= GATE_MAX_MS and ms[2] <= GATE_MAX_MS
+		var ws: Array = _stats(aw)
+		var pct: float = 100.0 * solved / maxi(solvable, 1)
+		var moves_ok: bool = ms[1] <= GATE_P95_MS and ms[2] <= GATE_MAX_MS
+		var ok: bool = hs[1] <= GATE_HINT_P95_MS and hs[2] <= GATE_HINT_MAX_MS
+		ok = ok and ws[1] <= GATE_HINT_P95_MS and ws[2] <= GATE_HINT_MAX_MS
+		ok = ok and pct >= GATE_SOLVED_PCT
 		out[b] = {
 			"n": h.size(),
 			"hint_ms": hs,
 			"moves_to_goal_ms": ms,
 			"main_ms": _stats(am),
-			"worker_ms": _stats(aw),
+			"worker_ms": ws,
+			"solvable": solvable,
+			"solved": solved,
+			"solved_pct": pct,
+			"longer": longer,
 			"gate": "OK" if ok else "FAIL",
+			"moves_gate": "OK" if moves_ok else "FAIL",
 		}
 	return out
 

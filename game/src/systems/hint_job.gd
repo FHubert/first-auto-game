@@ -21,7 +21,7 @@ var _result: Dictionary = {}
 func request(board: SortBoard, limit: int, fallback_weight: float) -> void:
 	cancel()
 	_board = board.clone()
-	_key = str(board.tubes)
+	_key = SolverCache.key_of(board, limit)
 	_limit = limit
 	_weight = fallback_weight
 	_cancel = SolverCancel.new()
@@ -32,7 +32,7 @@ func is_busy() -> bool:
 	return _task_id != -1
 
 
-## Klucz planszy (str(tubes)) z chwili zadania.
+## Klucz cache (SolverCache.key_of: plansza + limit) z chwili zadania.
 func key() -> String:
 	return _key
 

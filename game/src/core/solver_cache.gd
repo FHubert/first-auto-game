@@ -7,8 +7,9 @@ extends RefCounted
 var _entries: Dictionary = {}
 
 
-static func key_of(board: SortBoard) -> String:
-	return str(board.tubes)
+## T-237: limit w kluczu - wyniki z roznych budzetow (podpowiedz vs moves_to_goal) sie nie mieszaja.
+static func key_of(board: SortBoard, limit: int) -> String:
+	return str(board.tubes) + "#" + str(limit)
 
 
 func has_key(key: String) -> bool:

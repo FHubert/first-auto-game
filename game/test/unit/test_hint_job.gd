@@ -65,17 +65,22 @@ func _wait_job() -> void:
 		await get_tree().process_frame
 
 
+func _exact_limit() -> int:
+	return int(GameConfig.get_value("hint_exact_max_states"))
+
+
 func _first_move() -> Vector2i:
 	return _level.round.board().legal_moves()[0]
 
 
 func test_async_result_equals_sync_for_three_states() -> void:
 	GameConfig.set_for_test("hint_solver_max_states", 2000)
+	GameConfig.set_for_test("hint_exact_max_states", 2000)
 	for level_no in [8, 26, 40]:
 		var sync_round: GameRound = _board_of(level_no)
 		var job := HintJob.new()
 		job.request(sync_round.board(), 2000, float(GameConfig.get_value("solver_fallback_weight")))
-		assert_str(job.key()).is_equal(SolverCache.key_of(sync_round.board()))
+		assert_str(job.key()).is_equal(SolverCache.key_of(sync_round.board(), 2000))
 		var r: Dictionary = {}
 		for _i in WAIT_FRAMES:
 			r = job.poll()
@@ -90,6 +95,25 @@ func test_async_result_equals_sync_for_three_states() -> void:
 		assert_that(fed.hint()).is_equal(sync_round.hint())
 		assert_int(fed.moves_to_goal()).is_equal(sync_round.moves_to_goal())
 		assert_bool(SortSolver.replay(sync_round.board(), r["path"])).is_true()
+
+
+func test_hint_job_receives_exact_limit_and_respects_it() -> void:
+	_make_level()
+	var seen: Array[int] = []
+	_level.hint_job.solve_fn = func(
+		b: SortBoard, lim: int, w: float, c: SolverCancel
+	) -> Dictionary:
+		seen.append(lim)
+		var r: Dictionary = SortSolver.solve(b, lim, SortSolver.EXACT_WEIGHT, c)
+		assert_int(r["expanded"]).is_less_equal(lim)
+		return SortSolver.solve(b, lim, w, c)
+	_level.hud.hint_pressed.emit()
+	await _wait_job()
+	assert_array(seen).is_equal([int(GameConfig.get_value("hint_exact_max_states"))])
+	var sol: SolverCache = _level.round.solutions
+	var board: SortBoard = _level.round.board()
+	assert_bool(sol.has_key(SolverCache.key_of(board, _exact_limit()))).is_true()
+	assert_bool(sol.has_key(SolverCache.key_of(board, 20000))).is_false()
 
 
 func test_hint_pending_then_move_discards_result() -> void:
@@ -107,7 +131,8 @@ func test_hint_pending_then_move_discards_result() -> void:
 	assert_str(_level.hud.hint_button.text).is_equal(tr("btn_hint") % Economy.hint_cost())
 	assert_int(_level.state.coins).is_equal(coins)
 	assert_int(_level.round.result()["boosters_used"]).is_equal(0)
-	assert_bool(_level.round.solutions.has_key(SolverCache.key_of(_level.round.board()))).is_false()
+	var key: String = SolverCache.key_of(_level.round.board(), _exact_limit())
+	assert_bool(_level.round.solutions.has_key(key)).is_false()
 
 
 func test_hint_result_on_same_board_charges_coins_after_result() -> void:
