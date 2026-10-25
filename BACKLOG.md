@@ -87,7 +87,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: StuckPanel i LevelComplete jako dolne arkusze (`Card`, promień 59 px, margines 22 px), DailyRewardPopup jako karta; `DIM` pod spodem. StuckPanel: wiersze `CardRow` „ikona · tytuł + opis · akcja” (Za darmo `PRIMARY` / Reklama biała / cena `ACCENT`) + Od nowa i Pomiń. LevelComplete: „Świetnie!” nad planszą, badge „Idealnie!”, kwota z monetą (96 px), rozbicie nagrody, pasek do motywu, `ButtonAccent` „Podwój”, `ButtonPrimary` „Dalej”, link „Menu główne”. DailyReward: siatka 4 kolumny, dzień 7 na 2 kolumny, dziś = obrys `ACCENT`, odebrane = ptaszek `PRIMARY` + przygaszona moneta. Wejście overlayu: scale 0,9→1 + fade 0,18 s (wyłączone przy `App.effects_enabled=false`). Testy overlayów zielone. Kadry przegenerowane + zestawienie z makietą. ~290 linii (podzielić, jeśli > 300).
   Skill: `godot-dev`
 
-- [ ] T-268 `in_progress` UI v2: LevelComplete wg `mockups/03_level_complete.png` (wydzielone z T-233 — razem > 300 linii; zależy od T-233 — `OverlayFx`)
+- [ ] T-268 `review` UI v2: LevelComplete wg `mockups/03_level_complete.png` (wydzielone z T-233 — razem > 300 linii; zależy od T-233 — `OverlayFx`) → PR #224
   KA: nagłówek nad planszą („POZIOM N” caption + „Świetnie!” 74 px), dolny arkusz `Card`: badge „Idealnie!”, kwota z monetą 96 px, `progress_label`, `ButtonAccent` „Podwój” z ikoną video, `ButtonPrimary` „Dalej” ze strzałką, „Menu główne” jako link; kontrakt `panel_height()/panel_rect()/panel_height_changed` i sygnały bez zmian; testy LevelComplete zielone + nowy `test_level_complete_ui_v2.gd`. ~150 linii.
   Skill: `godot-dev`
 
