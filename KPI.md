@@ -29,7 +29,9 @@ Nie edytuj sekcji "Aktualne" ręcznie.
 7. Po 4 tygodniach soft launchu D1 < 25 % mimo 2 iteracji FTUE → raport `docs/PIVOT_OR_KILL.md`, task `blocked`, pytanie do Huberta.
 
 ## Aktualne
-_(brak danych — gra nie jest jeszcze wydana)_
 
 | Tydzień | DAU | D1 | D7 | D30 | Ses/DAU | AdImp/DAU | RewComp | ARPDAU | IAP conv | Crash-free |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-W42 | 944 | 34,9 % | 12,3 % | 3,8 % | 2,92 | 2,51 | 75 % | 0,047 | 1,04 % | 99,6 % |
+
+_Dane testowe (--dry-run), gra niewydana — tydzień 2026-W43 (przegląd 2026-10-25; wiersz `2026-W42` = ostatni pełny tydzień ISO, domyślna etykieta `metrics_pull.py`); reguł decyzyjnych NIE stosowano do priorytetów._
