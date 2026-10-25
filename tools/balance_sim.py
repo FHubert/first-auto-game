@@ -81,13 +81,13 @@ BUILTIN = {
     "booster_ad_share": 0.5,  # sim-only
     # ZWERYFIKUJ po soft launchu eventem `level:assist:*`
     "plateau_assist_take_rate": 0.3,  # sim-only: P(player takes the plateau tube) per eligible attempt
-    # T-185: szansa wygranej proby Z probowka z paska, z raportu bota (greedy, gorna granica;
-    # ZWERYFIKUJ po soft launchu). Zrodlo: `godot --headless --path game -- --playtest --assist
-    # --rounds=400 --seed=42` (make playtest): wygrane/proby z probowka (extra_tubes_by_bracket):
-    # 26-55: 30/73 = 0.41; 56+: 37/173 = 0.21. Licznik liczy tez wygrane bez probowki -> gorne
-    # oszacowanie (won_le3_pct = 70 / 27 % to jeszcze luzniejsza granica). Zastepuje T-178 `plateau_assist_win_prob`.
-    "plateau_assist_win_prob_26_55": 0.41,  # sim-only
-    "plateau_assist_win_prob_56": 0.21,  # sim-only
+    # T-195: szansa wygranej proby Z probowka z paska = won_with_tube / attempts_with_tube z
+    # raportu bota (T-188 liczniki, greedy; ZWERYFIKUJ po soft launchu). Zrodlo: `godot --headless
+    # --path game -- --playtest --assist --rounds=400 --seed=42` (make playtest, DEFAULTS 26/3):
+    # 26-55: 17/73 = 0.23; 56+: 33/173 = 0.19. Z `--extra-tube-from=2` (26/2): 26-55: 22/62 = 0.35;
+    # 56+: 56/220 = 0.25. Poprzednio (T-185) gorna granica 0.41 / 0.21. Zastepuje T-178 `plateau_assist_win_prob`.
+    "plateau_assist_win_prob_26_55": 0.23,  # sim-only
+    "plateau_assist_win_prob_56": 0.19,  # sim-only
     "plateau_assist_bracket_split": 56,  # sim-only: od tego poziomu obowiazuje win_prob_56
     "daily_challenge_play_rate": 0.6,  # sim-only
     "daily_x2_watch_rate": 0.5,  # sim-only
