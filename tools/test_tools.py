@@ -786,5 +786,47 @@ class PrivacyManifestTest(unittest.TestCase):
             self.assertIs(data["NSPrivacyTracking"], True)
 
 
+
+
+class PerfReportTest(unittest.TestCase):
+    # T-241: schemat perf.json + `make perf` poza zaleznosciami `check`.
+    def load_merge(self):
+        spec = importlib.util.spec_from_file_location("perf_merge_t241", TOOLS / "perf_merge.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def example(self, mod):
+        stat = [1.0, 2.0, 3.0]
+        hint = {"summary": {b: {"main_ms": stat, "worker_ms": stat} for b in mod.BRACKETS}}
+        startup = {k: {"med_ms": 5.0, "p95_ms": 9.0} for k in ("a", "b2", "b3", "c")}
+        return mod.merge(startup, hint, {"2": {"sync_us": 10, "prefetched_us": 1}}, "abc1234", "4.7.2-stable")
+
+    def test_perf_json_schema(self):
+        mod = self.load_merge()
+        report = self.example(mod)
+        mod.validate(report)
+        self.assertEqual(report["hint"]["56+"]["worker"], {"med": 1.0, "p95": 2.0, "max": 3.0})
+        del report["startup"]["daily"]
+        with self.assertRaises(ValueError):
+            mod.validate(report)
+        report = self.example(mod)
+        report["prefetch"]["2"]["sync_us"] = -1
+        with self.assertRaises(ValueError):
+            mod.validate(report)
+
+    def test_merge_fails_on_missing_input(self):
+        r = run(TOOLS / "perf_merge.py", "--startup", "/nonexistent", "--hint", "/nonexistent",
+                "--prefetch", "/nonexistent", "--out", "/nonexistent/o.json", "--commit", "x", "--godot-version", "y")
+        self.assertNotEqual(r.returncode, 0)
+
+    def test_perf_target_exists_and_not_in_check(self):
+        recipes = MakeWorktreeIsolationTest.recipes()
+        self.assertIn("perf", recipes)
+        self.assertIn("perf_merge.py", "\n".join(recipes["perf"]))
+        deps = re.search(r"^check:(.*)$", (ROOT / "Makefile").read_text(encoding="utf-8"), re.M).group(1).split()
+        self.assertNotIn("perf", deps)
+
+
 if __name__ == "__main__":
     unittest.main()
