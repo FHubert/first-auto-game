@@ -14,6 +14,7 @@ const SETTING_TUTORIAL_DONE: String = "tutorial_done"
 const SETTING_COLORBLIND_SYMBOLS: String = "colorblind_symbols"
 const SETTING_DAILY_INTRO_SEEN: String = "daily_intro_seen"
 const SETTING_NOTIFICATIONS_ON: String = "notifications_on"
+const SETTING_NOTIF_PERMISSION_ASKED: String = "notif_permission_asked"
 const DEFAULT_SETTINGS: Dictionary = {
 	SETTING_MUSIC_ON: true,
 	SETTING_SFX_ON: true,
@@ -23,6 +24,7 @@ const DEFAULT_SETTINGS: Dictionary = {
 	"locale": "",
 	SETTING_DAILY_INTRO_SEEN: false,
 	SETTING_NOTIFICATIONS_ON: true,
+	SETTING_NOTIF_PERMISSION_ASKED: false,
 }
 ## Int fields as [name, minimum]; default is the initial value of the member.
 const INT_FIELDS: Array = [
