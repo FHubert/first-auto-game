@@ -17,7 +17,8 @@ const GRID: Array = [
 ## T-175: wiersz bazy + siatka "probowka od proby N" (uruchom z `-- --assist`).
 const ASSIST_MIN_LEVELS: Array = [26, 56]
 const ASSIST_FROM_ATTEMPTS: Array = [1, 2, 3]
-const SEEDS: Array = [42, 7, 1]
+const SEED_POOL: Array = [42, 7, 1, 1337, 2024, 99, 5, 11, 123, 314]
+const DEFAULT_SEEDS: int = 3
 const ROUNDS: int = 400
 const LEVELS: int = 200
 const PLATEAU_FIRST: int = 56
@@ -36,12 +37,21 @@ const P95_Q: float = 0.95
 
 var _extra_from: int = 0
 var _extra_min: int = 1
+var _seeds: Array = []
+var _assist: bool = false
+var _out_name: String = "curve_assist.json"
 
 
 func _initialize() -> void:
 	var cfg: Node = root.get_node("GameConfig")
 	var grid: Array = GRID
-	if "--assist" in OS.get_cmdline_user_args():
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	_assist = "--assist" in args
+	_seeds = SEED_POOL.slice(
+		0, clampi(int(_arg(args, "--seeds", DEFAULT_SEEDS)), 1, SEED_POOL.size())
+	)
+	_out_name = str(_arg(args, "--out", _out_name))
+	if _assist:
 		grid = [{"label": "base", "overrides": {}}]
 		for min_level: int in ASSIST_MIN_LEVELS:
 			for from_attempt: int in ASSIST_FROM_ATTEMPTS:
@@ -56,6 +66,19 @@ func _initialize() -> void:
 						}
 					)
 				)
+		if int(_arg(args, "--extra-tube-from", -1)) >= 0:
+			var from_n: int = int(_arg(args, "--extra-tube-from", 0))
+			var min_lv: int = int(
+				_arg(args, "--extra-tube-min-level", cfg.get_value("plateau_assist_min_level"))
+			)
+			grid = [
+				{
+					"label": "assist_min%d_from%d" % [min_lv, from_n],
+					"overrides": {},
+					"extra_from": from_n,
+					"extra_min_level": min_lv,
+				}
+			]
 	for entry: Dictionary in grid:
 		_extra_from = int(entry.get("extra_from", 0))
 		_extra_min = int(entry.get("extra_min_level", 1))
@@ -64,6 +87,16 @@ func _initialize() -> void:
 		_measure(cfg, str(entry["label"]))
 	cfg.reset()
 	quit()
+
+
+## Wartosc flagi `--name N` z user args albo `default`.
+func _arg(args: PackedStringArray, name: String, default: Variant) -> Variant:
+	var i: int = args.find(name)
+	if i < 0:
+		return default
+	if i + 1 >= args.size():
+		return default
+	return args[i + 1]
 
 
 func _measure(cfg: Node, label: String) -> void:
@@ -89,29 +122,49 @@ func _measure(cfg: Node, label: String) -> void:
 			colors_56 = int(p["colors"])
 		if lv == PLATEAU_LAST:
 			colors_85 = int(p["colors"])
-	var sums: Dictionary = {}
+	var by_seed: Dictionary = {}
+	var rounds: Dictionary = {}
 	for b: String in EARLY_BRACKETS + [PLATEAU_BRACKET]:
-		sums[b] = 0.0
-	for s: int in SEEDS:
+		by_seed[b] = []
+		rounds[b] = 0
+	for s: int in _seeds:
 		var rep_a: Dictionary = _run_bot(1, s)
 		var rep_b: Dictionary = _run_bot(PLATEAU_FIRST, s)
 		for b: String in EARLY_BRACKETS:
-			sums[b] += _emit(label, s, b, rep_a)
-		sums[PLATEAU_BRACKET] += _emit(label, s, PLATEAU_BRACKET, rep_b)
-	var n: float = float(SEEDS.size())
-	var a1: float = sums["1-7"] / n
-	var a2: float = sums["8-25"] / n
-	var a3: float = sums["26-55"] / n
-	var a4: float = sums[PLATEAU_BRACKET] / n
+			by_seed[b].append(_emit(label, s, b, rep_a))
+			rounds[b] += _closed(rep_a, b)
+		by_seed[PLATEAU_BRACKET].append(_emit(label, s, PLATEAU_BRACKET, rep_b))
+		rounds[PLATEAU_BRACKET] += _closed(rep_b, PLATEAU_BRACKET)
+	var st: Dictionary = CurveStats.summarize(by_seed)
+	var a1: float = st["mean"]["1-7"]
+	var a2: float = st["mean"]["8-25"]
+	var a3: float = st["mean"]["26-55"]
+	var a4: float = st["mean"][PLATEAU_BRACKET]
 	var med: float = _pct(times, MEDIAN_Q)
 	var p95: float = _pct(times, P95_Q)
 	print(
 		(
 			(
 				"CURVE_AVG cfg=%s b1_7=%.1f b8_25=%.1f b26_55=%.1f b56=%.1f gen_med_ms=%.1f "
-				+ "gen_p95_ms=%.1f floor_binding_56_85=%d/%d colors_56=%d colors_85=%d"
+				+ "gen_p95_ms=%.1f floor_binding_56_85=%d/%d colors_56=%d colors_85=%d "
+				+ "seeds=%d se56=%.1f se26_55=%.1f"
 			)
-			% [label, a1, a2, a3, a4, med, p95, binding, PLATEAU_SIZE, colors_56, colors_85]
+			% [
+				label,
+				a1,
+				a2,
+				a3,
+				a4,
+				med,
+				p95,
+				binding,
+				PLATEAU_SIZE,
+				colors_56,
+				colors_85,
+				_seeds.size(),
+				st["stderr_pp"][PLATEAU_BRACKET],
+				st["stderr_pp"]["26-55"]
+			]
 		)
 	)
 	var ok: bool = (
@@ -122,6 +175,34 @@ func _measure(cfg: Node, label: String) -> void:
 		and p95 <= GATE_P95_MS
 	)
 	print("GATE cfg=%s pass=%s" % [label, str(ok).to_lower()])
+	if _assist:
+		_write_json(label, by_seed, st, rounds)
+
+
+func _write_json(label: String, by_seed: Dictionary, st: Dictionary, rounds: Dictionary) -> void:
+	var data: Dictionary = {
+		"config":
+		{
+			"min_level": _extra_min,
+			"from_attempt": _extra_from,
+			"seeds": _seeds,
+			"label": label,
+		},
+		"won_le3_pct_by_bracket": st["mean"],
+		"won_le3_pct_by_seed": by_seed,
+		"stderr_pp_by_bracket": st["stderr_pp"],
+		"min_pct_by_bracket": st["min"],
+		"max_pct_by_bracket": st["max"],
+		"rounds_by_bracket": rounds,
+	}
+	var path: String = "res://test/reports/" + _out_name
+	var f: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		push_error("cannot write " + path)
+		return
+	f.store_string(JSON.stringify(data, "  "))
+	f.close()
+	print("CURVE_JSON path=%s label=%s" % [path, label])
 
 
 func _run_bot(start_level: int, rng_seed: int) -> Dictionary:
@@ -132,6 +213,10 @@ func _run_bot(start_level: int, rng_seed: int) -> Dictionary:
 	bot.extra_tube_from_attempt = _extra_from
 	bot.extra_tube_min_level = _extra_min
 	return bot.run(ROUNDS, rng_seed, "greedy")
+
+
+func _closed(rep: Dictionary, bracket: String) -> int:
+	return int(rep["levels_won_by_bracket"][bracket]) + int(rep["skips_by_bracket"][bracket])
 
 
 ## Prints one CURVE line, returns within_3 percent.
