@@ -87,6 +87,8 @@ func _schedule_notifications() -> void:
 	if state == null or not notifications.is_available():
 		return
 	notifications.cancel_all()
+	if not NotificationPermission.allows_scheduling(notifications.permission_status()):
+		return
 	var now: int = int(clock.call())
 	for entry: Dictionary in NotificationPlanner.plan(now, int(tz_offset.call()), state):
 		var kind: String = str(entry["kind"])
@@ -97,6 +99,23 @@ func _schedule_notifications() -> void:
 			int(NOTIF_IDS[kind]), int(entry["fire_unix"]), tr(str(entry["title_key"])), body
 		)
 		Analytics.track_design("notif:scheduled:%s" % kind)
+
+
+## Jedna prosba o zgode systemowa przy wejsciu na Home (T-223). Flaga zapisywana PRZED
+## prosba: zabicie aplikacji w trakcie dialogu nie pyta drugi raz.
+func _maybe_request_notif_permission() -> void:
+	if state == null or not notifications.is_available():
+		return
+	if not NotificationPermission.should_ask(state, notifications.permission_status()):
+		return
+	state.settings[GameState.SETTING_NOTIF_PERMISSION_ASKED] = true
+	SaveSystem.save(state)
+	notifications.request_permission(_on_notif_permission_result)
+
+
+func _on_notif_permission_result(status: String) -> void:
+	if status in [NotificationProvider.PERMISSION_GRANTED, NotificationProvider.PERMISSION_DENIED]:
+		Analytics.track_design("notif:permission:%s" % status)
 
 
 func _cancel_notifications() -> void:
@@ -177,6 +196,7 @@ func show_home() -> void:
 	add_child(home)
 	_request_home_prefetch()
 	_maybe_show_daily_popup(home)
+	_maybe_request_notif_permission()
 
 
 func popup_visible() -> bool:

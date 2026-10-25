@@ -21,6 +21,8 @@ const FAKE_ONLY: Dictionary = {
 	"fake_ad_provider.gd": ["release", "release_at"],
 	# Answers a held UMP form / ATT prompt (hold_form / hold_att mode).
 	"fake_consent_provider.gd": ["release_form", "release_att"],
+	# Answers a held system notification permission request (hold_permission mode).
+	"fake_notification_provider.gd": ["release_permission"],
 }
 ## Safe arguments for base methods with required parameters (bool/Dictionary/Array returns).
 const NOOP_ARGS: Dictionary = {}
