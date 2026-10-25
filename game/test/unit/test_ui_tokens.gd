@@ -4,7 +4,7 @@ const THEME := preload("res://assets/fonts/ui_theme.tres")
 const TAG_WGHT: int = 2003265652  # "wght" axis tag
 const STATES: Array[String] = ["normal", "hover", "pressed", "disabled", "focus"]
 const BUTTONS: Array[String] = [
-	"ButtonPrimary", "ButtonAccent", "ButtonSecondary", "ButtonIcon", "ButtonNav"
+	"ButtonPrimary", "ButtonAccent", "ButtonSecondary", "ButtonIcon", "ButtonNav", "ButtonHud"
 ]
 const LABELS: Array[String] = ["LabelTitle", "LabelCaption", "LabelSection"]
 
@@ -116,3 +116,36 @@ func test_font_weights() -> void:
 		)
 	assert_bool(THEME.default_font is FontVariation).is_true()
 	assert_float((THEME.default_font as FontVariation).variation_opentype[TAG_WGHT]).is_equal(700.0)
+
+
+func test_button_hud_is_circle_in_all_states() -> void:
+	for st in STATES:
+		var sb: StyleBoxFlat = THEME.get_stylebox(st, "ButtonHud")
+		assert_int(sb.corner_radius_top_left).is_equal(UiTokens.HUD_BTN / 2)
+		assert_int(sb.corner_radius_bottom_right).is_equal(UiTokens.HUD_BTN / 2)
+		assert_int(sb.corner_radius_top_right).is_equal(UiTokens.HUD_BTN / 2)
+		assert_int(sb.corner_radius_bottom_left).is_equal(UiTokens.HUD_BTN / 2)
+
+
+func test_button_pill_flat_in_all_states() -> void:
+	assert_str(str(THEME.get_type_variation_base("ButtonPill"))).is_equal("Button")
+	var n: StyleBoxFlat = THEME.get_stylebox("normal", "ButtonPill")
+	for st in STATES:
+		var sb: StyleBoxFlat = THEME.get_stylebox(st, "ButtonPill")
+		assert_int(sb.border_width_bottom).is_equal(0)
+	var p: StyleBoxFlat = THEME.get_stylebox("pressed", "ButtonPill")
+	assert_float(p.content_margin_top).is_equal(n.content_margin_top)
+	assert_float(p.content_margin_bottom).is_equal(n.content_margin_bottom)
+
+
+func test_new_variants_contrast_and_touch_height() -> void:
+	for v in ["ButtonHud", "ButtonPill"]:
+		var n: StyleBoxFlat = THEME.get_stylebox("normal", v)
+		var fg: Color = THEME.get_color("font_color", v)
+		assert_float(UiTokens.contrast_ratio(fg, n.bg_color)).is_greater_equal(4.5)
+		var b: Button = auto_free(Button.new())
+		b.theme = THEME
+		b.theme_type_variation = v
+		b.text = "Graj"
+		add_child(b)
+		assert_float(b.get_combined_minimum_size().y).is_greater_equal(UiTokens.TOUCH_MIN)

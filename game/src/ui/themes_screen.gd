@@ -15,6 +15,8 @@ const CARD_GAP: int = 18
 const CHECK_SIZE: int = 44
 const LOCK_BORDER: int = 4
 const LOCK_BORDER_ALPHA: float = 0.5
+## Pol wysokosci pigulki minus 1: przy wiekszym promieniu Godot przycina rog i obwodka ma kreske.
+const LOCK_RADIUS_TRIM: int = 1
 const ICON_TEXT_GAP: float = 10.0
 const COIN_ICON: float = 40.0
 const BAR_H: int = 18
@@ -85,7 +87,7 @@ func refresh() -> void:
 			b.disabled = not ThemeCatalog.can_buy(state, id)
 			b.add_theme_color_override("font_color", UiTokens.ACCENT)
 			b.add_theme_color_override("font_disabled_color", UiTokens.ACCENT)
-			var lock_sb := _locked_style()
+			var lock_sb := _locked_style(int(b.get_combined_minimum_size().y))
 			for st: String in ["normal", "hover", "pressed", "disabled"]:
 				b.add_theme_stylebox_override(st, lock_sb)
 		(cards[id]["coin"] as Control).visible = locked
@@ -113,11 +115,12 @@ func _fit_previews() -> void:
 		p.custom_minimum_size.y = clampi(h, PREVIEW_MIN_H, PREVIEW_H)
 
 
-func _locked_style() -> StyleBoxFlat:
-	var sb := ScreenHeader.UI_THEME.get_stylebox("normal", "ButtonSecondary").duplicate()
+func _locked_style(height: int) -> StyleBoxFlat:
+	var sb := ScreenHeader.UI_THEME.get_stylebox("normal", "ButtonPill").duplicate()
 	var flat := sb as StyleBoxFlat
 	flat.bg_color = UiTokens.CARD_ROW
 	flat.set_border_width_all(LOCK_BORDER)
+	flat.set_corner_radius_all(height / 2 - LOCK_RADIUS_TRIM)
 	flat.border_color = Color(UiTokens.ACCENT, LOCK_BORDER_ALPHA)
 	return flat
 
@@ -254,7 +257,7 @@ func _add_card(grid: GridContainer, t: Dictionary) -> void:
 	check.add_child(check_icon)
 	name_row.add_child(check)
 	var b := Button.new()
-	b.theme_type_variation = &"ButtonSecondary"
+	b.theme_type_variation = &"ButtonPill"
 	b.custom_minimum_size = Vector2(0, UiTokens.TOUCH_MIN)
 	b.add_theme_font_size_override("font_size", UiTokens.FONT_SM)
 	b.pressed.connect(_on_card_pressed.bind(id))

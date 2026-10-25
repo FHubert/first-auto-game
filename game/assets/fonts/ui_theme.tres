@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=30 format=3]
+[gd_resource type="Theme" load_steps=36 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/nunito.ttf" id="1_font"]
 
@@ -246,6 +246,92 @@ content_margin_top = 24.0
 content_margin_right = 0.0
 content_margin_bottom = 24.0
 
+[sub_resource type="StyleBoxFlat" id="ButtonHud_n"]
+bg_color = Color(0.121569, 0.227451, 0.419608, 1)
+corner_radius_top_left = 59
+corner_radius_top_right = 59
+corner_radius_bottom_right = 59
+corner_radius_bottom_left = 59
+border_width_bottom = 9
+border_color = Color(0.054902, 0.101961, 0.200000, 1)
+border_blend = false
+content_margin_left = 0.0
+content_margin_top = 24.0
+content_margin_right = 0.0
+content_margin_bottom = 24.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonHud_p"]
+bg_color = Color(0.121569, 0.227451, 0.419608, 1)
+corner_radius_top_left = 59
+corner_radius_top_right = 59
+corner_radius_bottom_right = 59
+corner_radius_bottom_left = 59
+border_color = Color(0.054902, 0.101961, 0.200000, 1)
+border_blend = false
+content_margin_left = 0.0
+content_margin_top = 33.0
+content_margin_right = 0.0
+content_margin_bottom = 15.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonHud_f"]
+bg_color = Color(0.121569, 0.227451, 0.419608, 1)
+corner_radius_top_left = 59
+corner_radius_top_right = 59
+corner_radius_bottom_right = 59
+corner_radius_bottom_left = 59
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 9
+border_color = Color(1.000000, 0.819608, 0.400000, 1)
+border_blend = false
+content_margin_left = 0.0
+content_margin_top = 24.0
+content_margin_right = 0.0
+content_margin_bottom = 24.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonPill_n"]
+bg_color = Color(0.086275, 0.160784, 0.309804, 1)
+corner_radius_top_left = 51
+corner_radius_top_right = 51
+corner_radius_bottom_right = 51
+corner_radius_bottom_left = 51
+border_color = Color(0.054902, 0.101961, 0.200000, 1)
+border_blend = false
+content_margin_left = 44.0
+content_margin_top = 30.0
+content_margin_right = 44.0
+content_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonPill_p"]
+bg_color = Color(0.086275, 0.160784, 0.309804, 1)
+corner_radius_top_left = 51
+corner_radius_top_right = 51
+corner_radius_bottom_right = 51
+corner_radius_bottom_left = 51
+border_color = Color(0.054902, 0.101961, 0.200000, 1)
+border_blend = false
+content_margin_left = 44.0
+content_margin_top = 30.0
+content_margin_right = 44.0
+content_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonPill_f"]
+bg_color = Color(0.086275, 0.160784, 0.309804, 1)
+corner_radius_top_left = 51
+corner_radius_top_right = 51
+corner_radius_bottom_right = 51
+corner_radius_bottom_left = 51
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_color = Color(1.000000, 0.819608, 0.400000, 1)
+border_blend = false
+content_margin_left = 44.0
+content_margin_top = 30.0
+content_margin_right = 44.0
+content_margin_bottom = 30.0
+
 [sub_resource type="StyleBoxFlat" id="ButtonClose_n"]
 bg_color = Color(0.086275, 0.160784, 0.309804, 1)
 corner_radius_top_left = 40
@@ -436,6 +522,32 @@ ButtonIcon/colors/font_focus_color = Color(1.000000, 1.000000, 1.000000, 1)
 ButtonIcon/colors/font_disabled_color = Color(0.662745, 0.721569, 0.839216, 1)
 ButtonIcon/font_sizes/font_size = 35
 ButtonIcon/fonts/font = SubResource("Nunito_900")
+ButtonHud/base_type = &"Button"
+ButtonHud/styles/normal = SubResource("ButtonHud_n")
+ButtonHud/styles/hover = SubResource("ButtonHud_n")
+ButtonHud/styles/pressed = SubResource("ButtonHud_p")
+ButtonHud/styles/focus = SubResource("ButtonHud_f")
+ButtonHud/styles/disabled = SubResource("ButtonHud_n")
+ButtonHud/colors/font_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonHud/colors/font_hover_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonHud/colors/font_pressed_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonHud/colors/font_focus_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonHud/colors/font_disabled_color = Color(0.662745, 0.721569, 0.839216, 1)
+ButtonHud/font_sizes/font_size = 35
+ButtonHud/fonts/font = SubResource("Nunito_900")
+ButtonPill/base_type = &"Button"
+ButtonPill/styles/normal = SubResource("ButtonPill_n")
+ButtonPill/styles/hover = SubResource("ButtonPill_n")
+ButtonPill/styles/pressed = SubResource("ButtonPill_p")
+ButtonPill/styles/focus = SubResource("ButtonPill_f")
+ButtonPill/styles/disabled = SubResource("ButtonPill_n")
+ButtonPill/colors/font_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonPill/colors/font_hover_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonPill/colors/font_pressed_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonPill/colors/font_focus_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonPill/colors/font_disabled_color = Color(0.662745, 0.721569, 0.839216, 1)
+ButtonPill/font_sizes/font_size = 35
+ButtonPill/fonts/font = SubResource("Nunito_900")
 ButtonClose/base_type = &"Button"
 ButtonClose/styles/normal = SubResource("ButtonClose_n")
 ButtonClose/styles/hover = SubResource("ButtonClose_n")

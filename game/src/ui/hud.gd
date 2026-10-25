@@ -255,7 +255,7 @@ func _column(parent: Control) -> VBoxContainer:
 
 func _icon_button(col: Control, icon_name: String, on_press: Callable) -> Button:
 	var b := Button.new()
-	b.theme_type_variation = &"ButtonIcon"
+	b.theme_type_variation = &"ButtonHud"
 	b.icon = UiTokens.icon(icon_name)
 	b.custom_minimum_size = Vector2(UiTokens.HUD_BTN, UiTokens.HUD_BTN)
 	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

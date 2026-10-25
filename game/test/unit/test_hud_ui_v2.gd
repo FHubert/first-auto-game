@@ -158,3 +158,12 @@ func test_backdrop_covers_level_with_theme_color() -> void:
 		assert_bool(_level.backdrop.get_global_rect().encloses(Rect2(Vector2.ZERO, _level.size)))
 		. is_true()
 	)
+
+
+func test_tool_buttons_use_round_hud_variant() -> void:
+	await _frames()
+	var h: Hud = _level.hud
+	for b: Button in [h.undo_button, h.restart_button, h.hint_button, h.extra_tube_button]:
+		assert_str(str(b.theme_type_variation)).is_equal("ButtonHud")
+		var sb: StyleBoxFlat = ScreenHeader.UI_THEME.get_stylebox("normal", b.theme_type_variation)
+		assert_float(float(sb.corner_radius_top_left)).is_greater_equal(b.size.x / 2.0 - 1.0)
