@@ -87,7 +87,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: StuckPanel i LevelComplete jako dolne arkusze (`Card`, promień 59 px, margines 22 px), DailyRewardPopup jako karta; `DIM` pod spodem. StuckPanel: wiersze `CardRow` „ikona · tytuł + opis · akcja” (Za darmo `PRIMARY` / Reklama biała / cena `ACCENT`) + Od nowa i Pomiń. LevelComplete: „Świetnie!” nad planszą, badge „Idealnie!”, kwota z monetą (96 px), rozbicie nagrody, pasek do motywu, `ButtonAccent` „Podwój”, `ButtonPrimary` „Dalej”, link „Menu główne”. DailyReward: siatka 4 kolumny, dzień 7 na 2 kolumny, dziś = obrys `ACCENT`, odebrane = ptaszek `PRIMARY` + przygaszona moneta. Wejście overlayu: scale 0,9→1 + fade 0,18 s (wyłączone przy `App.effects_enabled=false`). Testy overlayów zielone. Kadry przegenerowane + zestawienie z makietą. ~290 linii (podzielić, jeśli > 300).
   Skill: `godot-dev`
 
-- [ ] T-234 `todo` UI v2: Themes, Shop, Settings wg `mockups/06_themes.png`, `07_shop.png`, `08_settings.png` (zależy od T-228, T-229)
+- [ ] T-234 `in_progress` UI v2: Themes, Shop, Settings wg `mockups/06_themes.png`, `07_shop.png`, `08_settings.png` (zależy od T-228, T-229)
   KA: Themes: siatka 2 × 2 kart z podglądem 4 probówek w palecie motywu, aktywny = obrys `ACCENT` + ptaszek, cena z monetą, pasek „do motywu” pod siatką. Shop: wyróżniona karta pakietu startowego (obrys `ACCENT`, licznik okna oferty), wiersze produktów z ceną z `IapProvider` w `ButtonAccent`, „Przywróć zakupy” jako link na dole. Settings: nagłówki sekcji (`LabelSection`), wiersze z ikoną, przełączniki w kolorze `PRIMARY`. Testy ekranów zielone. Kadr 05 przegenerowany + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
