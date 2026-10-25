@@ -116,7 +116,7 @@ func test_no_literal_setting_keys() -> void:
 
 
 func test_no_set_for_test_in_src() -> void:
-	var found: Dictionary = _scan("set_for_test\\(")
+	var found: Dictionary = _scan("\\bset_for_test\\(")
 	for key: String in found.keys():
 		var files: Array = (found[key] as Array).filter(
 			func(p: String) -> bool: return not p.ends_with("/systems/config.gd")
