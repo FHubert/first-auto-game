@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Vialo — poziom ukończony</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;box-sizing:border-box;background:#14213D;color:#fff;font-family:'Nunito',system-ui,sans-serif;position:relative;overflow:hidden}
+svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tw{display:flex;flex-direction:column;align-items:center}
+.rim{width:40px;height:6px;border-radius:3px;margin-bottom:-2px;background:rgba(202,210,224,.6)}
+.tube{position:relative;width:32px;height:124px;box-sizing:border-box;border:2.5px solid rgba(202,210,224,.6);border-top:none;border-radius:0 0 16px 16px;background:rgba(202,210,224,.08);display:flex;flex-direction:column-reverse;padding:0 2px 2px;overflow:hidden}
+.lay{height:28px;flex:none}
+.lay:first-child{border-radius:0 0 13px 13px}
+.btn{border:none;font-family:inherit;font-weight:900;font-size:19px;height:58px;border-radius:29px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;width:100%}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position: absolute; left: 0; right: 0; top: 70px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+    <div style="font-size: 15px; font-weight: 800; color: #A9B8D6; letter-spacing: 0.4px">POZIOM 20</div>
+    <div style="font-size: 40px; font-weight: 900">Świetnie!</div>
+  </div>
+  <div style="position: absolute; left: 30px; right: 30px; top: 190px; display: flex; justify-content: space-between; align-items: flex-end">
+    <sc-for list="{{tubes}}" as="t" hint-placeholder-count="8"><div class="tw"><div class="rim"></div><div class="tube"><sc-for list="{{t.layers}}" as="l" hint-placeholder-count="4"><div class="lay" style="{{l.style}}"></div></sc-for></div></div></sc-for>
+  </div>
+
+  <div style="position: absolute; left: 12px; right: 12px; bottom: 16px; background: #1F3A6B; border-radius: 32px; padding: 26px 20px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 18px; background: rgba(255,209,102,0.16); color: #FFD166; font-weight: 900; font-size: 16px">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2.8l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.1 6.4 20l1.1-6.2L3 9.4l6.2-.9z" fill="#FFD166"></path></svg>Idealnie! 19 ruchów
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px">
+      <svg viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD166" stroke="#C99A2E" stroke-width="1.6"></circle><circle cx="12" cy="12" r="6" fill="none" stroke="#C99A2E" stroke-width="1.6"></circle></svg>
+      <div style="font-size: 56px; font-weight: 900; line-height: 1">+25</div>
+    </div>
+    <div style="font-size: 15px; font-weight: 700; color: #A9B8D6; margin-top: -6px">15 za wygraną + 10 za „idealnie”</div>
+
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 6px; margin: 4px 0 6px 0">
+      <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800"><span>Następny motyw: Pastel</span><span style="color: #FFD166">375 / 600</span></div>
+      <div style="height: 12px; border-radius: 6px; background: #0E1A33; overflow: hidden"><div style="width: 62%; height: 12px; border-radius: 6px; background: #FFD166"></div></div>
+    </div>
+
+    <button class="btn" style="background: #FFD166; color: #3D2A00; box-shadow: 0 6px 0 #C99A2E"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"></rect><path d="M16 10l5-3v10l-5-3"></path></svg>Podwój do +50</button>
+    <button class="btn" style="background: #2EC4B6; color: #0B2A3C; box-shadow: 0 6px 0 #1C8F85; margin-top: 4px">Dalej<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+    <a href="Home.dc.html" style="font-size: 16px; font-weight: 800; color: #C9D4EA; text-decoration: none; padding: 10px 20px">Menu główne</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const liq = ['#E63946','#FB8500','#FFD166','#80ED99','#2A9D8F','#4CC9F0'];
+    const board = [[0,0,0,0],[1,1,1,1],[2,2,2,2],[3,3,3,3],[4,4,4,4],[5,5,5,5],[],[]];
+    return { tubes: board.map((t) => ({ layers: t.map((c) => ({ style: 'background: ' + liq[c] })) })) };
+  }
+}
+</script>
+</body>
+</html>

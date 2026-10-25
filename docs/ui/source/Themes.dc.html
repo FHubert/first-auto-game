@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Vialo — motywy</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;box-sizing:border-box;background:#14213D;color:#fff;font-family:'Nunito',system-ui,sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:56px 20px 36px 20px;gap:20px}
+svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ib{width:48px;height:48px;border-radius:24px;border:none;background:#1F3A6B;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #0E1A33;padding:0;text-decoration:none}
+.pill{display:flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 8px;border-radius:20px;background:#0E1A33;font-weight:800;font-size:17px}
+.card{background:#1F3A6B;border-radius:24px;padding:10px 10px 12px 10px;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}
+.pv{height:150px;border-radius:16px;display:flex;align-items:flex-end;justify-content:center;gap:9px;padding-bottom:18px;box-sizing:border-box}
+.mt{display:flex;flex-direction:column-reverse;width:24px;height:92px;box-sizing:border-box;border-width:2.5px;border-style:solid;border-top:none;border-radius:0 0 12px 12px;padding:0 2px 2px;overflow:hidden}
+.ml{height:21px;flex:none}
+.ml:first-child{border-radius:0 0 10px 10px}
+.act{height:42px;border-radius:21px;display:flex;align-items:center;justify-content:center;gap:6px;font-weight:900;font-size:16px}
+</style>
+</helmet>
+<div class="scr">
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <a class="ib" href="Home.dc.html" aria-label="Wróć"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="font-size: 26px; font-weight: 900">Motywy</div>
+    <div class="pill"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2"></circle><circle cx="12" cy="12" r="5.5" fill="none" stroke="#C99A2E" stroke-width="1.8"></circle></svg>350</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+    <sc-for list="{{themes}}" as="t" hint-placeholder-count="4">
+      <div class="card" style="{{t.cardStyle}}">
+        <div class="pv" style="{{t.pvStyle}}">
+          <sc-for list="{{t.tubes}}" as="tb" hint-placeholder-count="4"><div class="mt" style="{{t.glassStyle}}"><sc-for list="{{tb}}" as="c" hint-placeholder-count="4"><div class="ml" style="{{c}}"></div></sc-for></div></sc-for>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px">
+          <span style="font-size: 18px; font-weight: 900">{{t.name}}</span>
+          <sc-if value="{{t.active}}" hint-placeholder-val="{{ false }}"><span aria-label="Aktywny" style="width: 24px; height: 24px; border-radius: 12px; background: #FFD166; color: #3D2A00; display: flex; align-items: center; justify-content: center"><svg class="i" viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke-width: 3.5" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span></sc-if>
+        </div>
+        <div class="act" style="{{t.actStyle}}">
+          <sc-if value="{{t.priced}}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2"></circle></svg></sc-if>
+          {{t.action}}
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="background: #16294F; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 800"><span>Do motywu Pastel brakuje 250</span><span style="color: #FFD166">350 / 600</span></div>
+    <div style="height: 10px; border-radius: 5px; background: #0E1A33; overflow: hidden"><div style="width: 58%; height: 10px; border-radius: 5px; background: #FFD166"></div></div>
+    <div style="font-size: 13px; font-weight: 700; color: #A9B8D6">Monety zdobywasz za każdy poziom i Poziom dnia</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const defs = [
+      { name: 'Klasyczny', bg: '#14213D', glass: '202,210,224', liq: ['#E63946','#FB8500','#FFD166','#80ED99','#2A9D8F','#4CC9F0','#3A86FF','#8338EC'], state: 'active' },
+      { name: 'Pastelowy', bg: '#F4F1EA', glass: '92,92,110', liq: ['#F4A6A6','#F9C9A0','#F6E58D','#B8E6A1','#8FD9C0','#9ADBF5','#8DA0F2','#D3A4F5'], state: 'price', price: 600 },
+      { name: 'Neonowy', bg: '#0B0B14', glass: '138,138,168', liq: ['#FF1744','#FF9100','#FFEA00','#76FF03','#00E676','#00E5FF','#2979FF','#D500F9'], state: 'price', price: 1080 },
+      { name: 'Oceaniczny', bg: '#0A2540', glass: '191,215,234', liq: ['#E76F51','#F4A261','#E9C46A','#9BD1A0','#2A9D8F','#4CC9F0','#1D6FB8','#5E60CE'], state: 'price', price: 1944 }
+    ];
+    const pattern = [[0,1,2,3],[4,5,6,7],[1,0,3,2],[6,7,4,5]];
+    const themes = defs.map((d) => ({
+      name: d.name,
+      active: d.state === 'active',
+      priced: d.state === 'price',
+      action: d.state === 'active' ? 'W użyciu' : d.price,
+      cardStyle: d.state === 'active' ? 'outline: 3px solid #FFD166; outline-offset: -3px' : '',
+      pvStyle: 'background: ' + d.bg,
+      glassStyle: 'border-color: rgba(' + d.glass + ',0.7)',
+      actStyle: d.state === 'active' ? 'background: #16294F; color: #A9B8D6' : 'background: #16294F; color: #FFD166; border: 2px solid rgba(255,209,102,0.5)',
+      tubes: pattern.map((p) => p.map((c) => 'background: ' + d.liq[c]))
+    }));
+    return { themes: themes };
+  }
+}
+</script>
+</body>
+</html>
