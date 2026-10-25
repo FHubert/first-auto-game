@@ -149,6 +149,32 @@ class BalanceSimTest(unittest.TestCase):
         self.assertFalse(j["always_active"])
         self.assertEqual({k: j[k] for k in golden}, golden)
 
+    def test_t209_sd_nonnegative_and_ci_contains_mean(self):
+        j = self._sim_json()
+        ipd = j["impressions_per_player_day"]
+        self.assertGreaterEqual(ipd["sd"], 0)
+        self.assertGreater(ipd["n"], 0)
+        for key, mean in (("total", j["impressions_per_dau"]), ("rewarded", j["rewarded_per_dau"]),
+                          ("interstitial", j["interstitials_per_dau"])):
+            lo, hi = j["ads_per_dau_ci95"][key]
+            self.assertLessEqual(lo, mean + 1e-3, key)
+            self.assertGreaterEqual(hi, mean - 1e-3, key)
+
+    def _ci_half(self, players, seed="1"):
+        r = run(TOOLS / "balance_sim.py", "--players", players, "--seed", seed, "--json")
+        lo, hi = json.loads(r.stdout)["ads_per_dau_ci95"]["total"]
+        return (lo, hi)
+
+    def test_t209_ci_width_shrinks_with_sqrt_n(self):
+        w1 = self._ci_half("500")
+        w4 = self._ci_half("2000")
+        ratio = (w1[1] - w1[0]) / (w4[1] - w4[0])
+        self.assertAlmostEqual(ratio, 2.0, delta=0.5)
+
+    def test_t209_ci_overlap_between_seeds(self):
+        a, b = self._ci_half("1000", "1"), self._ci_half("1000", "2")
+        self.assertLessEqual(max(a[0], b[0]), min(a[1], b[1]))
+
     def test_always_active_everyone_active_14_days(self):
         j = self._sim_json("--always-active")
         self.assertTrue(j["always_active"])

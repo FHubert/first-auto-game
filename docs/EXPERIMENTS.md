@@ -14,9 +14,9 @@ Plan eksperymentów A/B (EXP-001…EXP-004 = H1…H4 z `docs/MONETIZATION.md`). 
 | D7 retention | 12 % → 14 % (2 pp) | 4 430 | 8 860 |
 | D1 retention | 35 % → 37 % (2 pp) | 9 028 | 18 056 |
 | IAP conversion | 1,5 % → 2,0 % (0,5 pp) | 10 780 | 21 560 |
-| Impresje/DAU (ciągła) | Δ = 0,3 impr./DAU | 174 przy σ = 1; 697 przy σ = 2 | 348 / 1 394 |
+| Impresje/DAU (ciągła) | Δ = 0,3 impr./DAU | 1 724 gracz-dni przy σ = 3,15 | 3 448 gracz-dni |
 
-Impresje/DAU: `tools/balance_sim.py --json` podaje tylko średnie (`impressions_per_dau`), nie rozkład per gracz, więc σ = ZWERYFIKUJ (sim nie wypisuje rozkładu per gracz; zmierzyć na pierwszych danych GA). Wiersz σ = 1 i 2 jest ilustracyjny, nie pomiarem.
+Impresje/DAU: σ = 3,15 impresji na gracz-dzień aktywny (`impressions_per_player_day.sd` z `python3 tools/balance_sim.py --players 5000 --seed 1 --json`, `DEFAULTS`, n = 23 039 gracz-dni; T-209) - σ z modelu, ZWERYFIKUJ na danych GA. Wzór: n = 2 × (1,96 + 0,84)² × σ² / Δ² = 2 × 7,84 × 3,145² / 0,3² = 1 724 gracz-dni/wariant (jednostka to gracz-dzień, nie instalacja: gracz daje kilka dni, więc instalacji potrzeba mniej, ale dni tego samego gracza są skorelowane - traktuj 1 724 jako dolną ocenę dni, ZWERYFIKUJ).
 
 ## Ruch potrzebny (łącznie 2 warianty, 50/50)
 Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7, D1: +1, IAP: +7 okno zakupu), minimum 14 dni zbierania.
@@ -26,7 +26,7 @@ Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7
 | EXP-004 / D7 | 4 430 | 30 + 7 = 37 d | 14 + 7 = 21 d | 14 + 7 = 21 d |
 | D1 (guardrail EXP-002) | 9 028 | 61 + 1 = 62 d | 19 + 1 = 20 d | 14 + 1 = 15 d |
 | EXP-003 / IAP conv | 10 780 | 72 + 7 = 79 d | 22 + 7 = 29 d | 14 + 7 = 21 d |
-| EXP-001, EXP-002 / impresje (σ = 2, ilustracyjnie) | 697 | 14 d | 14 d | 14 d |
+| EXP-001, EXP-002 / impresje (σ = 3,15 z sim, ZWERYFIKUJ; gracz-dni) | 1 724 | 14 d | 14 d | 14 d |
 
 ## Kolejność
 1. EXP-001 (H1) + EXP-002 (H2): tanie (impresje), mogą iść równolegle. EXP-002 jest też strażnikiem D1 (patrz tabela).
@@ -38,9 +38,9 @@ Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7
 - Hipoteza: Jeśli zwiększymy `rewarded_multiplier` z 2.0 do 3.0, odsetek obejrzanych reklam i impresje/DAU wzrosną, a inflacja monet nie obniży D7.
 - Parametr: `rewarded_multiplier` · paczka `h1_b`
 - Warianty: A 2.0 · B 3.0 · 50/50
-- Metryka główna: Ad impressions / DAU (cel >= 3,0); kontrolnie D7 >= 12 %. Sim (seed 1) przewiduje 4.21 vs 4.40 total (brak wzrostu w modelu), więc sygnał nie jest oczekiwany z sim.
+- Metryka główna: Ad impressions / DAU (cel >= 3,0); kontrolnie D7 >= 12 %. Sim (seed 1, 5000 graczy) przewiduje 4.35 vs 4.42 total (CI 4.309–4.389 vs 4.375–4.456 nakładają się - w szumie, brak wzrostu w modelu), więc sygnał nie jest oczekiwany z sim.
 - Guardraile: D1 −2 pp, ARPDAU, crash-free (wspólne)
-- Min. próbka: 697/wariant przy σ = 2 (ZWERYFIKUJ σ); D7 guardrail: czytaj kohortę, 4 430/wariant dla pełnej mocy
+- Min. próbka: 1 724 gracz-dni/wariant przy σ = 3,15 (σ z modelu - ZWERYFIKUJ na danych GA); D7 guardrail: czytaj kohortę, 4 430/wariant dla pełnej mocy
 - Czas: >= 14 dni
 - Decyzja: wdrożyć B, jeśli impresje/DAU +0,3 przy braku regresji D7 (< 1 pp) i guardrailach; inaczej A
 - Wynik: (puste)
@@ -50,9 +50,9 @@ Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7
 - Hipoteza: Jeśli interstitial pojawia się co 4 rundy (min 90 s, od poziomu 5) zamiast 5/120/8, impresje/DAU wzrosną bez spadku D1.
 - Parametry: `interstitial_every_n_rounds`, `interstitial_min_seconds`, `interstitial_min_level` · paczka `h2_b`
 - Warianty: A 5 / 120 / 8 · B 4 / 90 / 5 · 50/50
-- Metryka główna: Ad impressions / DAU (cel >= 3,0); guardrail twardy: D1 >= 35 % i −2 pp. Sim: 4.62 vs 4.40 total.
+- Metryka główna: Ad impressions / DAU (cel >= 3,0); guardrail twardy: D1 >= 35 % i −2 pp. Sim (seed 1, 5000 graczy): 4.86 vs 4.42 total (CI 4.813–4.899 vs 4.375–4.456, rozłączne).
 - Guardraile: D1 −2 pp (kluczowy, bo interstitial w pierwszej sesji), ARPDAU, crash-free
-- Min. próbka: 697/wariant (impresje, σ = 2, ZWERYFIKUJ); D1 guardrail: 9 028/wariant dla mocy 0,8 na Δ = 2 pp
+- Min. próbka: 1 724 gracz-dni/wariant (impresje, σ = 3,15 z sim, ZWERYFIKUJ); D1 guardrail: 9 028/wariant dla mocy 0,8 na Δ = 2 pp
 - Czas: >= 14 dni
 - Decyzja: wdrożyć B, jeśli impresje/DAU rosną, D1 nie spada o > 2 pp i ARPDAU rośnie; inaczej A
 - Wynik: (puste)
@@ -71,10 +71,10 @@ Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7
 
 ## EXP-004: Pomoc na plateau od 3. próby (H4)
 - Data startu: do ustalenia · Status: planned
-- Hipoteza: Jeśli pomoc plateau zaczyna się od 3. próby (zamiast 2.), jest mniej natrętna (`level:assist:*`/DAU niżej, wolniejszy sink monet) bez utraty D7 kohorty 56+ (T-187: 46,0 % vs 34,4 %, górna granica z botem).
+- Hipoteza: Jeśli pomoc plateau zaczyna się od 3. próby (zamiast 2.), jest mniej natrętna (`level:assist:*`/DAU niżej) bez utraty D7 kohorty 56+ (T-187: 46,0 % vs 34,4 %, górna granica z botem). Sim nie daje argumentu ekonomii: baza 26/2 ma więcej rewarded (3.05 vs 2.84/DAU) i porównywalne monety (d30 565 vs 555), więc EXP-004 testuje wyłącznie natrętność vs D7.
 - Parametr: `plateau_assist_from_attempt` · paczka `h4_assist_3`
 - Warianty: A 2 (default od T-198) · B 3 · 50/50
-- Metryka główna: D7 kohorty (cel >= 12 %); drugorzędne: `level:assist:*`/DAU, rewarded/DAU. Sim: ARPDAU ok. −5 % w B (total 4.40 → 4.19).
+- Metryka główna: D7 kohorty (cel >= 12 %); drugorzędne: `level:assist:*`/DAU, rewarded/DAU. Sim (seed 1, 5000 graczy): ARPDAU ok. −5 % w B (total 4.42 → 4.20, CI rozłączne).
 - Guardraile: D1 −2 pp, ARPDAU, crash-free
 - Min. próbka: 4 430/wariant (D7 12 → 14 %; kohorta 56+ jest mniejsza, więc dłużej lub analiza całej populacji)
 - Czas: >= 14 dni + 7 dni na pełne kohorty D7
