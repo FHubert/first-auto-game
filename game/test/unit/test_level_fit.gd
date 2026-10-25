@@ -93,7 +93,7 @@ func _board_height_for(tube_count: int) -> float:
 
 
 func test_board_content_height_grows_with_rows() -> void:
-	var one: float = _board_height_for(5)
+	var one: float = _board_height_for(4)
 	var two: float = _board_height_for(14)
 	assert_float(one).is_greater(0.0)
 	assert_float(two).is_greater(one)

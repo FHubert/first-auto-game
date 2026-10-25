@@ -67,7 +67,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `game/src/ui/ui_tokens.gd` (`class_name UiTokens`): wszystkie kolory z tabeli „Tokeny” (nazwy 1:1), rozmiary fontu i wymiary z tabeli „Skala” już w px Godota (np. `FONT_XS=24`, `BTN_H=103`, `HUD_BTN=118`, `TOUCH_MIN=81`, `SCREEN_PAD=37`). `ui_theme.tres`: domyślny `Button` = wariant Secondary oraz type variations `ButtonPrimary`, `ButtonAccent`, `ButtonSecondary`, `ButtonIcon`, `ButtonNav`, `LabelTitle`, `LabelCaption`, `LabelSection`, `Card`, `CardRow`; każdy przycisk ma stany normal/hover/pressed/disabled/focus jako `StyleBoxFlat` z efektem „wypukłym” (cień bez rozmycia, offset 7–13 px w `*_SHADOW`; pressed = cień 0 + `content_margin_top` +N). Test gdUnit4: każdy wariant istnieje, kontrast tekst/tło ≥ 4,5:1 liczony z hex dla każdego wariantu, min. wysokości ≥ `TOUCH_MIN`. Brak zmian w logice ani w wyglądzie ekranów (same zasoby). ~220 linii.
   Skill: `godot-dev` + `asset-gen`
 
-- [ ] T-229 `review` UI v2: ikony z makiet w `gen_assets.py` (zależy od T-228) → PR #217
+- [x] T-229 `done` UI v2: ikony z makiet w `gen_assets.py` (zależy od T-228) → PR #217 (zmergowany 2026-10-25)
   KA: `tools/gen_assets.py` odtwarza ikony z `docs/ui/README.md` → „Ikony” (kształty = inline `<svg>` w `docs/ui/source/*.dc.html`): liniowe, obrys 2,2/24 siatki, zaokrąglone końce; render 4× + skalowanie do 96 px PNG, biel na przezroczystym (moneta i płomień w kolorach `ACCENT`/`STREAK`). `UiTokens.icon(name) -> Texture2D`. `tools/test_tools.py`: komplet nazw, 96×96, kanał alfa, deterministyczny hash (2 przebiegi identyczne). `docs/LICENSES.md` bez zmian. ~250 linii (podzielić na 2 PR, jeśli > 300).
   Skill: `asset-gen`
 
@@ -75,7 +75,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: górny pasek: `ButtonIcon` pauza · „Poziom N” (`LabelTitle`, 48 px) + „Ruchy: X · cel Y” (`TEXT_MUTED`, 28 px) · pill monet; dolny pasek: 4 przyciski HUD 118 px z ikoną i podpisem pod spodem (Cofnij z badge licznika ładunków, Od nowa, Podpowiedź z ceną, +Probówka z ceną / ikoną video przy rewarded). Brak tekstu w przyciskach. Wysokości pasków jako stałe `UiTokens` używane przez `Level.fit_board_*` (jedna prawda). Istniejące sygnały HUD/`LevelOffers` i asercje testów bez zmian. Test: każdy przycisk ≥ `TOUCH_MIN`, plansza poziomu 60 mieści się między paskami w 720×1280 i 720×1560. Kadry sklepowe 01/02 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-231 `todo` UI v2: probówki i plansza wg `docs/ui/README.md` → „Plansza i probówki” (zależy od T-228)
+- [ ] T-231 `review` UI v2: probówki i plansza wg `docs/ui/README.md` → „Plansza i probówki” (zależy od T-228) → PR #218
   KA: `TubeView`: wymiary, obrys, alfy szkła (0,55 / wybrana 0,95), rant, zaokrąglone dno, refleks i podniesienie wybranej dokładnie wg README (×1,846). Układ: ≤ 8 probówek → max 4 w rzędzie; > 8 → skalowanie proporcjonalne, rzędy po max 7. Tło płaskie w kolorze `background` motywu. Test: dla n = 4…14 wszystkie probówki w granicach ekranu i bez nakładania; brak regresji `test_board_view*`/`test_tube_view*`. Kadry 01/02 przegenerowane + zestawienie z makietą. ~250 linii.
   Skill: `godot-dev`
 
@@ -200,6 +200,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-261 `todo` Rewarded przy mediacji: kolejność `onUserEarnedReward` vs zamknięcie reklamy ustala źródło mediacji (dla reklam Google nagroda przed zamknięciem — https://developers.google.cn/admob/android/rewarded?hl=en, 2026-10-25) — adapter AdMob w Fazie 5 musi scalić oba callbacki w jedno `rewarded_closed(granted)` z oknem oczekiwania (czysta klasa + `TestClock`); robić razem z adapterem, tylko jeśli włączymy mediację. Skill: ads-iap
 - [ ] T-262 `todo` `StuckPanel`: linia „%d ruchów od celu” w grze nigdy się nie pokazuje (panel otwierany tylko bez legalnych ruchów → zawsze „Brak rozwiązania z tego stanu”); widać ją tylko w kadrze `--screenshot` (`main.gd` `stuck_panel`), więc kadr nie odpowiada grze (ryzyko jak T-111) — do decyzji przy UI v2 T-233 (GDD pytanie 27). Skill: godot-dev
 - [ ] T-263 `todo` `tools/test_ui_icons.py`: `Image.getdata()` daje DeprecationWarning w Pillow 14 → `get_flattened_data()` (odkryte w T-229, sesja #23). Skill: asset-gen
+- [ ] T-264 `todo` `Level.fit_board_above_panel` po T-231 centruje planszę w obszarze HUD–panel wygranej zamiast przyklejać ją tuż nad panel (jak przed UI v2); do decyzji przy T-233 (LevelComplete jako dolny arkusz nad planszą — makieta 03). Skill: godot-dev
 
 ## Pytania do Huberta
 - Refill #17 (T-259, GDD pytanie 26): cel miesiąca Poziomów dnia — sim T-226: cel 20 osiąga 20,6 % graczy grających codziennie, 3,0 % przy 6 dniach z 7, 0,0 % przy 5; przyjęto: wartość z reguły T-259 (największy cel z {10, 12, 15, 20}, który K = 6 osiąga ≥ 50 % i K = 7 ≥ 80 %, d30/d1 ≤ 2,0) trafia do `DEFAULTS` bez czekania (remote config pozwala cofnąć), premia 300 bez zmian; do zmiany (alternatywy: zostawić 20 jako cel „dla najwierniejszych”; cel proporcjonalny w miesiącu instalacji).
