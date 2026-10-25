@@ -7,7 +7,7 @@ btn_pause,Pause,Pauza,Pause
 btn_hint,Hint (%d),Podpowiedź (%d),Tipp (%d)
 btn_extra_tube,+Tube (%d),+Probówka (%d),+Röhrchen (%d)
 lc_title,Level %d complete!,Poziom %d ukończony!,Level %d geschafft!
-lc_coins,+%d coins,+%d monet,+%d Münzen
+lc_coins,+%d,+%d,+%d
 lc_perfect,Perfect!,Idealnie!,Perfekt!
 btn_next,Next,Dalej,Weiter
 btn_menu,Menu,Menu,Menü
@@ -112,3 +112,4 @@ stuck_row_tube,Extra tube,Dodatkowa probówka,Extra-Röhrchen
 stuck_row_tube_desc,"Empty, until the level ends","Pusta, do końca poziomu","Leer, bis zum Levelende"
 stuck_row_refill,+%d undos,+%d cofnięć,+%d Rückgängig
 stuck_row_refill_desc,Add undo charges,Dodaj ładunki cofania,Rückgängig-Ladungen hinzufügen
+lc_great,Great!,Świetnie!,Super!
