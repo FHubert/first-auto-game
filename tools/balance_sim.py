@@ -22,7 +22,7 @@ Exit code 1 when the economy
 Ad density (interstitial <= 2.5, total >= 3.0 per DAU) only prints a WARN, it does not fail.
 Statistics are taken over *engaged* players (active on >= 2 of the first 7 days).
 
-Usage: python3 tools/balance_sim.py --players 5000 --days 30 --seed 1 [--json] [--always-active] [--config PATH] [--overlay PATH]
+Usage: python3 tools/balance_sim.py --players 5000 --days 30 --seed 1 [--json] [--always-active | --active-pattern K] [--config PATH] [--overlay PATH]
 """
 from __future__ import annotations
 
@@ -95,6 +95,9 @@ BUILTIN = {
     "retention_d1": 0.38,  # sim-only
     "retention_d7": 0.14,  # sim-only
     "retention_d30": 0.05,  # sim-only
+    # T-226: PROPOZYCJA, wylacznie pomiar (kod gry bez zmian). ZWERYFIKUJ po soft launchu, jesli dzwignia wejdzie do gry.
+    "sim_yesterday_daily": 0,  # sim-only: 1 = w aktywnym dniu po dniu opuszczonym rewarded -> zalegly Poziom dnia (cel miesiaca, NIE seria)
+    "sim_yesterday_daily_take_rate": 0.5,  # sim-only: odsetek graczy oglądających ten rewarded
 }
 
 
@@ -245,7 +248,8 @@ def assisted_win_prob(win_p: float, fail_mult: float) -> float:
     return 1.0 - (1.0 - win_p) * fail_mult
 
 
-def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool = True, always_active: bool = False) -> dict:
+def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool = True, always_active: bool = False,
+             active_pattern: int | None = None) -> dict:
     rnd = random.Random(seed)
     coins_by_day = [[] for _ in range(days)]  # per day: balances of engaged players
     themes_d7: list[int] = []
@@ -268,6 +272,13 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
     assist_on = plateau_assist and cfg["plateau_assist_take_rate"] > 0
     mults = cfg["daily_reward_multipliers"]
     grace = int(cfg["streak_grace_days"])
+    yday_on = cfg["sim_yesterday_daily"] >= 1
+    if yday_on:
+        rewarded["yesterday_daily"] = 0  # tylko z dzwignia: wyjscie bez flagi identyczne jak przed T-226
+    coins_earned_total = 0
+    goal_days: list[int] = []  # calendar day (1-based) the month goal was reached (T-226)
+    if always_active:
+        active_pattern = 7
 
     for _ in range(players):
         engagement = max(0.3, rnd.lognormvariate(0.0, 0.35))
@@ -288,8 +299,9 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         coins_at_active7 = None
         earned = 0
         afford: list[int] = []
-        if always_active:
-            activity = [True] * days
+        goal_day = None
+        if active_pattern is not None:  # K dni z 7 deterministycznie (K=7 = codziennie)
+            activity = [d % 7 < active_pattern for d in range(days)]
         else:
             activity = [rnd.random() < retention_at(cfg, d) for d in range(days)]
         activity[0] = True
@@ -327,13 +339,26 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
                     reward *= cfg["rewarded_multiplier"]
                 coins += int(round(reward))
                 earned += int(round(reward))
+                dailies = 0
                 if level >= cfg["daily_unlock_level"] and rnd.random() < cfg["daily_challenge_play_rate"]:
+                    dailies += 1
+                if (
+                    yday_on
+                    and day > 0
+                    and not activity[day - 1]
+                    and level >= cfg["daily_unlock_level"]
+                    and rnd.random() < cfg["sim_yesterday_daily_take_rate"]
+                ):
+                    rewarded["yesterday_daily"] += 1  # zalegly poziom: do celu miesiaca, NIE do serii
+                    dailies += 1
+                for _d in range(dailies):
                     coins += int(cfg["daily_challenge_coins"])
                     earned += int(cfg["daily_challenge_coins"])
                     daily_done += 1
                     if daily_done == cfg["daily_month_goal"]:  # month goal bonus (T-137)
                         coins += int(cfg["daily_month_goal_coins"])
                         earned += int(cfg["daily_month_goal_coins"])
+                        goal_day = day + 1
                 n_sessions = max(1, poisson(rnd, cfg["sessions_per_day"] * engagement))
                 sessions_total += n_sessions
                 for _s in range(n_sessions):
@@ -436,6 +461,9 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         for i, a in enumerate(afford):
             afford_active[i].append(a)
         negative_players += went_negative
+        coins_earned_total += earned
+        if goal_day is not None:
+            goal_days.append(goal_day)
 
     return {
         "engaged": engaged,
@@ -463,6 +491,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         "assist_coins": assist_coins,
         "assist_buys": assist_buys,
         "assist_attempts": assist_attempts,
+        "goal_days": goal_days,
+        "coins_earned_total": coins_earned_total,
     }
 
 
@@ -477,6 +507,8 @@ def main(argv: list | None = None) -> int:
     ap.add_argument("--no-plateau-assist", action="store_true", help="wylacz pomoc na plateau (baza porownawcza)")
     ap.add_argument("--always-active", action="store_true",
                     help="proxy gracza grajacego codziennie: aktywny we wszystkie --days dni (T-202)")
+    ap.add_argument("--active-pattern", type=int, choices=range(1, 8), default=None, metavar="K",
+                    help="proxy: aktywny K dni z 7 (deterministycznie, K=1..7; 7 = --always-active) (T-226)")
     ap.add_argument("--json", action="store_true", help="print machine-readable JSON only")
     args = ap.parse_args(argv)
     if args.days < 8:
@@ -498,7 +530,7 @@ def main(argv: list | None = None) -> int:
             print(f"[balance_sim] ignored overlay key: {k}", file=sys.stderr)
         print(f"[balance_sim] applied overlay {args.overlay.name}: {len(applied)} key(s)", file=sys.stderr)
 
-    res = simulate(cfg, args.players, args.days, args.seed, not args.no_plateau_assist, args.always_active)
+    res = simulate(cfg, args.players, args.days, args.seed, not args.no_plateau_assist, args.always_active, args.active_pattern)
     if res["engaged"] == 0:
         print("[balance_sim] no engaged players; increase --players", file=sys.stderr)
         return 1
@@ -550,12 +582,20 @@ def main(argv: list | None = None) -> int:
     ci = {name: mean_sd_ci(xs) for name, xs in (("rewarded", res["rew_day"]), ("interstitial", res["int_day"]), ("total", tot_day))}
     imp_sd = ci["total"][1]
     by_place = {k: round(v / dau, 3) for k, v in res["rewarded"].items()}
+    goal = stat(res["goal_days"])
+    goal_pct = 100.0 * len(res["goal_days"]) / max(1, res["players"])
     out = {
         "players": args.players,
         "days": args.days,
         "seed": args.seed,
         "overlay": str(args.overlay) if args.overlay else None,
         "always_active": args.always_active,
+        "active_pattern": args.active_pattern,
+        "rewarded_yesterday_daily_per_dau": by_place.get("yesterday_daily", 0.0),
+        "coins_earned_per_dau": round(res["coins_earned_total"] / dau, 1),
+        "daily_month_goal_hit_pct": round(goal_pct, 1),
+        "daily_month_goal_day_p50": goal["value"],
+        "daily_month_goal_day_p50_n": goal["n"],
         "engaged_players": eng,
         "median_coins_day1": day1,
         "median_coins_day7": day7,
@@ -616,6 +656,8 @@ def main(argv: list | None = None) -> int:
         print(f"ads/DAU: interstitial {inter_dau:.2f}, rewarded {rew_dau:.2f} ({parts}), total {imp_dau:.2f}")
         print(f"impressions per player-day: mean {ci['total'][0]:.2f}, sd {imp_sd:.2f}, n={len(tot_day)}; 95 % CI ads/DAU: " + ", ".join(
             f"{k} [{v[2][0]:.2f}, {v[2][1]:.2f}]" for k, v in ci.items()))
+        print(f"month goal ({int(cfg['daily_month_goal'])} dailies): hit {goal_pct:.1f} % of players, calendar day p50 {fmt(goal)}; "
+              f"rewarded yesterday-daily/DAU {out['rewarded_yesterday_daily_per_dau']}")
         print(f"plateau assist: coins/DAU {out['plateau_assist_coins_per_dau']}, rewarded extra_tube/DAU {out['rewarded_extra_tube_per_dau']}, buys/attempts {res['assist_buys']}/{res['assist_attempts']}")
         print(f"players with a negative balance: {neg_pct:.2f} %  (sessions/DAU {out['sessions_per_dau']})")
         if inter_dau > 2.5:
