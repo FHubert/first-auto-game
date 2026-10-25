@@ -131,6 +131,51 @@ class BalanceSimTest(unittest.TestCase):
 
         self.assertGreaterEqual(attempts("1"), attempts("0"))
 
+    def _sim_json(self, *extra, players="200"):
+        r = run(TOOLS / "balance_sim.py", "--players", players, "--seed", "1", "--json", *extra)
+        self.assertIn(r.returncode, (0, 1), r.stdout + r.stderr)  # 1 = "starves" przy absurdalnych kosztach
+        return json.loads(r.stdout)
+
+    def test_without_always_active_flag_metrics_unchanged(self):
+        # T-202: zlote wartosci z gałęzi bazowej (BUILTIN, seed 1, 200 graczy) - flaga nie moze zmienic sciezki domyslnej
+        # (kolejnosc losowan rnd). Zmiana modelu sim = swiadoma aktualizacja tych wartosci.
+        j = self._sim_json("--config", "/nonexistent")
+        golden = {
+            "engaged_players": 165, "median_coins_day1": 320, "median_coins_day7": 410, "median_coins_day30": 590,
+            "median_themes_day7": 1, "first_theme_day_median_n": 161, "median_coins_active_day7": 565.0,
+            "interstitials_per_dau": 1.358, "rewarded_per_dau": 3.031, "plateau_assist_coins_per_dau": 18.0,
+            "plateau_assist_buys": 556, "plateau_assist_attempts": 4711, "sessions_per_dau": 3.24,
+        }
+        self.assertFalse(j["always_active"])
+        self.assertEqual({k: j[k] for k in golden}, golden)
+
+    def test_always_active_everyone_active_14_days(self):
+        j = self._sim_json("--always-active")
+        self.assertTrue(j["always_active"])
+        self.assertEqual(j["active14_players"], 200)
+        self.assertEqual(j["engaged_players"], 200)
+        self.assertEqual(j["coins_earned_cum_active_day30_p50_n"], 200)
+        self.assertEqual(self._sim_json()["active14_players"], 0)
+
+    def test_coins_earned_cum_monotonic_by_active_day(self):
+        j = self._sim_json("--always-active")
+        for q in ("p50", "p90"):
+            d7, d14, d30 = (j[f"coins_earned_cum_active_day{d}_{q}"] for d in (7, 14, 30))
+            self.assertLessEqual(d7, d14)
+            self.assertLessEqual(d14, d30)
+        self.assertLessEqual(j["coins_earned_cum_active_day7_p50"], j["coins_earned_cum_active_day7_p90"])
+        self.assertEqual(list(load_sim().theme_thresholds(load_sim().BUILTIN)), [600, 1680, 3624])
+
+    def test_theme_affordable_active_day_cost_overlay(self):
+        base = self._sim_json("--always-active")
+        self.assertLessEqual(base["theme1_affordable_active_day_p50"], base["theme3_affordable_active_day_p50"])
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "o.json"
+            ov.write_text('{"theme_cost_base": 6000}')
+            j = self._sim_json("--always-active", "--overlay", ov)
+        t3 = j["theme3_affordable_active_day_p50"]
+        self.assertTrue(t3 is None or t3 > 30, t3)
+
     def test_assisted_win_prob_table(self):
         sim = load_sim()
         self.assertAlmostEqual(sim.assisted_win_prob(0.55, 0.67), 0.6985, delta=1e-9)
