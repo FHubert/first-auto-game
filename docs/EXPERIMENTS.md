@@ -85,7 +85,7 @@ Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7
 ## EXP-005: Notyfikacja „powrót” w oknie ratowania serii (D7, meta)
 - Data startu: do ustalenia (Faza 6; wcześniej porównanie kohort przed/po, nie A/B) · Status: planned
 - Hipoteza: Jeśli skrócimy `notif_comeback_days` z 3 do 2, D7 wzrośnie, bo przypomnienie „powrót” przyjdzie w lokalnym dniu D+2 — gdy powracający gracz z serią jest jeszcze w stanie grace (`streak_grace_days` = 1) i może ją uratować rewarded `streak_save` — zamiast w D+3, gdy seria jest już zresetowana do 1 (`NotificationPlanner.plan`: wpis `comeback` = `local_day + notif_comeback_days`; `DailyRewards`: grace gdy `utc_day − last − 1 ≤ streak_grace_days`).
-- Parametr (remote config / GameConfig): `notif_comeback_days` (`RANGES` 2..14) · paczka `h5_comeback_2` (T-284)
+- Parametr (remote config / GameConfig): `notif_comeback_days` (`RANGES` 2..14) · paczka `h5_comeback_2` gotowa (T-284)
 - Warianty: A (kontrola) 3 · B 2 · podział 50/50
 - Metryka główna: D7 retention kohorty (KPI.md, cel ≥ 12 %, kill-line 8 %); drugorzędne: `streak:saved` / DAU i `ads:rewarded:streak_save:*` / DAU (dźwignia, której dotyczy hipoteza), `notif:scheduled:comeback` / DAU (kontrola ekspozycji); guardraile: wspólne (D1 −2 pp, ARPDAU, crash-free) + opt-out powiadomień `settings:notifications:off` / DAU w B ≤ A + 1 pp (event z T-284).
 - Min. próbka: >= 4 430 instalacji/wariant (D7 12 % → 14 %, tabela „Policzone próbki”) lub 14 dni + 7 dni na pełne kohorty D7; efekt dotyczy tylko graczy ze zgodą na notyfikacje (`notif:permission:granted` albo `not_required`) — analiza główna na całej kohorcie (intent-to-treat), podgrupa ze zgodą raportowana osobno; zatrzymaj wcześniej tylko przy guardrailu.

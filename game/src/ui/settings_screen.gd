@@ -260,5 +260,10 @@ func _toggle(
 	_add_row_container(parent, t)
 	var parts: Dictionary = _row(t, icon_name, text, subtitle)
 	(parts["right"] as HBoxContainer).custom_minimum_size.x = ScreenHeader.SWITCH_SIZE.x
-	t.toggled.connect(func(on: bool) -> void: set_setting(key, on))
+	t.toggled.connect(
+		func(on: bool) -> void:
+			set_setting(key, on)
+			if key == GameState.SETTING_NOTIFICATIONS_ON:
+				Analytics.track_design("settings:notifications:" + ("on" if on else "off"))
+	)
 	return t
