@@ -687,6 +687,14 @@ class PrivacyDocsTest(unittest.TestCase):
             with self.subTest(event=ev):
                 self.assertIn(ev, checklist)
 
+    def test_every_gdd_event_is_in_dashboard(self):
+        events = self.gdd_events()
+        self.assertGreaterEqual(len(events), 17)
+        dashboard = (ROOT / "docs" / "DASHBOARD.md").read_text(encoding="utf-8")
+        for ev in events:
+            with self.subTest(event=ev):
+                self.assertIn(ev, dashboard)
+
     def test_policies_content_and_link_dates(self):
         for name in ("index.md", "pl.md"):
             text = (self.PRIVACY / name).read_text(encoding="utf-8")
