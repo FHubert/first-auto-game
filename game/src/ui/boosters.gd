@@ -16,7 +16,7 @@ static func buy_extra_tube(state: GameState, round_in: GameRound) -> bool:
 static func buy_undo_refill(state: GameState, round_in: GameRound) -> bool:
 	if not Economy.buy_booster(state, Economy.SINK_UNDO_REFILL):
 		return false
-	round_in.add_undo_charges(_cfg_int("undo_refill_amount"))
+	round_in.counters.add_undo_charges(_cfg_int("undo_refill_amount"))
 	Analytics.track_design("booster:undo_refill:coins")
 	return true
 

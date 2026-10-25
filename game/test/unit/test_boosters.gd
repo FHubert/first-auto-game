@@ -36,13 +36,13 @@ func test_extra_tube_without_funds() -> void:
 
 
 func test_undo_refill() -> void:
-	var charges: int = _round.undo_charges()
+	var charges: int = _round.counters.undo_charges
 	assert_bool(Boosters.buy_undo_refill(_state, _round)).is_true()
 	assert_int(_state.coins).is_equal(100 - Economy.undo_refill_cost())
-	assert_int(_round.undo_charges()).is_equal(charges + 3)
+	assert_int(_round.counters.undo_charges).is_equal(charges + 3)
 	_state.coins = 0
 	assert_bool(Boosters.buy_undo_refill(_state, _round)).is_false()
-	assert_int(_round.undo_charges()).is_equal(charges + 3)
+	assert_int(_round.counters.undo_charges).is_equal(charges + 3)
 
 
 func test_hint_needs_funds_then_returns_legal_move() -> void:

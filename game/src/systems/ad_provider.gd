@@ -4,7 +4,8 @@ extends RefCounted
 
 ## Emitted when a rewarded ad closes; granted tells if the reward was earned.
 signal rewarded_closed(granted: bool)
-signal interstitial_closed
+## ad_id is the break number AdService passed to show_interstitial; the adapter echoes it back.
+signal interstitial_closed(ad_id: int)
 ## Load results (T-225, ADR-013); code is the SDK error code. Retry policy lives in AdService.
 signal rewarded_loaded
 signal rewarded_load_failed(code: int)
@@ -39,7 +40,8 @@ func is_interstitial_ready() -> bool:
 	return false
 
 
-func show_interstitial() -> void:
+## ad_id: break number assigned by AdService; send it back in interstitial_closed(ad_id).
+func show_interstitial(_ad_id: int) -> void:
 	pass
 
 

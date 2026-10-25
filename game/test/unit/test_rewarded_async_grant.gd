@@ -160,12 +160,12 @@ func test_extra_tube_assist_bar_button() -> void:
 
 func test_undo_refill_stuck_panel_button() -> void:
 	_new_level(HARD_LEVEL)
-	var charges: int = _level.round.undo_charges()
+	var charges: int = _level.round.counters.undo_charges
 	var amount: int = int(GameConfig.get_value("undo_refill_amount"))
 	_level.stuck_panel.undo_refill_ad_pressed.emit()
-	assert_int(_level.round.undo_charges()).is_equal(charges)
+	assert_int(_level.round.counters.undo_charges).is_equal(charges)
 	await _frames()
-	assert_int(_level.round.undo_charges()).is_equal(charges + amount)
+	assert_int(_level.round.counters.undo_charges).is_equal(charges + amount)
 	assert_int(_level.rewarded.granted_count("undo_refill")).is_equal(1)
 	assert_int(_count("ads:rewarded:undo_refill:granted")).is_equal(1)
 	assert_int(_count("booster:undo_refill:rewarded")).is_equal(1)

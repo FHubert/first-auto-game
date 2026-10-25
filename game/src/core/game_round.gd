@@ -1,4 +1,3 @@
-# gdlint: ignore=max-public-methods
 class_name GameRound
 extends RefCounted
 ## Runda water sort: ruchy, cofnij, dodatkowa probówka, restart, podpowiedź.
@@ -14,16 +13,13 @@ const NO_HINT: Vector2i = Vector2i(-1, -1)
 var elapsed_s: float = 0.0
 ## Cache rozwiązań solvera (T-222: zasilany też z HintJob przez Level).
 var solutions: SolverCache = SolverCache.new()
+## Liczniki i boostery rundy (T-227).
+var counters: RoundCounters = RoundCounters.new()
 var _level_data: Dictionary = {}
 var _start_tubes: Array = []
 var _board: SortBoard = SortBoard.new()
 var _history: Array = []
 var _moves: int = 0
-var _undo_charges: int = 0
-var _undos_used: int = 0
-var _extra_tubes_added: int = 0
-var _boosters_used: int = 0
-var _restarts: int = 0
 var _done: bool = false
 var _won: bool = false
 var _min_moves: int = 0
@@ -48,29 +44,26 @@ func start(level_data: Dictionary) -> void:
 	_min_moves_exact = bool(payload.get("min_moves_exact", false))
 	_history = []
 	_moves = 0
-	_undos_used = 0
-	_boosters_used = 0
-	_restarts = 0
+	counters.reset(_cfg_int("undo_free_per_level"))
 	elapsed_s = 0.0
-	_extra_tubes_added = 0
-	_undo_charges = _cfg_int("undo_free_per_level")
 	solutions.clear()
 	_done = _board.is_won()
 	_won = _done
 
 
 func to_dict() -> Dictionary:
+	var c: Dictionary = counters.to_dict()
 	return {
 		"level_data": _level_data.duplicate(true),
 		"tubes": _board.to_tubes(),
 		"capacity": _board.capacity,
 		"history": _history.duplicate(true),
 		"moves": _moves,
-		"undo_charges": _undo_charges,
-		"undos_used": _undos_used,
-		"extra_tubes_added": _extra_tubes_added,
-		"boosters_used": _boosters_used,
-		"restarts": _restarts,
+		"undo_charges": c["undo_charges"],
+		"undos_used": c["undos_used"],
+		"extra_tubes_added": c["extra_tubes_added"],
+		"boosters_used": c["boosters_used"],
+		"restarts": c["restarts"],
 		"elapsed_s": elapsed_s,
 	}
 
@@ -101,22 +94,15 @@ static func from_dict(d: Dictionary) -> GameRound:
 	for snap: Variant in snaps:
 		if not _valid_tubes(snap, int(cap), count, want):
 			return null
-	var ints: Array = []
-	for key: String in ["undo_charges", "undos_used", "boosters_used", "restarts"]:
-		var fallback: Variant = r._undo_charges if key == "undo_charges" else 0
-		var v: Variant = GameState._as_int(d.get(key, fallback))
-		if v == null or int(v) < 0:
-			return null
-		ints.append(int(v))
+	var cnt: RoundCounters = RoundCounters.from_dict(d, r.counters.undo_charges)
+	if cnt == null:
+		return null
 	r._start_tubes = _norm(r._start_tubes)
 	r._board = SortBoard.new(_norm(snaps.pop_back()), int(cap))
 	r._history = snaps.map(_norm)
 	r._moves = int(moves)
-	r._extra_tubes_added = int(extra)
-	r._undo_charges = ints[0]
-	r._undos_used = ints[1]
-	r._boosters_used = ints[2]
-	r._restarts = ints[3]
+	cnt.extra_tubes_added = int(extra)
+	r.counters = cnt
 	var el: Variant = d.get("elapsed_s")
 	if typeof(el) == TYPE_FLOAT or typeof(el) == TYPE_INT:
 		r.elapsed_s = maxf(0.0, float(el))
@@ -198,24 +184,11 @@ func try_move(from: int, to: int) -> bool:
 
 
 func undo() -> bool:
-	if _done or _history.is_empty() or _undo_charges <= 0:
+	if _done or _history.is_empty() or not counters.use_undo():
 		return false
 	_board = SortBoard.new(_history.pop_back(), _board.capacity)
 	_moves -= 1
-	_undo_charges -= 1
-	_undos_used += 1
 	return true
-
-
-func add_undo_charges(n: int) -> void:
-	if n <= 0:
-		return
-	_undo_charges += n
-	_boosters_used += 1
-
-
-func undo_charges() -> int:
-	return _undo_charges
 
 
 func add_extra_tube() -> bool:
@@ -224,8 +197,7 @@ func add_extra_tube() -> bool:
 	_board.add_empty_tube()
 	for snap: Array in _history:
 		snap.append([])
-	_extra_tubes_added += 1
-	_boosters_used += 1
+	counters.on_extra_tube()
 	return true
 
 
@@ -233,27 +205,17 @@ func restart() -> void:
 	_board = SortBoard.new(_start_tubes, _board.capacity)
 	_history = []
 	_moves = 0
-	_undo_charges = _cfg_int("undo_free_per_level")
-	_extra_tubes_added = 0
+	counters.on_restart(_cfg_int("undo_free_per_level"))
 	_done = _board.is_won()
 	_won = _done
-	_restarts += 1
 
 
 func can_add_extra_tube() -> bool:
-	return not _done and _extra_tubes_added < _cfg_int("extra_tube_max_per_level")
-
-
-func restarts() -> int:
-	return _restarts
-
-
-func extra_tubes_added() -> int:
-	return _extra_tubes_added
+	return not _done and counters.extra_tubes_added < _cfg_int("extra_tube_max_per_level")
 
 
 func can_skip() -> bool:
-	return _restarts >= _cfg_int("skip_unlock_restarts")
+	return counters.restarts >= _cfg_int("skip_unlock_restarts")
 
 
 func is_stuck() -> bool:
@@ -267,7 +229,7 @@ func hint() -> Vector2i:
 	var path: Array = _solve_cached(_cfg_int("hint_exact_max_states")).get("path", [])
 	if path.is_empty():
 		return NO_HINT
-	_boosters_used += 1
+	counters.on_hint_used()
 	return path[0]
 
 
@@ -302,9 +264,9 @@ func result() -> Dictionary:
 		"min_moves": _min_moves,
 		"min_moves_exact": _min_moves_exact,
 		"perfect": _won and _moves <= _min_moves + slack,
-		"undos_used": _undos_used,
-		"boosters_used": _boosters_used,
-		"restarts": _restarts,
+		"undos_used": counters.undos_used,
+		"boosters_used": counters.boosters_used,
+		"restarts": counters.restarts,
 		"elapsed_s": elapsed_s,
 		"steps": _moves,
 	}

@@ -29,7 +29,8 @@ var _watchdog_fired: bool = false
 var _break_id: int = 0
 ## Breaks closed by the watchdog whose SDK callback has not arrived yet (id -> true).
 var _watchdog_ids: Dictionary = {}
-var _interstitial_ids: Array[int] = []
+## Interstitial breaks shown and not yet closed (id -> true); closes are paired by id.
+var _open_interstitials: Dictionary = {}
 ## Ad loading (T-225, ADR-013): one AdLoadPolicy and one in-flight flag per format.
 var _policies: Dictionary = {"rewarded": AdLoadPolicy.new(), "interstitial": AdLoadPolicy.new()}
 var _loading: Dictionary = {"rewarded": false, "interstitial": false}
@@ -63,6 +64,7 @@ func poll_watchdog() -> void:
 		_watchdog_fired = true
 		_ad_break_open = false
 		_watchdog_ids[_break_id] = true
+		_open_interstitials.erase(_break_id)
 		Audio.set_app_muted(false)
 		Analytics.track_design("ads:watchdog:unmute")
 		_reload_after_close()
@@ -206,9 +208,10 @@ func maybe_show_interstitial(level_no: int, p_ads_removed: bool = false) -> bool
 		return false
 	if not provider.interstitial_closed.is_connected(_on_interstitial_closed):
 		provider.interstitial_closed.connect(_on_interstitial_closed)
-	_interstitial_ids.append(_begin_ad_break())
+	var id: int = _begin_ad_break()
+	_open_interstitials[id] = true
 	ad_about_to_show.emit("interstitial")
-	provider.show_interstitial()
+	provider.show_interstitial(id)
 	_last_interstitial_s = now
 	interstitials_shown += 1
 	Analytics.track_design("ads:interstitial:shown", float(level_no))
@@ -216,11 +219,17 @@ func maybe_show_interstitial(level_no: int, p_ads_removed: bool = false) -> bool
 	return true
 
 
-func _on_interstitial_closed() -> void:
-	_reload("interstitial")
-	if _interstitial_ids.is_empty():
-		return
-	_close_break(_interstitial_ids.pop_front(), "interstitial")
+## Pairs a close with its break by id (never FIFO). With two open breaks, closing the older
+## one only reloads: audio ends when the newest break (id == _break_id) closes.
+func _on_interstitial_closed(ad_id: int) -> void:
+	if _open_interstitials.has(ad_id):
+		_open_interstitials.erase(ad_id)
+		_reload("interstitial")
+		_close_break(ad_id, "interstitial")
+	elif _watchdog_ids.has(ad_id):
+		_close_break(ad_id, "interstitial")
+	else:
+		push_warning("AdService: unknown interstitial close id %d" % ad_id)
 
 
 ## Clears the "rewarded already shown in this break" flag (tests / bot).

@@ -107,8 +107,8 @@ func test_two_closes_in_same_frame_load_once() -> void:
 	_provider.hold_show = true
 	_provider.hold_loads = true
 	assert_bool(_ads.maybe_show_interstitial(10)).is_true()
-	_provider.interstitial_closed.emit()
-	_provider.interstitial_closed.emit()
+	_provider.interstitial_closed.emit(1)
+	_provider.interstitial_closed.emit(1)
 	assert_int(_provider.interstitial_load_calls).is_equal(1)
 
 

@@ -320,13 +320,13 @@ func restart() -> void:
 	_after_action()
 	Analytics.track_progression("Fail", mode, _level_id())
 	Analytics.track_design("level:fail:restart")
-	_track_attempt_fail(round.restarts())
+	_track_attempt_fail(round.counters.restarts)
 
 
 func _apply_skip(source: String) -> void:
 	Analytics.track_progression("Fail", mode, _level_id())
 	Analytics.track_design("level:fail:skip")
-	_track_attempt_fail(round.restarts() + 1)
+	_track_attempt_fail(round.counters.restarts + 1)
 	Analytics.track_design(source)
 	state.level += 1
 	SaveSystem.save(state)
@@ -543,8 +543,8 @@ func _track_attempt_win() -> void:
 	if mode != MODE_CAMPAIGN:
 		return
 	var id: String = LevelBrackets.id_for(level_no)
-	var tube: int = 1 if round.extra_tubes_added() > 0 else 0
-	Analytics.track_design("level:complete:attempt:" + id, float(round.restarts() + 1))
+	var tube: int = 1 if round.counters.extra_tubes_added > 0 else 0
+	Analytics.track_design("level:complete:attempt:" + id, float(round.counters.restarts + 1))
 	Analytics.track_design("level:complete:tube:" + id, float(tube))
 
 

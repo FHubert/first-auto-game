@@ -104,7 +104,7 @@ func test_resume_after_focus_out_keeps_attempt_number() -> void:
 	app2.notifications = _notif
 	add_child(app2)
 	var resumed := _level_of(app2)
-	assert_int(resumed.round.restarts() + 1).is_equal(3)
+	assert_int(resumed.round.counters.restarts + 1).is_equal(3)
 	_solve(resumed, LEVEL_NO)
 	assert_array(_values("level:complete:attempt:" + BRACKET)).contains_exactly([3])
 	assert_array(_values("level:complete:tube:" + BRACKET)).contains_exactly([1])

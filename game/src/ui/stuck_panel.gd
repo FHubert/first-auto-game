@@ -55,7 +55,7 @@ func _ready() -> void:
 func show_for(round_in: GameRound, allow_skip: bool = true, offers: Dictionary = {}) -> void:
 	var dist: int = round_in.moves_to_goal()
 	distance_label.text = tr("stuck_distance") % dist if dist >= 0 else tr("stuck_no_solution")
-	var charges: int = round_in.undo_charges()
+	var charges: int = round_in.counters.undo_charges
 	undo_button.text = tr("btn_undo") % charges
 	undo_button.disabled = charges <= 0
 	extra_tube_ad_button.visible = bool(offers.get("extra_tube", false))
