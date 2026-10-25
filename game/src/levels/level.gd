@@ -14,7 +14,6 @@ const MODE_DAILY: String = "daily"
 const TUBE_FULL_HAPTIC_MS: int = 40
 ## Odstep probowek od panelu wygranej i dozwolone wejscie pustego pasa HUD (px).
 const FIT_GAP_PX: float = 8.0
-const HUD_OVERLAP_PX: float = 40.0
 const CONFETTI_AMOUNT: int = 48
 const CONFETTI_COLORS: int = 6
 const CONFETTI_EMIT_HEIGHT: float = 4.0
@@ -404,16 +403,12 @@ func _on_round_won() -> void:
 	level_won.emit(level_no, coins)
 
 
-## Przesuwa plansze nad panel wygranej (dolna krawedz probowek tuz nad panelem).
-## Gdy zawartosc sie nie miesci (3 rzedy) - przywraca plansze sprzed dopasowania.
+## Zawęża obszar planszy do przestrzeni miedzy HUD a panelem wygranej; BoardView sam
+## skaluje probowki (UI v2), wiec zawsze mieszcza sie nad panelem.
 func fit_board_above_panel() -> void:
 	var bottom: float = level_complete.panel_height()
-	var tubes_top: float = size.y - bottom - FIT_GAP_PX - board.content_height()
-	if tubes_top < hud.offset_bottom - HUD_OVERLAP_PX:
-		_reset_board_fit()
-		return
-	board.offset_top = tubes_top - BoardView.LIFT_PX
-	board.offset_bottom = -bottom
+	board.offset_top = hud.offset_bottom
+	board.offset_bottom = -(bottom + FIT_GAP_PX)
 
 
 func _refit_board() -> void:
