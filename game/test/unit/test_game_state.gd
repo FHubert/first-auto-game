@@ -52,7 +52,7 @@ func test_migrate_v2_to_v3_adds_empty_round() -> void:
 func test_round_snapshot_survives_state_round_trip() -> void:
 	var r := GameRound.new()
 	r.start(ContentGenerator.new().generate(1, 3))
-	for args: Array in [["daily", 0, 20750], ["campaign", 7, 0]]:
+	for args: Array in [["daily", 20750, 20750], ["campaign", 7, 0]]:
 		var s := GameState.new()
 		s.round_in_progress = GameState.round_snapshot(args[0], args[1], args[2], r)
 		var copy: GameState = GameState.from_dict(s.to_dict())

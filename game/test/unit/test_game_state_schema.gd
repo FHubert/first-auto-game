@@ -28,10 +28,11 @@ func test_missing_schema_version_keeps_fields() -> void:
 func test_float_schema_version_3_is_not_migrated() -> void:
 	var d: Dictionary = GameState.new().to_dict()
 	d["schema_version"] = 3.0
-	d["round_in_progress"] = {"mode": "x"}
+	var snap: Dictionary = {"mode": "daily", "level_no": 2, "utc_day": 5, "round": {}}
+	d["round_in_progress"] = snap
 	var s: GameState = GameState.from_dict(d)
 	assert_object(s).is_not_null()
-	assert_dict(s.round_in_progress).is_equal({"mode": "x"})
+	assert_dict(s.round_in_progress).is_equal(snap)
 
 
 func test_newer_schema_version_returns_null() -> void:
