@@ -53,7 +53,8 @@ set_lang_en,English,English,English
 set_lang_pl,Polski,Polski,Polski
 set_lang_de,Deutsch,Deutsch,Deutsch
 btn_back,Back,Wróć,Zurück
-set_version,v%s (%s),v%s (%s),v%s (%s)
+set_version,Vialo · version %s,Vialo · wersja %s,Vialo · Version %s
+set_symbols_desc,Shapes on liquid layers,Kształty na warstwach płynu,Formen auf Flüssigkeitsschichten
 daily_title,Daily reward,Nagroda dzienna,Tägliche Belohnung
 daily_streak,Streak: %d,Seria: %d,Serie: %d
 daily_subtitle,"Come back daily, rewards grow","Wracaj codziennie, nagrody rosną","Komm täglich zurück, die Belohnungen wachsen"

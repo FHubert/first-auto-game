@@ -100,3 +100,65 @@ func test_settings_toggles_in_card_rows() -> void:
 		while p != null and not (p is PanelContainer and p.theme_type_variation == &"CardRow"):
 			p = p.get_parent()
 		assert_object(p).is_not_null()
+
+
+func _row_buttons(s: Control) -> Array[Button]:
+	var out: Array[Button] = []
+	for n: Node in s.find_children("*", "Button", true, false):
+		var b := n as Button
+		if b != s.back_button and b.visible and b.get_child_count() > 0:
+			out.append(b)
+	return out
+
+
+func test_settings_rows_tiles_switches_separators() -> void:
+	var s := _make("settings", SIZES[0])
+	var rows: Array[Button] = _row_buttons(s)
+	assert_int(rows.size()).is_greater_equal(7)
+	for b: Button in rows:
+		var tile := b.get_child(0).get_child(0) as PanelContainer
+		assert_vector(tile.custom_minimum_size).is_equal(Vector2(74, 74))
+		assert_float(b.custom_minimum_size.y).is_greater_equal(UiTokens.TOUCH_MIN)
+	for t: Node in s.find_children("*", "CheckButton", true, false):
+		var tex: Texture2D = (t as CheckButton).get_theme_icon("checked")
+		assert_int(tex.get_width()).is_greater_equal(112)
+		assert_int(tex.get_height()).is_greater_equal(64)
+	for n: Node in s.find_children("*", "PanelContainer", true, false):
+		if n.theme_type_variation != &"CardRow":
+			continue
+		var col: Node = n.get_child(0)
+		var seps: int = 0
+		var btns: int = 0
+		for c: Node in col.get_children():
+			if c is ColorRect and (c as ColorRect).visible:
+				seps += 1
+			elif c is Button and (c as Button).visible:
+				btns += 1
+		assert_int(seps).is_equal(btns - 1)
+
+
+func test_settings_language_cycle() -> void:
+	var s := _make("settings", SIZES[0]) as SettingsScreen
+	var codes: Array[String] = []
+	for e: Array in SettingsScreen.LOCALES:
+		codes.append(e[1])
+	assert_str(s.language_value_label.text).is_equal(tr("set_lang_system"))
+	s.language_button.pressed.emit()
+	assert_str(str(s.state.settings["locale"])).is_equal(codes[1])
+	for i in codes.size() - 1:
+		s.language_button.pressed.emit()
+	assert_str(str(s.state.settings["locale"])).is_equal(codes[0])
+
+
+func test_settings_de_no_truncation() -> void:
+	TranslationServer.set_locale("de")
+	var s := _make("settings", SIZES[0])
+	for text: String in ["Barrierefreiheit und Sprache", "Käufe wiederherst."]:
+		var found: bool = false
+		for n: Node in s.find_children("*", "Label", true, false):
+			var l := n as Label
+			if l.text.to_upper() == text.to_upper() or l.text == text:
+				found = true
+				assert_float(l.get_minimum_size().x).is_less_equal(l.size.x + 1.0)
+		assert_bool(found).is_true()
+	TranslationServer.set_locale("en")
