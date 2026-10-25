@@ -25,7 +25,7 @@ func after_test() -> void:
 
 
 func scene_runner_for(node: Node) -> GdUnitSceneRunner:
-	add_child(node)
+	# T-255: scene_runner(node) sam dodaje wezel do root (add_child = blad "already has a parent")
 	return scene_runner(node)
 
 
