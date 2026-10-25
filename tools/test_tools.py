@@ -184,6 +184,20 @@ class SimConfigMirrorTest(unittest.TestCase):
                 diffs.append(f"{k}: BUILTIN={v} DEFAULTS={raw}")
         self.assertEqual(diffs, [], f"BUILTIN differs from config.gd: {diffs}")
 
+    def test_mirror_array_values_match_defaults(self):
+        body = re.search(r"\bDEFAULTS\b[^=\n]*=\s*\{(.*?)^\}", self.sim.DEFAULT_CONFIG.read_text(encoding="utf-8"), re.S | re.M).group(1)
+        arrays = {k: [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", v)]
+                  for k, v in re.findall(r"[\"']([A-Za-z_]\w*)[\"']\s*:\s*\[([^\]]*)\]", body)}
+        checked, diffs = [], []
+        for k in self.mirror_keys:
+            v = self.sim.BUILTIN[k]
+            if isinstance(v, (list, tuple)):
+                checked.append(k)
+                if arrays.get(k) != [float(x) for x in v]:
+                    diffs.append(f"{k}: BUILTIN={v} DEFAULTS={arrays.get(k)}")
+        self.assertIn("daily_reward_multipliers", checked)
+        self.assertEqual(diffs, [], f"BUILTIN arrays differ from config.gd: {diffs}")
+
     def test_load_default_config_has_no_warning(self):
         _cfg, notes = self.sim.load_config(self.sim.DEFAULT_CONFIG)
         self.assertFalse([n for n in notes if "WARNING" in n], notes)
