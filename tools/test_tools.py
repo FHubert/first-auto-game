@@ -157,6 +157,12 @@ class BalanceSimTest(unittest.TestCase):
         self.assertEqual(j["coins_earned_cum_active_day30_p50_n"], 200)
         self.assertEqual(self._sim_json()["active14_players"], 0)
 
+    def test_t203_defaults_meet_theme_goal_on_daily_player_proxy(self):
+        # T-203: straznik regresji ekonomii - DEFAULTS (600/1.8): 3. motyw <= 14. dnia aktywnego, 1. >= 2.
+        j = self._sim_json("--always-active", players="1000")
+        self.assertLessEqual(j["theme3_buy_day_active_p50"], 14)
+        self.assertGreaterEqual(j["theme1_buy_day_active_p50"], 2)
+
     def test_coins_earned_cum_monotonic_by_active_day(self):
         j = self._sim_json("--always-active")
         for q in ("p50", "p90"):
