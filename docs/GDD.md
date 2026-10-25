@@ -122,6 +122,15 @@ Przykładowe wartości (z wzorów powyżej, do potwierdzenia testem generatora):
 
   Pomiar stały (T-182): `make playtest` (linia `--playtest --assist --rounds=400 --seed=42`; `--assist` = greedy + kampania + `--stay` + `extra_tube_min_level`/`extra_tube_from_attempt` z `plateau_assist_min_level`/`plateau_assist_from_attempt`, jawne `--extra-tube-*` nadpisują) zapisuje `test/reports/playtest_assist.json`; klucze `won_le3_pct_by_bracket` i `won_first_pct_by_bracket` (% z zamkniętych poziomów = wygrane + pominięcia; bez `--stay` 0,0). Wynik dla `DEFAULTS` (26 / 3, seed 42, 400 rund od poziomu 1, 1 seed): 26–55 **70,0 %** (baza `--stay` 46,7 %), 56+ **27,0 %** (baza 37,5 %; próba tylko 37 wygranych na 1 seedzie, a w bazie bot gra 56+ inną ścieżką — nie porównywać z średnią 3 seedów 38,3 % z T-175). Test gdUnit4 pilnuje bramki 26–55 ≥ 50 % (1 seed, 100 rund od poziomu 26); bramka 56+ ≥ 35 % nie jest w teście, bo próba jest za mała.
 
+  Pomiar T-187 (2026-10-25, `measure_curve.gd -- --assist --seeds 6 --extra-tube-from N`, seedy 42/7/1/1337/2024/99, 400 rund od 1 + 400 od 56 na seed, czas ~1,5 min/konfig; wynik też w `test/reports/curve_assist.json`: średnia, lista per seed, błąd std = std próbkowe / sqrt(6)):
+
+  | konfiguracja (`min_level` / `from_attempt`) | 26–55 średnia ± błąd std (min–max seedów) | 56+ średnia ± błąd std (min–max) | zamknięte poziomy 56+ (suma) | bramka (26–55 ≥ 50 %, 56+ ≥ 35 %) |
+  |---|---|---|---|---|
+  | 26 / 3 (`DEFAULTS`) | 61,1 ± 2,8 % (50,0–70,0) | 34,4 ± 2,1 % (26,4–41,8) | 363 | fail (56+ o 0,6 pp poniżej) |
+  | 26 / 2 | 78,9 ± 2,2 % (76,7–90,0) | 46,0 ± 1,4 % (40,0–49,3) | 412 | pass |
+
+  Wynik T-180 (34,2 % na 3 seedach, inna generacja) mieści się w ± 2 błędy standardowe (34,4 ± 4,3). 26/3 leży w granicach szumu bramki 56+, a 26/2 ma margines ~11 pp (> 5 błędów std) - **T-198 do wykonania** (najmniej natrętna oferta spełniająca bramkę to 26/2).
+
 ## Ekonomia
 *Waluty, źródła i sinki. Wartości startowe trzymamy w `game/src/systems/config.gd`, nie w tym dokumencie.*
 
