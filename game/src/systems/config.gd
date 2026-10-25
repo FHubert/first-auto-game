@@ -9,6 +9,10 @@ const DEFAULTS: Dictionary = {
 	"ad_unmute_timeout_seconds": 90,
 	"consent_timeout_seconds": 8,
 	"consent_form_timeout_seconds": 120,
+	# Ad load retry (T-224, ADR-013): backoff base * 2^(n-1), capped, give up after N failures
+	"ad_load_retry_base_seconds": 2,
+	"ad_load_retry_max_seconds": 64,
+	"ad_load_max_retries": 6,
 	"rewarded_multiplier": 2.0,
 	"rewarded_double_coins_min_level": 2,
 	"rewarded_undo_refill_max_per_level": 2,
@@ -103,6 +107,9 @@ const RANGES: Dictionary = {
 	"ad_unmute_timeout_seconds": [0, 86400],
 	"consent_timeout_seconds": [0, 86400],
 	"consent_form_timeout_seconds": [10, 600],
+	"ad_load_retry_base_seconds": [1, 60],
+	"ad_load_retry_max_seconds": [1, 600],
+	"ad_load_max_retries": [0, 50],
 	"rewarded_multiplier": [1.0, 5.0],
 	"rewarded_double_coins_min_level": [0, 1000],
 	"rewarded_undo_refill_max_per_level": [0, 100],
@@ -274,4 +281,5 @@ func _invariants_ok(v: Dictionary) -> bool:
 		and int(v["tutorial_colors"]) <= int(v["colors_start"])
 		and int(v["colors_start"]) <= int(v["colors_max"])
 		and float(v["difficulty_min"]) <= float(v["difficulty_max"])
+		and int(v["ad_load_retry_base_seconds"]) <= int(v["ad_load_retry_max_seconds"])
 	)
