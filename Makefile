@@ -82,6 +82,8 @@ perf:
 	python3 tools/perf_merge.py --startup $(PERF_TMP)/startup.json --hint $(PERF_TMP)/hint.json \
 		--prefetch $(PERF_TMP)/prefetch.json --out $(PROJECT)/test/reports/perf.json \
 		--commit "$$(git rev-parse --short HEAD)" --godot-version "$(GODOT_VERSION)"
+	# T-260: bramka progow
+	python3 tools/perf_gate.py --perf $(PROJECT)/test/reports/perf.json
 
 screenshots:
 	bash tools/gen_screenshots.sh --store
