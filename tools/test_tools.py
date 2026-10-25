@@ -57,6 +57,28 @@ class BalanceSimTest(unittest.TestCase):
         r = run(TOOLS / "balance_sim.py", "--players", "200", "--days", "30", "--seed", "1")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
+    def test_theme_metrics_below_min_n_are_na(self):
+        # 40 graczy -> < 30 kupujacych 3. motyw: wartosc null + n w JSON, "n/a (n=" w tekscie
+        r = run(TOOLS / "balance_sim.py", "--players", "40", "--json")
+        j = json.loads(r.stdout)
+        self.assertLess(j["third_theme_active_day_median_n"], 30)
+        self.assertIsNone(j["third_theme_active_day_median"])
+        self.assertIsNone(j["theme3_buy_day_active_p50"])
+        t = run(TOOLS / "balance_sim.py", "--players", "40")
+        self.assertIn("n/a (n=", t.stdout)
+
+    def test_theme3_by_d30_pct_range_and_zero_for_huge_cost(self):
+        ok = json.loads(run(TOOLS / "balance_sim.py", "--players", "300", "--json").stdout)
+        self.assertGreaterEqual(ok["theme3_by_d30_pct"], 0)
+        self.assertLessEqual(ok["theme3_by_d30_pct"], 100)
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "o.json"
+            ov.write_text('{"theme_cost_base": 100000000}')
+            r = run(TOOLS / "balance_sim.py", "--players", "300", "--json", "--overlay", ov)
+            j = json.loads(r.stdout)  # exit 1 (economy starves) is expected, JSON still printed
+            self.assertEqual(j["theme3_by_d30_pct"], 0)
+            self.assertIsNone(j["theme3_buy_day_active_p50"])
+
     def test_plateau_assist_take_rate_zero_equals_disabled(self):
         with tempfile.TemporaryDirectory() as d:
             ov = Path(d) / "o.json"

@@ -195,6 +195,25 @@ def win_probability(cfg: dict, level: int) -> float:
     return cfg["win_prob_easy"] - (cfg["win_prob_easy"] - cfg["win_prob_hard"]) * d
 
 
+MIN_N = 30  # fewer samples than this -> metric reported as n/a (T-189)
+ACTIVE14_DAYS = 14  # population of the theme3_by_d30_pct / theme_buy_day_active metrics
+
+
+def pct_of(xs: list, q: float):
+    """Nearest-rank percentile (q in 0..1) of a non-empty list."""
+    xs = sorted(xs)
+    return xs[min(len(xs) - 1, max(0, math.ceil(q * len(xs)) - 1))]
+
+
+def stat(xs: list, q: float = 0.5) -> dict:
+    """{'value': percentile or None when n < MIN_N, 'n': n}."""
+    return {"value": pct_of(xs, q) if len(xs) >= MIN_N else None, "n": len(xs)}
+
+
+def fmt(m: dict) -> str:
+    return f"n/a (n={m['n']})" if m["value"] is None else f"{m['value']:.0f} (n={m['n']})"
+
+
 PLACEMENTS = ("double_coins", "daily_x2", "streak_save", "extra_tube", "undo_refill")
 
 
@@ -208,6 +227,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
     third_active: list[int] = []
     coins_active7: list[int] = []
     daily_players = daily_third = 0
+    act14_players = 0  # players active >= ACTIVE14_DAYS days (T-189 population)
+    act14_buy_active: list[list[int]] = [[], [], []]  # active day of the 1st/2nd/3rd purchase
     negative_players = engaged = active_days = sessions_total = interstitials = 0
     rewarded = {k: 0 for k in PLACEMENTS}
     assist_coins = assist_buys = assist_attempts = 0
@@ -359,6 +380,10 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
                 daily_third += len(buy_active) >= 3
             for d in range(days):
                 coins_by_day[d].append(balances[d])
+        if active_count >= ACTIVE14_DAYS:
+            act14_players += 1
+            for i, a in enumerate(buy_active[:3]):
+                act14_buy_active[i].append(a)
         negative_players += went_negative
 
     return {
@@ -372,6 +397,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         "coins_active7": coins_active7,
         "daily_players": daily_players,
         "daily_third": daily_third,
+        "act14_players": act14_players,
+        "act14_buy_active": act14_buy_active,
         "negative_players": negative_players,
         "players": players,
         "active_days": active_days,
@@ -431,13 +458,21 @@ def main(argv: list | None = None) -> int:
     rew_total = sum(res["rewarded"].values())
     rew_dau = rew_total / dau
     imp_dau = inter_dau + rew_dau
-    first_med = med(res["first_days"]) if res["first_days"] else None
-    third_med = med(res["third_days"]) if res["third_days"] else None
+    first_med = stat(res["first_days"])
+    third_med = stat(res["third_days"])
     first_pct = 100.0 * len(res["first_days"]) / eng
     third_pct = 100.0 * len(res["third_days"]) / eng
 
-    first_act = med(res["first_active"]) if res["first_active"] else None
-    third_act = med(res["third_active"]) if res["third_active"] else None
+    first_act = stat(res["first_active"])
+    third_act = stat(res["third_active"])
+    a14 = res["act14_players"]
+    buys14 = res["act14_buy_active"]
+    theme3_by_d30 = 100.0 * len(buys14[2]) / a14 if a14 else 0.0
+    buy14 = {
+        f"theme{i + 1}_buy_day_active_{name}": stat(buys14[i], q)
+        for i in range(3)
+        for name, q in (("p50", 0.5), ("p90", 0.9))
+    }
     daily_pct = 100.0 * res["daily_third"] / res["daily_players"] if res["daily_players"] else 0.0
 
     problems = []
@@ -459,10 +494,18 @@ def main(argv: list | None = None) -> int:
         "median_coins_day7": day7,
         f"median_coins_day{args.days}": last,
         "median_themes_day7": med_themes_d7,
-        "first_theme_day_median": first_med,
-        "third_theme_day_median": third_med,
-        "first_theme_active_day_median": first_act,
-        "third_theme_active_day_median": third_act,
+        "first_theme_day_median": first_med["value"],
+        "first_theme_day_median_n": first_med["n"],
+        "third_theme_day_median": third_med["value"],
+        "third_theme_day_median_n": third_med["n"],
+        "first_theme_active_day_median": first_act["value"],
+        "first_theme_active_day_median_n": first_act["n"],
+        "third_theme_active_day_median": third_act["value"],
+        "third_theme_active_day_median_n": third_act["n"],
+        "active14_players": a14,
+        "theme3_by_d30_pct": round(theme3_by_d30, 1),
+        **{k: v["value"] for k, v in buy14.items()},
+        **{k + "_n": v["n"] for k, v in buy14.items()},
         "third_theme_pct_daily_players": round(daily_pct, 1),
         "median_coins_active_day7": med(res["coins_active7"]),
         "first_theme_pct": round(first_pct, 1),
@@ -487,12 +530,12 @@ def main(argv: list | None = None) -> int:
         print(f"players={args.players} days={args.days} seed={args.seed} overlay={ov} engaged={eng}")
         print(f"median coins: day1={day1:.0f}  day7={day7:.0f}  day{args.days}={last:.0f}")
         print(f"median themes owned by day 7: {med_themes_d7:.1f}")
-        fm = "n/a" if first_med is None else f"{first_med:.0f}"
-        tm = "n/a" if third_med is None else f"{third_med:.0f}"
-        fa = "n/a" if first_act is None else f"{first_act:.0f}"
-        ta = "n/a" if third_act is None else f"{third_act:.0f}"
-        print(f"1st theme: calendar day {fm} / active day {fa} ({first_pct:.1f} %)")
-        print(f"3rd theme: calendar day {tm} / active day {ta} ({third_pct:.1f} %; daily players >=20/30 days: {daily_pct:.1f} %)")
+        print(f"1st theme: calendar day {fmt(first_med)} / active day {fmt(first_act)} ({first_pct:.1f} %)")
+        print(f"3rd theme: calendar day {fmt(third_med)} / active day {fmt(third_act)} ({third_pct:.1f} %; daily players >=20/30 days: {daily_pct:.1f} %)")
+        b = buy14
+        print(f"players active >={ACTIVE14_DAYS} days: {a14}; theme3_by_d30_pct {theme3_by_d30:.1f} %")
+        for i in range(3):
+            print(f"  theme {i + 1} buy active day p50 {fmt(b[f'theme{i + 1}_buy_day_active_p50'])} / p90 {fmt(b[f'theme{i + 1}_buy_day_active_p90'])}")
         print(f"median coins after 7th active day: {med(res['coins_active7']):.0f}")
         parts = ", ".join(f"{k} {v:.2f}" for k, v in by_place.items())
         print(f"ads/DAU: interstitial {inter_dau:.2f}, rewarded {rew_dau:.2f} ({parts}), total {imp_dau:.2f}")
