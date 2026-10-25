@@ -49,6 +49,7 @@ var _round_bound_at: int = 0
 var _tutorial_max_step: int = 0
 var _last_win_coins: int = 0
 var _last_win_perfect: bool = false
+var _last_win_moves: int = 0
 var _last_win_title: String = ""
 var _last_month_goal_hit: bool = false
 var _hint_key: String = ""
@@ -420,12 +421,14 @@ func _on_round_won() -> void:
 	_track_attempt_win()
 	hud.refresh()
 	hud.visible = false
+	_last_win_moves = int(result.get("moves", 0))
 	level_complete.show_result(
 		coins,
 		_last_win_perfect,
 		level_no,
 		title,
-		LevelComplete.progress_message(level_no, mode, state, _last_month_goal_hit)
+		LevelComplete.progress_message(level_no, mode, state, _last_month_goal_hit),
+		_win_breakdown()
 	)
 	level_complete.set_double_offer(offers.double_coins_bonus(), offers.can_double_coins())
 	if mode == MODE_DAILY:
@@ -445,8 +448,24 @@ func _on_round_won() -> void:
 ## skaluje probowki (UI v2), wiec zawsze mieszcza sie nad panelem.
 func fit_board_above_panel() -> void:
 	var bottom: float = level_complete.panel_height()
-	board.offset_top = UiTokens.HUD_TOP_H
+	board.set_single_row(true)
+	board.offset_top = level_complete.header_height() + FIT_GAP_PX
 	board.offset_bottom = -(bottom + FIT_GAP_PX)
+
+
+## Rozbicie nagrody dla ekranu wygranej (daily: bez win/perfect - nagroda liczona inaczej).
+func _win_breakdown() -> Dictionary:
+	var daily: bool = mode == MODE_DAILY
+	var next_id: String = "" if daily else ThemeCatalog.next_theme_id(state)
+	return {
+		"win": 0 if daily else int(GameConfig.get_value("win_reward_coins")),
+		"perfect":
+		int(GameConfig.get_value("par_bonus_coins")) if _last_win_perfect and not daily else 0,
+		"moves": _last_win_moves,
+		"theme_name": tr("theme_name_" + next_id) if next_id != "" else "",
+		"theme_cost": 0 if daily else ThemeCatalog.next_theme_cost(state),
+		"coins": state.coins,
+	}
 
 
 func _refit_board() -> void:
@@ -455,6 +474,7 @@ func _refit_board() -> void:
 
 
 func _reset_board_fit() -> void:
+	board.set_single_row(false)
 	board.offset_top = UiTokens.HUD_TOP_H
 	board.offset_bottom = -UiTokens.HUD_BOTTOM_H
 
@@ -507,7 +527,8 @@ func _on_double_coins_granted(bonus: int) -> void:
 		_last_win_perfect,
 		level_no,
 		_last_win_title,
-		LevelComplete.progress_message(level_no, mode, state, _last_month_goal_hit)
+		LevelComplete.progress_message(level_no, mode, state, _last_month_goal_hit),
+		_win_breakdown()
 	)
 	level_complete.set_double_offer(0, false)
 	hud.refresh()

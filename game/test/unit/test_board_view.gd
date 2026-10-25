@@ -123,3 +123,9 @@ func test_rebuild_while_selected_emits_deselect() -> void:
 	_board().refresh()
 	assert_array(got).is_equal([1])
 	assert_int(_board().selected_index()).is_equal(-1)
+
+
+func test_single_row_columns_and_scale() -> void:
+	assert_int(BoardView.columns_for(8, true)).is_equal(8)
+	assert_int(BoardView.columns_for(8)).is_equal(4)
+	assert_float(BoardView.scale_for(8, Vector2(646, 600), true)).is_less(1.0)

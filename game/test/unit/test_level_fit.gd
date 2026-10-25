@@ -113,3 +113,39 @@ func test_hud_height_matches_bar_height_in_scene() -> void:
 	_level.load_level(1)
 	assert_float(_level.board.offset_top).is_equal(float(UiTokens.HUD_TOP_H))
 	assert_float(_level.board.offset_bottom).is_equal(float(-UiTokens.HUD_BOTTOM_H))
+
+
+func _assert_win_single_row(screen: Vector2) -> void:
+	_level.size = screen
+	var tubes: Array = []
+	for i in 8:
+		tubes.append([i % 2, i % 2])
+	var payload: Dictionary = {
+		"capacity": 4,
+		"colors": 2,
+		"tubes": tubes,
+		"min_moves": 1,
+		"min_moves_exact": true,
+		"solution": [],
+	}
+	_level.start_round({"seed": 1, "level": 1, "difficulty": 0.0, "payload": payload}, "classic")
+	ScreenshotFixtures.apply_win(_level)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var lc: LevelComplete = _level.level_complete
+	var n: int = _level.round.board().tube_count()
+	var y0: float = _level.board.tube_rect(0).position.y
+	for i in n:
+		var r: Rect2 = _level.board.tube_rect(i)
+		assert_bool(r.intersects(lc.header_rect())).is_false()
+		assert_bool(r.intersects(lc.panel_rect())).is_false()
+		assert_float(r.position.y).is_equal_approx(y0, 0.01)
+	assert_int(_level.board.columns_for(n, true)).is_equal(n)
+
+
+func test_win_single_row_720x1280() -> void:
+	await _assert_win_single_row(Vector2(720, 1280))
+
+
+func test_win_single_row_720x1560() -> void:
+	await _assert_win_single_row(Vector2(720, 1560))

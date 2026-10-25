@@ -32,7 +32,18 @@ static func apply_win(level: Level) -> void:
 	var progress: Dictionary = LevelComplete.progress_message(
 		level.level_no, level.mode, level.state
 	)
-	level.level_complete.show_result(int(result["coins"]), true, level.level_no, "", progress)
+	var next_id: String = ThemeCatalog.next_theme_id(level.state)
+	var breakdown: Dictionary = {
+		"win": int(GameConfig.get_value("win_reward_coins")),
+		"perfect": int(GameConfig.get_value("par_bonus_coins")),
+		"moves": level.round.min_moves() if level.round != null else 0,
+		"theme_name": level.tr("theme_name_" + next_id) if next_id != "" else "",
+		"theme_cost": ThemeCatalog.next_theme_cost(level.state),
+		"coins": level.state.coins,
+	}
+	level.level_complete.show_result(
+		int(result["coins"]), true, level.level_no, "", progress, breakdown
+	)
 	level.level_complete.set_double_offer(int(result["double_bonus"]), true)
 	level.hud.visible = false
 	level.fit_board_above_panel()

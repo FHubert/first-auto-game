@@ -9,9 +9,11 @@ btn_restart,Restart,Od nowa,Neustart
 btn_pause,Pause,Pauza,Pause
 btn_hint,Hint (%d),Podpowiedź (%d),Tipp (%d)
 btn_extra_tube,+Tube (%d),+Probówka (%d),+Röhrchen (%d)
-lc_title,Level %d complete!,Poziom %d ukończony!,Level %d geschafft!
 lc_coins,+%d,+%d,+%d
 lc_perfect,Perfect!,Idealnie!,Perfekt!
+lc_perfect_moves,Perfect! %d moves,Idealnie! %d ruchów,Perfekt! %d Züge
+lc_breakdown,%d for the win + %d for perfect,%d za wygraną + %d za „idealnie”,%d für den Sieg + %d für „perfekt“
+lc_next_theme,Next theme: %s,Następny motyw: %s,Nächstes Thema: %s
 btn_next,Next,Dalej,Weiter
 btn_menu,Menu,Menu,Menü
 stuck_title,You're stuck,Utknąłeś,Du steckst fest
