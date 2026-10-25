@@ -246,6 +246,10 @@ func restarts() -> int:
 	return _restarts
 
 
+func extra_tubes_added() -> int:
+	return _extra_tubes_added
+
+
 func can_skip() -> bool:
 	return _restarts >= _cfg_int("skip_unlock_restarts")
 

@@ -498,7 +498,7 @@ func _track_attempt_win() -> void:
 	if mode != MODE_CAMPAIGN:
 		return
 	var id: String = LevelBrackets.id_for(level_no)
-	var tube: int = 1 if int(round.to_dict().get("extra_tubes_added", 0)) > 0 else 0
+	var tube: int = 1 if round.extra_tubes_added() > 0 else 0
 	Analytics.track_design("level:complete:attempt:" + id, float(round.restarts() + 1))
 	Analytics.track_design("level:complete:tube:" + id, float(tube))
 

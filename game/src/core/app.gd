@@ -145,6 +145,14 @@ func _discard_snapshot() -> void:
 	var mode_in: String = str(snap.get("mode", ""))
 	Analytics.track_progression("Fail", mode_in, Level.level_id_for(mode_in, lvl, day))
 	Analytics.track_design("level:fail:abandon")
+	if mode_in == Level.MODE_CAMPAIGN:
+		var rd: Variant = snap.get("round")
+		var restarts: int = 0
+		if typeof(rd) == TYPE_DICTIONARY:
+			restarts = maxi(_snap_int(rd as Dictionary, "restarts"), 0)
+		Analytics.track_design(
+			"level:fail:abandon:" + LevelBrackets.id_for(lvl), float(restarts + 1)
+		)
 	state.round_in_progress = {}
 
 
