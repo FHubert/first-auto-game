@@ -100,3 +100,7 @@ notif_daily_body,Today's puzzle is ready. Can you beat par?,Dzisiejsza łamigł�
 notif_comeback_title,Your tubes miss you,Probówki tęsknią,Deine Röhren vermissen dich
 notif_comeback_body,A quick sort to relax? Your progress is saved.,Krótkie sortowanie na relaks? Postęp jest zapisany.,Kurz sortieren zum Entspannen? Dein Fortschritt ist gespeichert.
 assist_title,Hard level? Start with an extra tube,Trudny poziom? Zacznij z dodatkową probówką,Schweres Level? Starte mit extra Röhrchen
+themes_remaining,%s: %d coins to go,Do motywu %s brakuje %d,Bis %s fehlen %d Münzen
+set_section_sound,Sound and touch,Dźwięk i dotyk,Ton und Haptik
+set_section_access,Accessibility and language,Dostępność i język,Barrierefreiheit und Sprache
+set_section_account,Account and privacy,Konto i prywatność,Konto und Datenschutz

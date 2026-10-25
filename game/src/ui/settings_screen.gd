@@ -9,8 +9,8 @@ signal settings_changed(key: String)
 const LOCALES: Array = [
 	["set_lang_system", ""], ["set_lang_en", "en"], ["set_lang_pl", "pl"], ["set_lang_de", "de"]
 ]
-const FONT_SIZE: int = 32
-const MARGIN: int = 48
+const GAP: int = 22
+const ICON_SIZE: int = 48
 
 var state: GameState
 var music_toggle: CheckButton
@@ -81,62 +81,100 @@ func apply_from_state() -> void:
 
 
 func _build() -> void:
+	theme = ScreenHeader.UI_THEME
+	ScreenHeader.add_backdrop(self)
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for side: String in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, MARGIN)
+		margin.add_theme_constant_override("margin_" + side, UiTokens.SCREEN_PAD)
 	add_child(margin)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 24)
+	box.add_theme_constant_override("separation", GAP)
 	margin.add_child(box)
-	music_toggle = _toggle(box, tr("set_music"), GameState.SETTING_MUSIC_ON)
-	sfx_toggle = _toggle(box, tr("set_sfx"), GameState.SETTING_SFX_ON)
-	haptics_toggle = _toggle(box, tr("set_haptics"), GameState.SETTING_HAPTICS_ON)
-	symbols_toggle = _toggle(box, tr("set_symbols"), ColorSymbols.SETTING_KEY)
-	notifications_toggle = _toggle(box, tr("set_notifications"), GameState.SETTING_NOTIFICATIONS_ON)
+	back_button = ScreenHeader.build(box, tr("btn_settings"), false)["back"]
+	back_button.pressed.connect(func() -> void: back_pressed.emit())
+	var sound: VBoxContainer = _section(box, "set_section_sound")
+	music_toggle = _toggle(sound, "music", tr("set_music"), GameState.SETTING_MUSIC_ON)
+	sfx_toggle = _toggle(sound, "speaker", tr("set_sfx"), GameState.SETTING_SFX_ON)
+	haptics_toggle = _toggle(sound, "vibration", tr("set_haptics"), GameState.SETTING_HAPTICS_ON)
+	var notif_key: String = GameState.SETTING_NOTIFICATIONS_ON
+	notifications_toggle = _toggle(sound, "speaker", tr("set_notifications"), notif_key)
+	var access: VBoxContainer = _section(box, "set_section_access")
+	symbols_toggle = _toggle(access, "symbols", tr("set_symbols"), ColorSymbols.SETTING_KEY)
+	var lang_row := HBoxContainer.new()
+	lang_row.add_theme_constant_override("separation", GAP)
+	access.add_child(lang_row)
+	lang_row.add_child(_icon("globe"))
 	language_label = Label.new()
 	language_label.text = tr("set_language")
-	language_label.add_theme_font_size_override("font_size", FONT_SIZE)
-	box.add_child(language_label)
+	language_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lang_row.add_child(language_label)
 	locale_option = OptionButton.new()
-	locale_option.add_theme_font_size_override("font_size", FONT_SIZE)
+	locale_option.theme_type_variation = &"ButtonSecondary"
+	locale_option.custom_minimum_size.y = UiTokens.TOUCH_MIN
 	for entry: Array in LOCALES:
 		locale_option.add_item(tr(entry[0]))
 	locale_option.item_selected.connect(
 		func(idx: int) -> void: set_setting("locale", LOCALES[idx][1])
 	)
-	box.add_child(locale_option)
-	version_label = Label.new()
-	version_label.text = tr("set_version") % [Version.VERSION, Version.BUILD_INFO]
-	version_label.add_theme_font_size_override("font_size", FONT_SIZE)
-	box.add_child(version_label)
+	lang_row.add_child(locale_option)
+	var account: VBoxContainer = _section(box, "set_section_account")
+	restore_button = _link_row(account, "arrow_right", tr("btn_restore"))
+	restore_button.pressed.connect(_on_restore_pressed)
+	privacy_button = _link_row(account, "shield", tr("set_privacy_options"))
+	privacy_button.pressed.connect(func() -> void: Ads.show_privacy_options())
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
-	privacy_button = Button.new()
-	privacy_button.text = tr("set_privacy_options")
-	privacy_button.custom_minimum_size = Vector2(0, 100)
-	privacy_button.add_theme_font_size_override("font_size", FONT_SIZE)
-	privacy_button.pressed.connect(func() -> void: Ads.show_privacy_options())
-	box.add_child(privacy_button)
-	restore_button = Button.new()
-	restore_button.text = tr("btn_restore")
-	restore_button.custom_minimum_size = Vector2(0, 100)
-	restore_button.add_theme_font_size_override("font_size", FONT_SIZE)
-	restore_button.pressed.connect(_on_restore_pressed)
-	box.add_child(restore_button)
-	back_button = Button.new()
-	back_button.text = tr("btn_back")
-	back_button.custom_minimum_size = Vector2(0, 100)
-	back_button.add_theme_font_size_override("font_size", FONT_SIZE)
-	back_button.pressed.connect(func() -> void: back_pressed.emit())
-	box.add_child(back_button)
+	version_label = Label.new()
+	version_label.text = tr("set_version") % [Version.VERSION, Version.BUILD_INFO]
+	version_label.theme_type_variation = &"LabelCaption"
+	version_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(version_label)
 
 
-func _toggle(parent: Control, text: String, key: String) -> CheckButton:
+func _section(parent: Control, title_key: String) -> VBoxContainer:
+	var l := Label.new()
+	l.text = tr(title_key).to_upper()
+	l.theme_type_variation = &"LabelSection"
+	parent.add_child(l)
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"CardRow"
+	parent.add_child(panel)
+	var col := VBoxContainer.new()
+	panel.add_child(col)
+	return col
+
+
+func _icon(icon_name: String) -> TextureRect:
+	var r := TextureRect.new()
+	r.texture = UiTokens.icon(icon_name)
+	r.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	r.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return r
+
+
+func _link_row(parent: Control, icon_name: String, text: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.icon = UiTokens.icon(icon_name)
+	ScreenHeader.plain(b)
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.add_theme_constant_override("icon_max_width", ICON_SIZE)
+	b.add_theme_constant_override("h_separation", GAP)
+	parent.add_child(b)
+	return b
+
+
+func _toggle(parent: Control, icon_name: String, text: String, key: String) -> CheckButton:
 	var t := CheckButton.new()
 	t.text = text
-	t.add_theme_font_size_override("font_size", FONT_SIZE)
+	t.icon = UiTokens.icon(icon_name)
+	t.add_theme_constant_override("icon_max_width", ICON_SIZE)
+	t.add_theme_constant_override("h_separation", GAP)
+	ScreenHeader.style_switch(t)
 	t.toggled.connect(func(on: bool) -> void: set_setting(key, on))
 	parent.add_child(t)
 	return t
