@@ -79,6 +79,29 @@ class BalanceSimTest(unittest.TestCase):
             self.assertGreater(j["rewarded_extra_tube_per_dau"], 0)
             self.assertGreater(j["plateau_assist_coins_per_dau"], 0)
 
+    def test_plateau_assist_buys_not_above_attempts(self):
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "o.json"
+            ov.write_text('{"plateau_assist_take_rate": 1}')
+            r = run(TOOLS / "balance_sim.py", "--players", "200", "--json", "--overlay", ov)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            j = json.loads(r.stdout)
+            self.assertGreater(j["plateau_assist_buys"], 0)
+            self.assertLessEqual(j["plateau_assist_buys"], j["plateau_assist_attempts"])
+
+    def test_plateau_assist_win_prob_is_monotonic_in_attempts(self):
+        # Wyzsza szansa wygranej z probowka -> szybszy awans -> nie wiecej prob na plateau
+        # (mediana monet nie jest monotoniczna: szybszy awans zmienia tez sciezke wydatkow).
+        def attempts(p: str) -> float:
+            with tempfile.TemporaryDirectory() as d:
+                ov = Path(d) / "o.json"
+                ov.write_text('{"plateau_assist_win_prob_26_55": %s, "plateau_assist_win_prob_56": %s}' % (p, p))
+                r = run(TOOLS / "balance_sim.py", "--players", "300", "--seed", "1", "--json", "--overlay", ov)
+                self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+                return json.loads(r.stdout)["plateau_assist_attempts"]
+
+        self.assertGreaterEqual(attempts("0"), attempts("1"))
+
     def test_starving_economy_fails(self):
         with tempfile.TemporaryDirectory() as d:
             cfg = Path(d) / "config.gd"

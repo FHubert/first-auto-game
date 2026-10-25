@@ -81,9 +81,14 @@ BUILTIN = {
     "booster_ad_share": 0.5,  # sim-only
     # ZWERYFIKUJ po soft launchu eventem `level:assist:*`
     "plateau_assist_take_rate": 0.3,  # sim-only: P(player takes the plateau tube) per eligible attempt
-    # Zalozenie: probowka z paska "Pomoc na plateau" podnosi szanse wygranej proby do tej wartosci
-    # (T-175: 56+ z 7,1 % -> 38,3 % w <= 3 probach ~ 15 %/proba; sim ma lagodniejsza baze, wiec 0.75).
-    "plateau_assist_win_prob": 0.75,  # sim-only
+    # T-185: szansa wygranej proby Z probowka z paska, z raportu bota (greedy, gorna granica;
+    # ZWERYFIKUJ po soft launchu). Zrodlo: `godot --headless --path game -- --playtest --assist
+    # --rounds=400 --seed=42` (make playtest): wygrane/proby z probowka (extra_tubes_by_bracket):
+    # 26-55: 30/73 = 0.41; 56+: 37/173 = 0.21. Licznik liczy tez wygrane bez probowki -> gorne
+    # oszacowanie (won_le3_pct = 70 / 27 % to jeszcze luzniejsza granica). Zastepuje T-178 `plateau_assist_win_prob`.
+    "plateau_assist_win_prob_26_55": 0.41,  # sim-only
+    "plateau_assist_win_prob_56": 0.21,  # sim-only
+    "plateau_assist_bracket_split": 56,  # sim-only: od tego poziomu obowiazuje win_prob_56
     "daily_challenge_play_rate": 0.6,  # sim-only
     "daily_x2_watch_rate": 0.5,  # sim-only
     "streak_save_watch_rate": 0.5,  # sim-only
@@ -205,7 +210,7 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
     daily_players = daily_third = 0
     negative_players = engaged = active_days = sessions_total = interstitials = 0
     rewarded = {k: 0 for k in PLACEMENTS}
-    assist_coins = 0
+    assist_coins = assist_buys = assist_attempts = 0
     assist_on = plateau_assist and cfg["plateau_assist_take_rate"] > 0
     mults = cfg["daily_reward_multipliers"]
     grace = int(cfg["streak_grace_days"])
@@ -273,20 +278,27 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
                         game_time += cfg["level_seconds"]
                         attempt += 1
                         win_p = win_probability(cfg, level)
+                        in_plateau = assist_on and level >= cfg["plateau_assist_min_level"]
+                        if in_plateau:
+                            assist_attempts += 1
                         if (
-                            assist_on
-                            and level >= cfg["plateau_assist_min_level"]
+                            in_plateau
                             and attempt >= cfg["plateau_assist_from_attempt"]
                             and rnd.random() < cfg["plateau_assist_take_rate"]
                         ):
                             cost = int(cfg["extra_tube_cost_coins"])
+                            split = level >= cfg["plateau_assist_bracket_split"]
+                            assist_p = cfg["plateau_assist_win_prob_56" if split else "plateau_assist_win_prob_26_55"]
+                            # max 1 probowka na probe: jedna galaz ponizej (extra_tube_max_per_level)
                             if rnd.random() < cfg["booster_ad_share"]:
                                 rewarded["extra_tube"] += 1
-                                win_p = max(win_p, cfg["plateau_assist_win_prob"])
+                                assist_buys += 1
+                                win_p = max(win_p, assist_p)
                             elif coins >= cost:
                                 coins -= cost
                                 assist_coins += cost
-                                win_p = max(win_p, cfg["plateau_assist_win_prob"])
+                                assist_buys += 1
+                                win_p = max(win_p, assist_p)
                         if rnd.random() < win_p:
                             attempt = 0
                             total = int(cfg["win_reward_coins"])
@@ -367,6 +379,8 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
         "interstitials": interstitials,
         "rewarded": rewarded,
         "assist_coins": assist_coins,
+        "assist_buys": assist_buys,
+        "assist_attempts": assist_attempts,
     }
 
 
@@ -458,6 +472,8 @@ def main(argv: list | None = None) -> int:
         "rewarded_by_placement": by_place,
         "rewarded_extra_tube_per_dau": by_place["extra_tube"],
         "plateau_assist_coins_per_dau": round(res["assist_coins"] / dau, 3),
+        "plateau_assist_buys": res["assist_buys"],
+        "plateau_assist_attempts": res["assist_attempts"],
         "impressions_per_dau": round(imp_dau, 3),
         "sessions_per_dau": round(res["sessions"] / dau, 2),
         "negative_balance_pct": round(neg_pct, 3),
@@ -480,7 +496,7 @@ def main(argv: list | None = None) -> int:
         print(f"median coins after 7th active day: {med(res['coins_active7']):.0f}")
         parts = ", ".join(f"{k} {v:.2f}" for k, v in by_place.items())
         print(f"ads/DAU: interstitial {inter_dau:.2f}, rewarded {rew_dau:.2f} ({parts}), total {imp_dau:.2f}")
-        print(f"plateau assist: coins/DAU {out['plateau_assist_coins_per_dau']}, rewarded extra_tube/DAU {out['rewarded_extra_tube_per_dau']}")
+        print(f"plateau assist: coins/DAU {out['plateau_assist_coins_per_dau']}, rewarded extra_tube/DAU {out['rewarded_extra_tube_per_dau']}, buys/attempts {res['assist_buys']}/{res['assist_attempts']}")
         print(f"players with a negative balance: {neg_pct:.2f} %  (sessions/DAU {out['sessions_per_dau']})")
         if inter_dau > 2.5:
             print("WARN interstitials/DAU > 2.5")
