@@ -91,7 +91,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: nagłówek nad planszą („POZIOM N” caption + „Świetnie!” 74 px), dolny arkusz `Card`: badge „Idealnie!”, kwota z monetą 96 px, `progress_label`, `ButtonAccent` „Podwój” z ikoną video, `ButtonPrimary` „Dalej” ze strzałką, „Menu główne” jako link; kontrakt `panel_height()/panel_rect()/panel_height_changed` i sygnały bez zmian; testy LevelComplete zielone + nowy `test_level_complete_ui_v2.gd`. ~150 linii.
   Skill: `godot-dev`
 
-- [ ] T-267 `in_progress` UI v2: DailyRewardPopup wg `mockups/05_daily_reward.png` (wydzielone z T-233; zależy od T-228, T-229, T-233 — `OverlayFx`)
+- [ ] T-267 `review` UI v2: DailyRewardPopup wg `mockups/05_daily_reward.png` (wydzielone z T-233; zależy od T-228, T-229, T-233 — `OverlayFx`) → PR #225
   KA: DailyRewardPopup jako karta (`Card`, promień 59 px, margines 30 px, `DIM` pod spodem): pill serii (płomień `STREAK`, tło `STREAK` α 0,18), tytuł 55 px, opis `TEXT_MUTED`; siatka 4 kolumny (`GridContainer`), dzień 7 na 2 kolumny (osobny wiersz/`HBoxContainer`), kafelek `TILE_RADIUS`, dziś = obrys `ACCENT`, odebrane = ptaszek `PRIMARY` + przygaszona moneta (α 0,45); `ButtonPrimary` „Odbierz N”, `ButtonAccent` „Odbierz ×2 · N” z ikoną video, „Uratuj serię” bez zmian logiki. Wejście przez `OverlayFx.enter`. Istniejące testy popupu zielone (dozwolona zmiana ścieżek węzłów). Kadr `daily_reward` przegenerowany + zestawienie z makietą. ~200 linii.
   Skill: `godot-dev`
 
