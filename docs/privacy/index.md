@@ -20,7 +20,7 @@ The game itself stores progress only on your device. The SDKs below process data
 
 | Provider | Data | Documentation |
 |---|---|---|
-| GameAnalytics (analytics) | Device identifiers / advertising ID, device model, OS version, country derived from IP, session and gameplay events (level start/complete/fail, boosters, rewards, purchases). Retention: ZWERYFIKUJ | https://docs.gameanalytics.com/ (2026-10-24) ZWERYFIKUJ |
+| GameAnalytics (analytics) | Device identifiers / advertising ID, device model, OS version, country derived from IP, session and gameplay events (level start/complete/fail, boosters, rewards, purchases) and diagnostic data about script errors (file, line and engine error message, no personal data). Retention: ZWERYFIKUJ | https://docs.gameanalytics.com/ (2026-10-24) ZWERYFIKUJ |
 | Google AdMob + UMP (ads, consent) | Advertising ID, IP address, device information, ad interactions. In the EEA/UK consent is collected via Google UMP. | https://support.google.com/admob/answer/6128543 (2026-10-24) ZWERYFIKUJ and https://developers.google.com/admob/android/privacy (2026-10-24) ZWERYFIKUJ |
 | Google Play Billing / Apple StoreKit (purchases) | Purchase tokens / receipts, product ID. Card data goes to Google/Apple only and never reaches us. | https://developer.android.com/google/play/billing (2026-10-24) ZWERYFIKUJ and https://developer.apple.com/documentation/storekit (2026-10-24) ZWERYFIKUJ |
 

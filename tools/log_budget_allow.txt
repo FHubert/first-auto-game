@@ -6,3 +6,4 @@
 SaveSystem: cannot open user://nope_dir_tN/sub/save.json.tmp | zapis do nieistniejacego katalogu ma zawiesc czysto | test_save_system.gd > test_save_to_missing_directory_fails_cleanly
 GameConfig.set_for_test: unknown key 'no_such_key' | odrzucenie nieznanego klucza | test_config.gd > test_set_for_test_unknown_key_is_rejected
 N resources still in use at exit | zamkniecie silnika po gdUnit CLI, stan bazowy main po #208, nie z testu - usunac gdy zniknie (Inbox T-295) | -
+tN probe N | celowy push_error w tescie integracyjnym loggera | test_error_reporter.gd > test_logger_integration_real_push_error

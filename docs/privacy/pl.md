@@ -20,7 +20,7 @@ Postęp w grze zapisujemy wyłącznie na Twoim urządzeniu. Poniższe SDK przetw
 
 | Dostawca | Dane | Dokumentacja |
 |---|---|---|
-| GameAnalytics (analityka) | Identyfikatory urządzenia / reklamowy, model urządzenia, wersja systemu, kraj ustalony na podstawie IP, zdarzenia sesji i rozgrywki (start/ukończenie/porażka poziomu, boostery, nagrody, zakupy). Okres przechowywania: ZWERYFIKUJ | https://docs.gameanalytics.com/ (2026-10-24) ZWERYFIKUJ |
+| GameAnalytics (analityka) | Identyfikatory urządzenia / reklamowy, model urządzenia, wersja systemu, kraj ustalony na podstawie IP, zdarzenia sesji i rozgrywki (start/ukończenie/porażka poziomu, boostery, nagrody, zakupy) oraz dane diagnostyczne o błędach skryptu (plik, linia i komunikat błędu silnika, bez danych osobowych). Okres przechowywania: ZWERYFIKUJ | https://docs.gameanalytics.com/ (2026-10-24) ZWERYFIKUJ |
 | Google AdMob + UMP (reklamy, zgoda) | Identyfikator reklamowy, adres IP, informacje o urządzeniu, interakcje z reklamami. W EOG/Wielkiej Brytanii zgodę zbiera Google UMP. | https://support.google.com/admob/answer/6128543 (2026-10-24) ZWERYFIKUJ oraz https://developers.google.com/admob/android/privacy (2026-10-24) ZWERYFIKUJ |
 | Google Play Billing / Apple StoreKit (zakupy) | Tokeny / potwierdzenia zakupu, identyfikator produktu. Dane karty trafiają tylko do Google/Apple i nigdy do nas. | https://developer.android.com/google/play/billing (2026-10-24) ZWERYFIKUJ oraz https://developer.apple.com/documentation/storekit (2026-10-24) ZWERYFIKUJ |
 

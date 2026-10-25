@@ -16,6 +16,11 @@ func track_progression(_status: String, _l1: String, _l2: String = "", _score: i
 	pass
 
 
+## severity: "error" (T-296); message = "plik:linia komunikat" (znormalizowany).
+func track_error(_severity: String, _message: String) -> void:
+	pass
+
+
 func track_business(_sku: String, _amount_cents: int, _currency: String) -> void:
 	pass
 

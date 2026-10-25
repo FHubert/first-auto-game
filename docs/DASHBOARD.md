@@ -29,6 +29,7 @@ Oznaczenia: DAU = unikalni gracze z `session_start` danego dnia; przedział = `l
 | 14 | Zgoda na notyfikacje | `notif:permission:granted` / (`granted` + `denied`) (event `notif_permission`); `notif:scheduled:<streak\|daily\|comeback>` (event `notif_scheduled`) = zaplanowane | brak progu w KPI; wspiera D7 (KPI-3) | ustawienia notyfikacji (GDD pyt. 8, 21) |
 | 14b | Opt-out powiadomień (guardrail EXP-005) | `settings:notifications:off` / DAU (event `settings_notifications`); B ≤ A + 1 pp | wspiera D7 (KPI-3) | EXP-005 (T-284) |
 | 15 | Zapisy odzyskane | `save:recovered:<backup\|fresh>` (event `save_recovered`) / DAU | crash-free min 99,0 %, cel 99,5 % (KPI); `fresh` = utrata postępu → KPI-1 | weryfikacja zapisu + `save.json.bak` (T-163) |
+| 15b | Błędy skryptu / DAU | `track_error("error", "<plik:linia komunikat>")` (event `error_reported`), top-10 sygnatur; max 10 / sesję (`error_report_max_per_session`) | crash-free min 99,0 %, cel 99,5 % (KPI); rosnąca sygnatura → KPI-1 | `ErrorReporter` (T-296) |
 | 16 | ARPDAU / IAP conversion | `iap_purchase` (`track_business`) + przychód z reklam (SDK) / DAU; płacący / DAU | ARPDAU min 0,02, cel 0,05; IAP min 0,5 %, cel 1,5 % (KPI) | `make sim` (ads/DAU, monety), `docs/MONETIZATION.md` |
 
 ## Diagnostyka i lejki (bez własnej metryki KPI)
