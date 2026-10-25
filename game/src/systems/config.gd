@@ -34,6 +34,8 @@ const DEFAULTS: Dictionary = {
 	"daily_unlock_level": 3,
 	# T-259: 20 -> 15 (make sim: K=6 59,5 %, K=7 86,1 % graczy; przy 20 tylko 3,0 % / 20,6 %)
 	"daily_month_goal": 15,
+	# T-296: max raportow bledow skryptu na sesje (0 = wylaczone)
+	"error_report_max_per_session": 10,
 	"daily_month_goal_coins": 300,
 	# Local notifications (T-150)
 	"notif_local_hour": 19,
@@ -135,6 +137,7 @@ const RANGES: Dictionary = {
 	"daily_challenge_coins": [0, 100000],
 	"daily_unlock_level": [0, 1000],
 	"daily_month_goal": [1, 31],
+	"error_report_max_per_session": [0, 100],
 	"daily_month_goal_coins": [0, 5000],
 	"notif_local_hour": [0, 23],
 	"notif_streak_min_days": [1, 365],

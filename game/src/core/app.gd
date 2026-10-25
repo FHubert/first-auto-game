@@ -16,6 +16,9 @@ const SCENE_SHOP: String = "res://src/ui/shop_screen.tscn"
 const NOTIF_IDS: Dictionary = {"streak": 1, "daily": 2, "comeback": 3}
 const NOTIF_KIND_STREAK: String = "streak"
 
+## 1 logger bledow na proces (T-296); testy z wieloma App nie dubluja rejestracji.
+static var error_logger: ErrorLogger
+
 var state: GameState
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
 var notifications: NotificationProvider = NotificationProvider.new()
@@ -30,9 +33,11 @@ var _popup: DailyRewardPopup
 var _popup_shown_day: int = -1
 var _session_start_s: float = 0.0
 var _session_open: bool = false
+var _owns_error_logger: bool = false
 
 
 func _ready() -> void:
+	_register_error_logger()
 	track_session_start()
 	Ads.begin_consent()
 	if not Ads.ad_about_to_show.is_connected(_on_ad_about_to_show):
@@ -56,14 +61,36 @@ func _ready() -> void:
 		show_level()
 
 
+func _process(_delta: float) -> void:
+	_flush_errors()
+
+
 func _exit_tree() -> void:
 	_drop_home_prefetch()
+	if _owns_error_logger and error_logger != null:
+		OS.remove_logger(error_logger)
+		error_logger = null
+		_owns_error_logger = false
 	if Ads.ad_about_to_show.is_connected(_on_ad_about_to_show):
 		Ads.ad_about_to_show.disconnect(_on_ad_about_to_show)
 
 
+func _register_error_logger() -> void:
+	if error_logger != null:
+		return
+	error_logger = ErrorLogger.new()
+	OS.add_logger(error_logger)
+	_owns_error_logger = true
+
+
+func _flush_errors() -> void:
+	if error_logger != null:
+		error_logger.reporter.flush(Analytics)
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_flush_errors()
 		_save_round()
 		_schedule_notifications()
 		track_session_end()

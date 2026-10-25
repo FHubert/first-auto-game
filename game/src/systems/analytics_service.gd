@@ -18,6 +18,10 @@ func track_progression(status: String, l1: String, l2: String = "", score: int =
 	provider.track_progression(status, l1, l2, score)
 
 
+func track_error(severity: String, message: String) -> void:
+	provider.track_error(severity, message)
+
+
 func track_business(sku: String, amount_cents: int, currency: String) -> void:
 	provider.track_business(sku, amount_cents, currency)
 

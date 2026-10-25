@@ -61,7 +61,7 @@ class LogBudgetTest(unittest.TestCase):
 
     def test_repo_allowlist_parses(self):
         allow = log_budget.load_allow(log_budget.DEFAULT_ALLOW)
-        self.assertEqual(len(allow), 3)
+        self.assertEqual(len(allow), 4)
 
 
 if __name__ == "__main__":

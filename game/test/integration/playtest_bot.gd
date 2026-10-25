@@ -31,6 +31,8 @@ var start_level: int = 1
 var extra_tube_from_attempt: int = 0
 ## Extra tube only on levels >= this (with `extra_tube_from_attempt`).
 var extra_tube_min_level: int = 1
+## T-298: current attempt hit a stuck board (reset per round; only --stay has attempts).
+var _attempt_stuck: bool = false
 
 
 func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
@@ -61,6 +63,8 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		"losses_by_bracket": _zero_brackets(),
 		"levels_won_by_bracket": _zero_brackets(),
 		"attempts_by_bracket": _zero_brackets(),
+		"stuck_attempts_by_bracket": _zero_brackets(),
+		"stuck_rate_pct_by_bracket": _zero_pcts(),
 		"won_first_try_by_bracket": _zero_brackets(),
 		"won_within_3_by_bracket": _zero_brackets(),
 		"skips_by_bracket": _zero_brackets(),
@@ -104,6 +108,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		if not _valid_level(level_data):
 			errors.append("round %d: invalid level data" % round_index)
 			break
+		_attempt_stuck = false
 		var game_round := GameRound.new()
 		game_round.start(level_data)
 		var with_tube: bool = false
@@ -185,6 +190,9 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 					stay_attempts += 1
 					report["attempts_by_bracket"][bracket] += 1
 					_count_attempt(report, bracket, with_tube, false)
+		if stay_on_level and _attempt_stuck:
+			# T-298: attempt with >= 1 stuck = counted once (as _stuck_tracked_attempt, T-254).
+			report["stuck_attempts_by_bracket"][bracket] += 1
 		if state.coins < 0:
 			errors.append("round %d: negative coins (%d)" % [round_index, state.coins])
 		sim_time[0] += SIM_SECONDS_PER_ROUND
@@ -194,6 +202,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 	for label: String in BRACKET_LABELS:
 		medians[label] = _median(attempts_per_won[label])
 	_fill_pcts(report)
+	_fill_stuck_rates(report)
 	report["interstitials_shown"] = Ads.interstitials_shown - shown_before
 	Ads.clock = old_clock
 	report["coins_end"] = state.coins
@@ -211,6 +220,17 @@ func _count_attempt(report: Dictionary, bracket: String, with_tube: bool, won: b
 	report["attempts_" + suffix + "_by_bracket"][bracket] += 1
 	if won:
 		report["won_" + suffix + "_by_bracket"][bracket] += 1
+
+
+## T-298: stuck rate = 100 * stuck_attempts / attempts per bracket (attempts exist only in --stay).
+func _fill_stuck_rates(report: Dictionary) -> void:
+	for label: String in BRACKET_LABELS:
+		var attempts: int = int(report["attempts_by_bracket"][label])
+		if attempts > 0:
+			var stuck: int = int(report["stuck_attempts_by_bracket"][label])
+			report["stuck_rate_pct_by_bracket"][label] = snappedf(
+				100.0 * float(stuck) / float(attempts), 0.1
+			)
 
 
 func _zero_pcts() -> Dictionary:
@@ -345,6 +365,7 @@ func _play_heuristic(
 			# --stay: no restart inside the round; stuck or step limit = lost attempt.
 			if stuck:
 				report["stuck_count"] += 1
+				_attempt_stuck = true
 			return {"steps": steps, "gave_up": true}
 		if stuck or attempt_steps >= attempt_steps_limit:
 			if stuck:

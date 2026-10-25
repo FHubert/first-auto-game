@@ -18,6 +18,17 @@ func track_progression(status: String, l1: String, l2: String = "", score: int =
 	events.append({"type": "progression", "status": status, "l1": l1, "l2": l2, "score": score})
 
 
+func track_error(severity: String, message: String) -> void:
+	events.append(
+		{
+			"type": "error",
+			"event_id": "error:%s" % severity,
+			"severity": severity,
+			"message": message
+		}
+	)
+
+
 func track_business(sku: String, amount_cents: int, currency: String) -> void:
 	events.append(
 		{"type": "business", "sku": sku, "amount_cents": amount_cents, "currency": currency}
