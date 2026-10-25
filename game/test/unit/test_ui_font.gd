@@ -48,13 +48,15 @@ func test_font_covers_all_strings() -> void:
 				)
 
 
-func test_settings_language_label_above_option() -> void:
+func test_settings_language_row() -> void:
 	var s: SettingsScreen = auto_free(load("res://src/ui/settings_screen.tscn").instantiate())
 	s.state = GameState.new()
 	add_child(s)
 	assert_object(s.language_label).is_not_null()
 	assert_str(s.language_label.text).is_equal(tr("set_language"))
-	assert_bool(s.language_label.get_index() < s.locale_option.get_index()).is_true()
+	assert_object(s.language_button).is_not_null()
+	assert_bool(s.language_button.is_ancestor_of(s.language_label)).is_true()
+	assert_bool(s.language_button.is_ancestor_of(s.language_value_label)).is_true()
 
 
 func test_theme_panel_is_opaque() -> void:

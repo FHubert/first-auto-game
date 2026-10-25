@@ -103,6 +103,8 @@ const ICON_NAMES: Array[String] = [
 	"symbols",
 	"globe",
 	"shield",
+	"bell",
+	"chevron_right",
 ]
 
 

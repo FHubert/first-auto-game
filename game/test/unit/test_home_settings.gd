@@ -57,10 +57,11 @@ func test_music_toggle_persists() -> void:
 
 func test_locale_persists() -> void:
 	var s := _settings()
-	s.locale_option.select(3)
-	s.locale_option.item_selected.emit(3)
-	assert_str(s.state.settings.locale).is_equal("de")
-	assert_str(SaveSystem.load().settings.locale).is_equal("de")
+	s.language_button.pressed.emit()
+	assert_str(s.state.settings.locale).is_equal("en")
+	assert_str(SaveSystem.load().settings.locale).is_equal("en")
+	s.language_button.pressed.emit()
+	assert_str(s.state.settings.locale).is_equal("pl")
 
 
 func test_version_and_apply_from_state() -> void:

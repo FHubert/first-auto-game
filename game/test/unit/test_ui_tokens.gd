@@ -99,7 +99,7 @@ func test_variants_match_tokens() -> void:
 
 
 func test_icons_load_96px() -> void:
-	assert_int(UiTokens.ICON_NAMES.size()).is_equal(24)
+	assert_int(UiTokens.ICON_NAMES.size()).is_equal(26)
 	for n in UiTokens.ICON_NAMES:
 		var tex: Texture2D = UiTokens.icon(n)
 		assert_object(tex).is_not_null()

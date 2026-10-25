@@ -9,7 +9,7 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parent
 NAMES = (
     "pause undo restart hint add_tube coin streak calendar palette bag gear play video close back "
-    "arrow_right check skip music speaker vibration symbols globe shield"
+    "arrow_right check skip music speaker vibration symbols globe shield bell chevron_right"
 ).split()
 
 
