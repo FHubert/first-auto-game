@@ -139,6 +139,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-193 `todo` Strażnik kluczy T-184 nie wykrywa `get_value(zmienna)` (nazwa klucza w zmiennej) — dziś brak takich przypadków; rozważyć test „każde `get_value(` ma literał albo stałą z pliku” (lista wyjątków pusta), gdy pojawi się pierwszy taki odczyt. Skill: godot-test
 - [ ] T-200 `todo` `.gitignore`: wzorzec `game/addons/gdUnit4/` (z ukośnikiem) nie łapie symlinku `game/addons/gdUnit4` tworzonego w worktree — `git status` w worktree pokazuje go jako nieśledzony (ryzyko `git add -A`); rozważyć wpis bez ukośnika (`game/addons/gdUnit4`) i test w `tools/test_tools.py` (`git check-ignore`); odkryte w sesji #18. Skill: godot-test
 - [ ] T-201 `todo` `measure_curve.gd`: w trybie siatki `config.min_level` w `curve_assist.json` dla wiersza `base` = 1 zamiast 0/„brak” (kosmetyka raportu T-187; nie wpływa na liczby); odkryte w sesji #18. Skill: game-economy
+- [ ] T-209 `todo` `make sim --json`: rozkład impresji/DAU per gracz-dzień (σ) do próbki EXP-001/002 w `docs/EXPERIMENTS.md` (T-208: dziś tylko średnie → „ZWERYFIKUJ”). Skill: game-economy
+- [ ] T-210 `todo` `StuckPanel.show_for` liczy `moves_to_goal()` synchronicznie (solver ~1,7 s na poziomie 56 w testach T-194) — zmierzyć w grze (`measure_startup.gd`-podobnie) i rozważyć wątek/limit stanów. Skill: godot-dev
+- [ ] T-211 `todo` `GameState.from_dict`: ścisła walidacja `round_in_progress` (dziś leniwa w `Level.resume` → `_discard_snapshot()`; fuzz T-206 sprawdza spójność tylko gdy `GameRound.from_dict` ≠ null). Skill: godot-dev
+- [ ] T-212 `todo` Adapter AdMob (Faza 5): sygnał `interstitial_closed` powinien nieść id przerwy — `AdService` (T-204) paruje zamknięcia kolejką FIFO, co zakłada jedną reklamę naraz. Skill: ads-iap
+- [ ] T-213 `todo` `plateau_assist_win_prob_*`/mnożniki T-199 kalibrowane dla 26/3 (T-195: 26/2 z bota = 22/62 i 56/220) — po T-199 przeliczyć dla `DEFAULTS` 26/2. Skill: game-economy
 
 ## Pytania do Huberta
 - T-027: wejście do Sklepu ze StuckPanel podmieniało scenę (postęp ruchów przepadał) — rozwiązane w T-049: Shop jako overlay nad Level, powrót do tej samej rundy i trybu (campaign/daily).
