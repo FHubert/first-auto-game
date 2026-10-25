@@ -1,0 +1,176 @@
+extends GdUnitTestSuite
+## T-238: zgoda -> ladowanie reklam -> przycisk rewarded (HUD extra_tube) przez App.
+
+const SAVE_PATH: String = "user://test_ads_load_flow.json"
+const GIVEUP: String = "ads:load:giveup:rewarded"
+
+var _old_path: String
+var _prev_an: AnalyticsProvider
+var _prev_provider: AdProvider
+var _prev_clock: Callable
+var _prev_purchases_state: GameState
+var _fake_an: FakeAnalyticsProvider
+var _provider: FakeAdProvider
+var _consent: FakeConsentProvider
+var _now: Array[float] = [0.0]
+var _unix: Array[int] = [TestClock.FIXED_UNIX]
+
+
+func before_test() -> void:
+	GameConfig.reset()
+	_old_path = SaveSystem.save_path
+	SaveSystem.save_path = SAVE_PATH
+	TestSaveCleanup.remove(SAVE_PATH)
+	_prev_an = Analytics.provider
+	_fake_an = FakeAnalyticsProvider.new()
+	Analytics.provider = _fake_an
+	_prev_provider = Ads.provider
+	_prev_clock = Ads.clock
+	_prev_purchases_state = Purchases.state
+	_now[0] = 0.0
+	_provider = FakeAdProvider.new()
+	_consent = FakeConsentProvider.new()
+	_reset_ads()
+	Ads.provider = _provider
+	Ads.clock = TestClock.ticking_float(_now)
+
+
+func after_test() -> void:
+	Analytics.provider = _prev_an
+	Ads.provider = _prev_provider
+	Ads.clock = _prev_clock
+	_reset_ads()
+	Purchases.state = _prev_purchases_state
+	TestSaveCleanup.remove(SAVE_PATH)
+	SaveSystem.save_path = _old_path
+	GameConfig.reset()
+
+
+## Back to a pristine singleton: consent, remove-ads flag and the whole load machinery.
+func _reset_ads() -> void:
+	Ads.reset_consent()
+	Ads.ads_removed = false
+	Ads._policies = {"rewarded": AdLoadPolicy.new(), "interstitial": AdLoadPolicy.new()}
+	Ads._loading = {"rewarded": false, "interstitial": false}
+	Ads._giveup_tracked = {}
+	Ads._preload_started = false
+	Ads._signals_provider = null
+	Ads._rewarded_in_break = false
+	Ads.reset_interstitial_cooldown()
+
+
+func _level() -> Level:
+	var state := SaveSystem.fresh_state()
+	state.level = 8
+	state.settings[GameState.SETTING_TUTORIAL_DONE] = true
+	var app: App = auto_free(App.new())
+	app.clock = TestClock.ticking(_unix)
+	app.effects_enabled = false
+	app.state = state
+	add_child(app)
+	app.current_screen().play_pressed.emit()
+	return app.current_screen() as Level
+
+
+## HUD rewarded button after Level refreshes its offers.
+func _button_visible(level: Level) -> bool:
+	level._refresh_offers()
+	return level.hud.extra_tube_ad_button.visible
+
+
+func _count(id: String) -> int:
+	var n: int = 0
+	for e: Dictionary in _fake_an.events:
+		if str(e.get("event_id", "")) == id:
+			n += 1
+	return n
+
+
+func _hold_consent() -> void:
+	_consent.region_eea = true
+	_consent.form_required = true
+	_consent.hold_form = true
+
+
+func test_no_load_before_consent_finished_then_one_of_each() -> void:
+	_hold_consent()
+	Ads.begin_consent(_consent)
+	_level()
+	Ads.poll_loads()
+	assert_int(Ads.consent_state).is_equal(Ads.ConsentState.PENDING)
+	assert_int(_provider.rewarded_load_calls + _provider.interstitial_load_calls).is_zero()
+	_consent.pending_form_callback.call(ConsentProvider.UMP_OBTAINED)
+	Ads.poll_loads()
+	assert_int(Ads.consent_state).is_equal(Ads.ConsentState.DONE)
+	assert_int(_provider.rewarded_load_calls).is_equal(1)
+	assert_int(_provider.interstitial_load_calls).is_equal(1)
+
+
+func test_button_hidden_while_load_held_and_visible_after_release() -> void:
+	_provider.hold_loads = true
+	Ads.begin_consent(_consent)
+	var level := _level()
+	assert_bool(_button_visible(level)).is_true()  # fake: gotowa od startu, dopoki nie padnie
+	_provider.release_load(false)  # rewarded: blad -> niegotowa
+	assert_bool(_button_visible(level)).is_false()
+	_now[0] += float(GameConfig.get_value("ad_load_retry_base_seconds"))
+	Ads.poll_loads()
+	_provider.release_load(true)  # najpierw wisi interstitial z preloadu
+	assert_bool(_button_visible(level)).is_false()
+	_provider.release_load(true)
+	assert_bool(_button_visible(level)).is_true()
+
+
+func test_giveup_after_max_retries_hides_button_to_end() -> void:
+	var max_retries: int = int(GameConfig.get_value("ad_load_max_retries"))
+	_provider.fail_next_loads(max_retries * 2)  # bledy dziela oba formaty
+	Ads.begin_consent(_consent)
+	var level := _level()
+	var cap: float = float(GameConfig.get_value("ad_load_retry_max_seconds"))
+	for i in range(max_retries + 1):
+		_now[0] += cap
+		Ads.poll_loads()
+	assert_int(_count(GIVEUP)).is_equal(1)
+	assert_bool(_button_visible(level)).is_false()
+	var calls: int = _provider.rewarded_load_calls
+	_now[0] += cap * 10.0
+	Ads.poll_loads()
+	assert_int(_provider.rewarded_load_calls).is_equal(calls)
+	assert_int(_count(GIVEUP)).is_equal(1)
+	assert_bool(_button_visible(level)).is_false()
+
+
+func test_button_hidden_after_granted_show_until_next_loaded() -> void:
+	Ads.begin_consent(_consent)
+	var level := _level()
+	assert_bool(_button_visible(level)).is_true()
+	_provider.hold_loads = true
+	assert_bool(Ads.request_rewarded("p", func() -> void: pass)).is_true()
+	assert_int(_provider.rewarded_load_calls).is_equal(2)
+	assert_bool(_button_visible(level)).is_false()
+	_provider.release_load(true)
+	assert_bool(_button_visible(level)).is_true()
+
+
+func test_ads_removed_purchase_stops_interstitial_loads_keeps_rewarded() -> void:
+	Ads.begin_consent(_consent)
+	var level := _level()
+	var every_n: int = int(GameConfig.get_value("interstitial_every_n_rounds"))
+	var min_level: int = int(GameConfig.get_value("interstitial_min_level"))
+	_provider.hold_show = true
+	(
+		assert_bool(
+			Ads.maybe_show_interstitial(every_n * maxi(1, ceili(float(min_level) / every_n)))
+		)
+		. is_true()
+	)
+	assert_bool(Purchases.grant(Purchases.SKU_REMOVE_ADS)).is_true()
+	assert_bool(Ads.ads_removed).is_true()
+	var interstitial_loads: int = _provider.interstitial_load_calls
+	_provider.release(true)  # zamkniecie interstitiala
+	assert_int(_provider.interstitial_load_calls).is_equal(interstitial_loads)
+	var rewarded_loads: int = _provider.rewarded_load_calls
+	assert_bool(Ads.request_rewarded("p", func() -> void: pass)).is_true()
+	_provider.release(true)
+	assert_int(_provider.rewarded_load_calls).is_equal(rewarded_loads + 1)
+	assert_bool(_button_visible(level)).is_true()
