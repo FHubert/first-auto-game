@@ -2,7 +2,7 @@
 .godot/
 export/
 # Tools and addons cloned by `make setup`
-.tools/
+.tools
 game/addons/gdUnit4
 # Test reports (keep .gitkeep)
 game/test/reports/*.xml
