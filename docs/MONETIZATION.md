@@ -68,39 +68,42 @@ Plan eksperymentów z próbkami: `docs/EXPERIMENTS.md` (T-208)
 | H1 | Mnożnik ×3 na `double_coins` zwiększa odsetek wygranych z obejrzaną reklamą bez inflacji, która przyspiesza zakup motywów i obniża D7 | Ad impressions / DAU; kontrolnie D7 | ≥ 3,0 impr./DAU przy D7 ≥ 12 % | `rewarded_multiplier` = 2.0 | `rewarded_multiplier` = 3.0 |
 | H2 | Gęstszy interstitial (co 4 poziomy, min 90 s, od poziomu 5) podnosi impresje bez spadku D1 | Ad impressions / DAU, D1 | ≥ 3,0 impr./DAU przy D1 ≥ 35 % | `interstitial_every_n_rounds` = 5, `interstitial_min_seconds` = 120, `interstitial_min_level` = 8 | 4 / 90 / 5 |
 | H3 | Wcześniejsza oferta `starter_pack` (po poziomie 6 zamiast 12) podnosi konwersję IAP | IAP conversion | ≥ 1,5 % | `starter_offer_min_level` = 12 | `starter_offer_min_level` = 6 |
-| H4 | Pomoc na plateau od 3. próby (zamiast 2.) jest mniej natrętna (mniej `level:assist:*`/DAU, wolniejszy sink monet) bez utraty D7 kohorty 56+ (T-187: 46,0 % od 2. próby vs 34,4 % od 3. w ≤ 3 próbach - bot z ofertą zawsze brany, górna granica) | D7 kohorty; `level:assist:*`/DAU; rewarded/DAU; D1 | D7 ≥ 12 % przy D1 ≥ 35 % | `plateau_assist_from_attempt` = 2 | `plateau_assist_from_attempt` = 3 |
+| H4 | Pomoc na plateau od 3. próby (zamiast 2.) jest mniej natrętna (mniej `level:assist:*`/DAU; sim: ~2,6x mniej monet na pomoc, ale baza 26/2 ma więcej rewarded - test dotyczy tylko natrętności vs D7, nie ekonomii) bez utraty D7 kohorty 56+ (T-187: 46,0 % od 2. próby vs 34,4 % od 3. w ≤ 3 próbach - bot z ofertą zawsze brany, górna granica) | D7 kohorty; `level:assist:*`/DAU; rewarded/DAU; D1 | D7 ≥ 12 % przy D1 ≥ 35 % | `plateau_assist_from_attempt` = 2 | `plateau_assist_from_attempt` = 3 |
 
 **Paczki remote configu:** [`default.json`](remote_config/default.json), [`h1_b.json`](remote_config/h1_b.json), [`h2_b.json`](remote_config/h2_b.json), [`h3_b.json`](remote_config/h3_b.json), [`h4_assist_3.json`](remote_config/h4_assist_3.json). Nowy eksperyment = nowy plik w `docs/remote_config/` (`remote_config_variant` = nazwa pliku) + zielony `test_remote_config_packages.gd` PRZED wpisaniem wartości do Firebase Remote Config; wartości wariantu B w tabeli i w pliku muszą być identyczne.
 
-### Przewidywanie `make sim` (seed 1, 1000 graczy, 30 dni)
+### Przewidywanie `make sim` (seed 1, 5000 graczy, 30 dni, jeden przebieg na bazie `DEFAULTS` 26/2)
 
-Szum (T-209): `--json` podaje `impressions_per_player_day` {mean, sd, n} i `ads_per_dau_ci95` (rewarded / interstitial / total; mean ± 1,96 × sd / √n, gracz-dni traktowane jako niezależne, więc przedział jest optymistyczny). Seed 1, DEFAULTS, połowa CI total: 0,095 przy 1000 graczy, 0,041 przy 5000, 0,029 przy 10 000. Domyślne `--players` = 5000 (T-209; poniższa tabela nadal z 1000 graczy do T-216): przy porównaniach wariantów różnica mniejsza niż nakładające się CI to szum.
+Szum (T-209): `--json` podaje `impressions_per_player_day` {mean, sd, n} i `ads_per_dau_ci95` (rewarded / interstitial / total; mean ± 1,96 × sd / √n, gracz-dni traktowane jako niezależne, więc przedział jest optymistyczny). Seed 1, DEFAULTS, połowa CI total: 0,095 przy 1000 graczy, 0,041 przy 5000, 0,029 przy 10 000. Domyślne `--players` = 5000; przy porównaniach wariantów różnica, której przedziały CI się nakładają, to szum ("w szumie").
 
-`python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 --overlay docs/remote_config/<wariant>.json` (default = bez `--overlay`; klucze nieznane symulacji, np. `starter_offer_min_level`, są ignorowane z ostrzeżeniem na stderr, a `remote_config_variant` jako klucz meta jest pomijany po cichu). Stan po T-178/T-185/T-189/T-199 (pomoc na plateau jako mnożnik porażki `plateau_assist_fail_mult_*`, metryki motywów z n i progiem `MIN_N` = 30; wiersze `default` i H4 przeliczone w T-199, h1–h3 nadal z T-190 — stara baza 26/3).
+Polecenia (T-216; default = bez `--overlay`; klucze nieznane symulacji, np. `starter_offer_min_level`, są ignorowane z ostrzeżeniem na stderr, a `remote_config_variant` jako klucz meta jest pomijany po cichu):
 
-| wariant | impresje/DAU (rewarded + interstitial = total) | rewarded `extra_tube`/DAU | 1. motyw (dzień kalendarzowy, mediana) | 3. motyw (dzień, n) | mediana monet d30 / d1 | exit code |
-|---|---|---|---|---|---|---|
-| default (od T-198: `plateau_assist_from_attempt` 2) | 3.15 + 1.39 = 4.54 | 0.423 | 3 | n/a (n=1) | 570 / 335 | 0 |
-| h1_b (`rewarded_multiplier` 3.0)* | 2.87 + 1.34 = 4.21 | 0.222 | 3 | n/a (n=10) | 600 / 350 | 0 |
-| h2_b (interstitial co 4 rundy, od lvl 5)* | 2.85 + 1.77 = 4.62 | 0.206 | 4 | n/a (n=0) | 575 / 335 | 0 |
-| h3_b (`starter_offer_min_level` 6)* | 2.85 + 1.34 = 4.19 | 0.206 | 4 | n/a (n=0) | 575 / 335 | 0 |
-| h4_assist_3 (`plateau_assist_from_attempt` 3 = dawny default T-190) | 2.85 + 1.34 = 4.19 | 0.206 | 4 | n/a (n=0) | 575 / 335 | 0 |
+`python3 tools/balance_sim.py --players 5000 --days 30 --seed 1 [--overlay docs/remote_config/<wariant>.json] --json`
 
-\* Wiersze h1–h3 zmierzone w T-190 przy `plateau_assist_from_attempt` = 3 (ówczesny default = dzisiejszy `h4_assist_3`); od T-198 `DEFAULTS` = 2 i wiersz `default` odpowiada dawnemu `h4_assist_2`. Porównania h1–h3 w akapicie niżej odnoszą się do bazy 26/3 (4.19) — po T-198 przeliczyć przy następnej zmianie paczek.
+Stan po T-178/T-185/T-189/T-199/T-203 (pomoc na plateau jako mnożnik porażki `plateau_assist_fail_mult_*`, metryki motywów z n i progiem `MIN_N` = 30). Wszystkie 5 wierszy z jednego przebiegu na jednej bazie (`plateau_assist_from_attempt` = 2, z wyjątkiem h4).
 
-H2 podnosi interstitiale z 1.34 do 1.77/DAU (total 4.19 -> 4.62), bez wpływu na ekonomię monet (d30 575 jak w default). H1 podnosi monety d30 z 575 do 600 (d1 335 -> 350), rewarded 2.85 -> 2.87/DAU; 3. motyw kupiło 10 z 847 graczy (1,2 %), poniżej `MIN_N` = 30, więc dzień jest raportowany jako n/a - brak sygnału inflacji w modelu. H3 nie jest modelowany przez symulację (wynik identyczny z default). Poprzednia wersja tabeli (przed T-178) podawała 3. motyw w 24.-25. dniu i total 4.07; po T-178/T-185 pomoc na plateau zużywa monety (sink ok. 7,8 monet/DAU), więc nikt w default nie dochodzi do 3. motywu w 30 dni.
+| wariant | impresje/DAU (rewarded + interstitial = total) | CI 95 % total | rewarded `extra_tube`/DAU | 1. motyw (dzień kalendarzowy, mediana) | 3. motyw (dzień, n) | mediana monet d30 / d1 | exit code |
+|---|---|---|---|---|---|---|---|
+| default (`plateau_assist_from_attempt` 2) | 3.05 + 1.36 = 4.42 | 4.375–4.456 | 0.405 | 3 | n/a (n=3) | 565 / 340 | 0 |
+| h1_b (`rewarded_multiplier` 3.0) | 3.01 + 1.34 = 4.35 | 4.309–4.389 | 0.386 | 3 | n/a (n=26) | 610 / 350 | 0 |
+| h2_b (interstitial co 4 rundy, od lvl 5) | 3.05 + 1.80 = 4.86 | 4.813–4.899 | 0.405 | 3 | n/a (n=3) | 565 / 340 | 0 |
+| h3_b (`starter_offer_min_level` 6) | 3.05 + 1.36 = 4.42 | 4.375–4.456 | 0.405 | 3 | n/a (n=3) | 565 / 340 | 0 |
+| h4_assist_3 (`plateau_assist_from_attempt` 3) | 2.84 + 1.35 = 4.20 | 4.157–4.233 | 0.212 | 3 | n/a (n=6) | 555 / 330 | 0 |
 
-### H4 - przewidywanie `make sim --overlay docs/remote_config/h4_assist_3.json` (seed 1, 1000 graczy, 30 dni)
+H1 vs default: total 4.35 vs 4.42, CI się nakładają (4.309–4.389 vs 4.375–4.456) - różnica w szumie; rewarded 3.01 vs 3.05 też w szumie (2.976–3.035 vs 3.023–3.083). H1 podnosi monety d30 z 565 do 610 (d1 340 -> 350); 3. motyw kupiło 26 graczy (poniżej `MIN_N` = 30, dzień n/a, 0,6 % engaged) - brak sygnału inflacji w modelu. H2 vs default: interstitial 1.36 -> 1.80/DAU, total 4.42 -> 4.86 (CI 4.813–4.899 vs 4.375–4.456 nie nakładają się - różnica realna w modelu), bez wpływu na ekonomię monet (d30 565 jak w default). H3 nie jest modelowany przez symulację (wynik identyczny z default). H4 vs default: total 4.20 vs 4.42 (CI 4.157–4.233 vs 4.375–4.456 nie nakładają się; -5,0 %), rewarded 2.84 vs 3.05. Poprzednia wersja tabeli (przed T-178) podawała 3. motyw w 24.-25. dniu; po T-178/T-185 pomoc na plateau zużywa monety, więc nikt w default nie dochodzi do 3. motywu w 30 dni (3. motyw kupiło 3 z 4207 engaged).
+
+### H4 - przewidywanie `make sim --overlay docs/remote_config/h4_assist_3.json` (seed 1, 5000 graczy, 30 dni)
 
 | metryka | baza (od 2. próby, `DEFAULTS` od T-198) | H4 (od 3. próby) |
 |---|---|---|
-| 3. motyw | n/a (0,0 %) | n/a (0,0 %) |
-| `plateau_assist_coins_per_dau` | 18.530 | 7.149 |
-| `rewarded_extra_tube_per_dau` | 0.423 | 0.220 |
-| `plateau_assist_buys` / próby | 2930 / 25004 | 1220 / 25180 |
-| ads/DAU interstitial | 1.39 | 1.34 |
-| ads/DAU rewarded | 3.15 | 2.84 |
-| ads/DAU total | 4.54 | 4.18 |
-| mediana monet po 7. dniu aktywnym | 525 | 400 |
+| 3. motyw | n/a (n=3) | n/a (n=6) |
+| `plateau_assist_coins_per_dau` | 18.391 | 7.206 |
+| `rewarded_extra_tube_per_dau` | 0.405 | 0.212 |
+| `plateau_assist_buys` / próby | 14402 / 122828 | 5762 / 123564 |
+| ads/DAU interstitial | 1.36 | 1.35 |
+| ads/DAU rewarded | 3.05 | 2.84 |
+| ads/DAU total (CI 95 %) | 4.42 (4.375–4.456) | 4.20 (4.157–4.233) |
+| mediana monet po 7. dniu aktywnym | 450 | 480 |
+| mediana monet d30 | 565 | 555 |
 
-Hipoteza: oferta od 3. próby daje ok. 2,6x mniej monet wydanych na pomoc i mniejszą natrętność, kosztem ARPDAU ok. -8 % (rewarded -0,3/DAU, total 4.54 → 4.18); od T-199 pomoc realnie skraca plateau, więc baza 26/2 zarabia więcej monet na wygranych (mediana po 7. dniu aktywnym 525 vs 400; przed T-199 odwrotnie: 522 vs 650, bo pomoc była martwa) i ryzyka D7 56+ poniżej bramki (34,4 % vs 46,0 % wg T-187). Metryka decyzji: D7 kohorty, `level:assist:*`/DAU, rewarded/DAU; minimalny czas testu jak H1-H3 (>= 14 dni na wariant, D7 wymaga pełnych kohort). Decyzja 26/2 (T-198, pytanie 12 w GDD) jest domyślna; w A/B w Fazie 6 wariant 3 wygrywa tylko gdy D7 kohorty nie spada istotnie, a D1 i natrętność (`level:assist:*`/DAU) poprawiają się.
+Hipoteza: oferta od 3. próby daje ok. 2,6x mniej monet wydanych na pomoc (18.391 / 7.206 = 2,55) i ok. 1,9x mniej rewarded `extra_tube` (0.405 / 0.212), kosztem ARPDAU ok. -5 % (total 4.42 → 4.20, przedziały CI rozłączne; rewarded -0,21/DAU). Baza 26/2 daje więcej rewarded (3.05 vs 2.84) i więcej impresji, a mediana monet jest porównywalna (d30 565 vs 555; po 7. dniu aktywnym 450 vs 480, więc H4 nie zostawia graczom mniej monet) - ekonomia monet NIE przemawia za H4 ani przeciw niemu. H4 testuje więc wyłącznie natrętność (`level:assist:*`/DAU) kontra D7 (kohorta 56+: 46,0 % od 2. próby vs 34,4 % od 3. wg T-187, górna granica z botem). Metryka decyzji: D7 kohorty, `level:assist:*`/DAU, rewarded/DAU; minimalny czas testu jak H1-H3 (>= 14 dni na wariant, D7 wymaga pełnych kohort). Decyzja 26/2 (T-198, pytanie 12 w GDD) jest domyślna; w A/B w Fazie 6 wariant 3 wygrywa tylko gdy D7 kohorty nie spada istotnie, a D1 i natrętność poprawiają się.
