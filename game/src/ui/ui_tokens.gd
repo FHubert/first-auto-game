@@ -43,6 +43,33 @@ const TILE_RADIUS := 33
 const SHADOW_BTN := 11
 const SHADOW_ICON := 9
 const BTN_PAD_H := 44
+const ICON_DIR := "res://assets/sprites/ui/v2/"
+const ICON_NAMES: Array[String] = [
+	"pause",
+	"undo",
+	"restart",
+	"hint",
+	"add_tube",
+	"coin",
+	"streak",
+	"calendar",
+	"palette",
+	"bag",
+	"gear",
+	"play",
+	"video",
+	"close",
+	"back",
+	"arrow_right",
+	"check",
+	"skip",
+	"music",
+	"speaker",
+	"vibration",
+	"symbols",
+	"globe",
+	"shield",
+]
 
 
 static func _lin(v: float) -> float:
@@ -57,3 +84,10 @@ static func contrast_ratio(fg: Color, bg: Color) -> float:
 	var l1: float = _luminance(fg)
 	var l2: float = _luminance(bg)
 	return (maxf(l1, l2) + 0.05) / (minf(l1, l2) + 0.05)
+
+
+static func icon(name: String) -> Texture2D:
+	if not ICON_NAMES.has(name):
+		push_error("UiTokens.icon: unknown icon '%s'" % name)
+		return null
+	return load(ICON_DIR + name + ".png") as Texture2D
