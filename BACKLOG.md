@@ -137,7 +137,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-279 `review` UI v2 naprawa: Settings wg makiety 08 — kafelki ikon `CARD_ICON`, separatory wierszy, przełączniki 112×64 wg makiety, wiersz „Język: Polski ›” zamiast `OptionButton`, wiersz „Opcje prywatności” (consent), właściwa ikona powiadomień (dzwonek — T-266), stopka „Vialo · wersja X” (scala część Inbox T-266) → PR #233 (depends on #232)
   KA: zestawienie `docs/ui/compare/08_settings_T-279.png`; testy Settings zielone. ≤ 300 linii. Pliki: `settings_screen.gd`, `gen_assets.py` (dzwonek), `strings.csv`.
   Skill: `godot-dev` + `asset-gen`
-- [ ] T-280 `todo` UI v2 naprawa: narzędzie kadrów — `tools/gen_screenshots.sh` z trybem rozdzielczości 720×1280 i 720×1560 (`--size`), fixture'y `aso_themes` z zablokowanym motywem i `aso_shop` z aktywnym pakietem startowym, `daily` ze streakiem ≥ 3 (Inbox T-271), żeby KA T-236 było weryfikowalne; po naprawach T-272…T-279 ponowny odbiór = T-236b (kadry sklepowe `fastlane/metadata` podmienione dopiero przy PASS)
+- [ ] T-280 `in_progress` UI v2 naprawa: narzędzie kadrów — `tools/gen_screenshots.sh` z trybem rozdzielczości 720×1280 i 720×1560 (`--size`), fixture'y `aso_themes` z zablokowanym motywem i `aso_shop` z aktywnym pakietem startowym, `daily` ze streakiem ≥ 3 (Inbox T-271), żeby KA T-236 było weryfikowalne; po naprawach T-272…T-279 ponowny odbiór = T-236b (kadry sklepowe `fastlane/metadata` podmienione dopiero przy PASS)
   KA: `bash tools/gen_screenshots.sh --store --size 720x1560` działa; `tools/test_tools.py` sprawdza parsowanie `--size`; nowe fixture'y w `screenshot_fixtures.gd` z testem. ≤ 150 linii.
   Skill: `godot-test` + `aso`
 
