@@ -27,6 +27,10 @@ const KEYS: Array = [
 	"skips_by_bracket",
 	"median_attempts_by_bracket",
 	"extra_tubes_by_bracket",
+	"attempts_with_tube_by_bracket",
+	"won_with_tube_by_bracket",
+	"attempts_without_tube_by_bracket",
+	"won_without_tube_by_bracket",
 	"won_le3_pct_by_bracket",
 	"won_first_pct_by_bracket",
 ]
@@ -289,6 +293,40 @@ func test_extra_tube_from_attempt_2_skips_first_attempt() -> void:
 	var three: Dictionary = _extra_tube_bot(2).run(3, 42, PlaytestBot.MODE_GREEDY)
 	assert_int(three["attempts_by_bracket"]["1-7"]).is_equal(3)
 	assert_int(three["extra_tubes_by_bracket"]["1-7"]).is_equal(2)
+
+
+func test_tube_split_keys_and_four_brackets() -> void:
+	var report: Dictionary = _extra_tube_bot(2).run(3, 42, PlaytestBot.MODE_GREEDY)
+	for key: String in [
+		"attempts_with_tube_by_bracket",
+		"won_with_tube_by_bracket",
+		"attempts_without_tube_by_bracket",
+		"won_without_tube_by_bracket",
+	]:
+		assert_bool(report.has(key)).is_true()
+		assert_int((report[key] as Dictionary).size()).is_equal(4)
+	# from_attempt 2: attempt 1 without tube, attempts 2..3 with tube.
+	assert_int(report["attempts_without_tube_by_bracket"]["1-7"]).is_equal(1)
+	assert_int(report["attempts_with_tube_by_bracket"]["1-7"]).is_equal(2)
+
+
+func test_tube_split_sums_match_attempts() -> void:
+	var bot := PlaytestBot.new()
+	bot.stay_on_level = true
+	bot.use_campaign_seed = true
+	bot.extra_tube_from_attempt = 2
+	var report: Dictionary = bot.run(30, 42, PlaytestBot.MODE_GREEDY)
+	for label: String in PlaytestBot.BRACKET_LABELS:
+		var with_t: int = report["attempts_with_tube_by_bracket"][label]
+		var without_t: int = report["attempts_without_tube_by_bracket"][label]
+		assert_int(with_t + without_t).is_equal(report["attempts_by_bracket"][label])
+		assert_int(report["won_with_tube_by_bracket"][label]).is_less_equal(with_t)
+		assert_int(report["won_without_tube_by_bracket"][label]).is_less_equal(without_t)
+		var won_sum: int = (
+			int(report["won_with_tube_by_bracket"][label])
+			+ int(report["won_without_tube_by_bracket"][label])
+		)
+		assert_int(won_sum).is_equal(report["levels_won_by_bracket"][label])
 
 
 func test_extra_tube_below_min_level_not_added() -> void:
