@@ -2,6 +2,7 @@
 """T-255: budzet sygnatur ERROR w logu `make test`.
 
 Uzycie: python3 tools/log_budget.py <plik_logu> [--allow tools/log_budget_allow.txt]
+T-297: dodatkowo tabela top-20 sygnatur WARNING: -> log_warnings.txt obok logu (bez wplywu na exit).
 Exit: 0 = wszystkie sygnatury na allowliscie, 1 = jest nowa sygnatura, 2 = brak pliku logu.
 """
 import re
@@ -11,6 +12,8 @@ from pathlib import Path
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 DIGITS_RE = re.compile(r"\d+")
 PREFIXES = ("ERROR:", "SCRIPT ERROR:")
+WARN_PREFIX = "WARNING:"
+WARN_TOP = 20
 DEFAULT_ALLOW = Path(__file__).resolve().parent / "log_budget_allow.txt"
 
 
@@ -28,6 +31,23 @@ def collect(lines):
             sig = normalize(clean)
             counts[sig] = counts.get(sig, 0) + 1
     return counts
+
+
+def collect_warnings(lines):
+    """Zwroc {sygnatura: liczba} dla linii zaczynajacych sie od WARNING: (raport, bez bramki)."""
+    counts = {}
+    for raw in lines:
+        clean = ANSI_RE.sub("", raw).strip()
+        if clean.startswith(WARN_PREFIX):
+            sig = normalize(clean)
+            counts[sig] = counts.get(sig, 0) + 1
+    return counts
+
+
+def write_warnings(counts, path):
+    """Zapisz top-20 sygnatur malejaco (remis: alfabetycznie) jako `%5dx  sygnatura`."""
+    top = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:WARN_TOP]
+    Path(path).write_text("".join("%5dx  %s\n" % (n, sig) for sig, n in top), encoding="utf-8")
 
 
 def load_allow(path):
@@ -74,7 +94,12 @@ def main(argv):
         print("log budget: brak pliku allowlisty: %s" % allow_path, file=sys.stderr)
         return 2
     allow = load_allow(allow_path)
-    counts = collect(log_path.read_text(encoding="utf-8", errors="replace").splitlines())
+    lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    counts = collect(lines)
+    warns = collect_warnings(lines)
+    warn_path = log_path.parent / "log_warnings.txt"
+    write_warnings(warns, warn_path)
+    print("log budget: %d WARNING signatures (%d lines) -> %s" % (len(warns), sum(warns.values()), warn_path))
     new = check(counts, allow)
     for sig in sorted(counts):
         status = "NEW" if sig in new else "allowed"
