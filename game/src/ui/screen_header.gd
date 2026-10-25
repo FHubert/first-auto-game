@@ -44,6 +44,21 @@ static func build(parent: Control, title: String, with_coins: bool) -> Dictionar
 	return {"back": back, "coins": coins}
 
 
+## Przycisk zamknij (X) overlayow: kolo TOUCH_MIN x TOUCH_MIN (wariant `ButtonClose`:
+## tlo CARD_ROW, bez cienia i paddingu). Dodany do `parent`; pozycje ustawia wolajacy.
+static func close_button(parent: Control) -> Button:
+	var b := Button.new()
+	b.theme_type_variation = &"ButtonClose"
+	b.icon = UiTokens.icon("close")
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.expand_icon = false
+	b.add_theme_constant_override("icon_max_width", UiTokens.TILE_ICON)
+	b.custom_minimum_size = Vector2(UiTokens.TOUCH_MIN, UiTokens.TOUCH_MIN)
+	b.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	parent.add_child(b)
+	return b
+
+
 ## Pill monet (ikona + liczba) dodany do `parent`; zwraca etykiete z liczba.
 static func coins_pill(parent: Control, font_size: int = UiTokens.FONT_BTN) -> Label:
 	var pill := PanelContainer.new()

@@ -12,6 +12,7 @@ const TILE_COUNT: int = 7
 const CARD_TOP: int = 220
 const CARD_MARGIN: int = 30
 const CARD_PAD_X: int = 33
+const CLOSE_PAD: int = 20  # odstep X od krawedzi karty
 const GAP: int = 15
 const TILE_H: int = 150
 const TILE_CLAIMED_BG: Color = Color("#132444")
@@ -147,15 +148,8 @@ func _build() -> void:
 	save_streak_button = _button(box, &"ButtonAccent", "video", save_streak_rewarded)
 	save_streak_button.text = tr("btn_save_streak")
 	save_streak_button.visible = false
-	close_button = Button.new()
-	close_button.theme_type_variation = &"ButtonIcon"
-	close_button.icon = UiTokens.icon("close")
-	close_button.expand_icon = true
-	close_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	close_button.add_theme_constant_override("icon_max_width", 40)
-	close_button.custom_minimum_size = Vector2(UiTokens.TOUCH_MIN, UiTokens.TOUCH_MIN)
+	close_button = ScreenHeader.close_button(_content)
 	close_button.pressed.connect(_on_close)
-	_content.add_child(close_button)
 	_card.resized.connect(_place_close)
 
 
@@ -171,8 +165,8 @@ func _card_style() -> StyleBoxFlat:
 
 
 func _place_close() -> void:
-	close_button.position = Vector2(
-		_card.position.x + _card.size.x - UiTokens.TOUCH_MIN - 20, _card.position.y + 20
+	close_button.position = (
+		_card.position + Vector2(_card.size.x - UiTokens.TOUCH_MIN - CLOSE_PAD, CLOSE_PAD)
 	)
 
 

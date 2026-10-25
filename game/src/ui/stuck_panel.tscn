@@ -61,7 +61,7 @@ autowrap_mode = 3
 custom_minimum_size = Vector2(81, 81)
 layout_mode = 2
 size_flags_vertical = 0
-theme_type_variation = &"ButtonIcon"
+theme_type_variation = &"ButtonClose"
 
 [node name="UndoButton" type="Button" parent="Panel/Box"]
 custom_minimum_size = Vector2(0, 100)

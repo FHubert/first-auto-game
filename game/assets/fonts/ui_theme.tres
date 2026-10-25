@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=27 format=3]
+[gd_resource type="Theme" load_steps=30 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/nunito.ttf" id="1_font"]
 
@@ -246,6 +246,44 @@ content_margin_top = 24.0
 content_margin_right = 0.0
 content_margin_bottom = 24.0
 
+[sub_resource type="StyleBoxFlat" id="ButtonClose_n"]
+bg_color = Color(0.086275, 0.160784, 0.309804, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonClose_p"]
+bg_color = Color(0.086275, 0.160784, 0.309804, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonClose_f"]
+bg_color = Color(0.086275, 0.160784, 0.309804, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1.000000, 0.819608, 0.400000, 1)
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
 [sub_resource type="StyleBoxFlat" id="ButtonNav_n"]
 bg_color = Color(0.121569, 0.227451, 0.419608, 1)
 corner_radius_top_left = 44
@@ -398,6 +436,19 @@ ButtonIcon/colors/font_focus_color = Color(1.000000, 1.000000, 1.000000, 1)
 ButtonIcon/colors/font_disabled_color = Color(0.662745, 0.721569, 0.839216, 1)
 ButtonIcon/font_sizes/font_size = 35
 ButtonIcon/fonts/font = SubResource("Nunito_900")
+ButtonClose/base_type = &"Button"
+ButtonClose/styles/normal = SubResource("ButtonClose_n")
+ButtonClose/styles/hover = SubResource("ButtonClose_n")
+ButtonClose/styles/pressed = SubResource("ButtonClose_p")
+ButtonClose/styles/focus = SubResource("ButtonClose_f")
+ButtonClose/styles/disabled = SubResource("ButtonClose_n")
+ButtonClose/colors/font_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonClose/colors/font_hover_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonClose/colors/font_pressed_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonClose/colors/font_focus_color = Color(1.000000, 1.000000, 1.000000, 1)
+ButtonClose/colors/font_disabled_color = Color(0.662745, 0.721569, 0.839216, 1)
+ButtonClose/font_sizes/font_size = 35
+ButtonClose/fonts/font = SubResource("Nunito_900")
 ButtonNav/base_type = &"Button"
 ButtonNav/styles/normal = SubResource("ButtonNav_n")
 ButtonNav/styles/hover = SubResource("ButtonNav_n")
