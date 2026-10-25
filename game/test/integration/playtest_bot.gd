@@ -188,6 +188,7 @@ func run(rounds: int, run_seed: int, mode: String = MODE_SOLVER) -> Dictionary:
 		if state.coins < 0:
 			errors.append("round %d: negative coins (%d)" % [round_index, state.coins])
 		sim_time[0] += SIM_SECONDS_PER_ROUND
+		Ads.poll_loads()  # like AdService._process each frame: refreshes ads older than the limit
 
 	var medians: Dictionary = report["median_attempts_by_bracket"]
 	for label: String in BRACKET_LABELS:

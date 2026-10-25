@@ -83,3 +83,18 @@ func test_base_noop_never_claims_to_work() -> void:
 				assert_bool(res as bool).override_failure_message(msg).is_false()
 			else:
 				assert_bool(res.is_empty()).override_failure_message(msg).is_true()
+
+
+## T-257: load_* on an already loaded ad replaces it with a fresh one (age restarts).
+func test_fake_load_replaces_loaded_ad() -> void:
+	var t: Array[float] = [0.0]
+	var fake := FakeAdProvider.new()
+	fake.clock = TestClock.ticking_float(t)
+	fake.expire_after_seconds = 100.0
+	fake.load_rewarded()
+	t[0] = 90.0
+	fake.load_rewarded()
+	t[0] = 150.0
+	var got: Array[bool] = []
+	fake.show_rewarded(func(g: bool) -> void: got.append(g))
+	assert_array(got).is_equal([true])
