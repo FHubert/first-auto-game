@@ -19,6 +19,8 @@ const PAIRS: Array = [
 const FAKE_ONLY: Dictionary = {
 	# Completes a held rewarded/interstitial ad (hold_show mode).
 	"fake_ad_provider.gd": ["release", "release_at"],
+	# Answers a held UMP form / ATT prompt (hold_form / hold_att mode).
+	"fake_consent_provider.gd": ["release_form", "release_att"],
 }
 ## Safe arguments for base methods with required parameters (bool/Dictionary/Array returns).
 const NOOP_ARGS: Dictionary = {}
