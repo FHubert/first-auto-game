@@ -17,7 +17,8 @@ const PILL_PAD: int = 28
 const ICON_SIZE: int = 46
 const BADGE_PAD: int = 18
 const CARD_ICON_SIZE: int = 104
-const PROGRESS_H: int = 26
+const PROGRESS_H: int = 22
+const THEME_GAP: int = 11
 const TUBE_W: int = 70
 const TUBE_H: int = 170
 const TUBE_GAP: int = 36
@@ -40,6 +41,7 @@ var streak_label: Label
 var streak_best_label: Label
 var theme_progress: ProgressBar
 var theme_label: Label
+var theme_amount: Label
 var themes_button: Button
 var shop_button: Button
 var settings_button: Button
@@ -64,11 +66,16 @@ func _ready() -> void:
 	refresh()
 
 
+static func streak_text(days: int) -> String:
+	var key: String = "home_streak_one" if days == 1 else "home_streak_many"
+	return TranslationServer.translate(key) % days
+
+
 func refresh() -> void:
 	play_title_label.text = tr("home_play_title")
 	play_level_label.text = tr("home_play_level") % state.level
 	coins_label.text = str(state.coins)
-	streak_label.text = tr("home_streak") % state.streak_days
+	streak_label.text = streak_text(state.streak_days)
 	streak_best_label.text = tr("home_streak_best") % state.streak_best
 	streak_best_label.visible = state.streak_best >= STREAK_BEST_MIN_VISIBLE
 	var cost: int = ThemeCatalog.next_theme_cost(state)
@@ -76,10 +83,15 @@ func refresh() -> void:
 		theme_progress.max_value = 1
 		theme_progress.value = 1
 		theme_label.text = tr("home_all_themes")
+		theme_amount.visible = false
 	else:
 		theme_progress.max_value = cost
 		theme_progress.value = mini(state.coins, cost)
-		theme_label.text = tr("home_theme_progress") % [state.coins, cost]
+		theme_label.text = (
+			tr("home_theme_to") % tr("theme_name_" + ThemeCatalog.next_theme_id(state))
+		)
+		theme_amount.text = "%d / %d" % [mini(state.coins, cost), cost]
+		theme_amount.visible = true
 	_refresh_daily()
 
 
@@ -233,6 +245,8 @@ func _build_top(box: VBoxContainer) -> void:
 	streak_label = _label(streak_row)
 	streak_label.add_theme_font_size_override("font_size", UiTokens.FONT_BTN)
 	streak_best_label = _label(streak_row, &"LabelCaption")
+	streak_best_label.add_theme_font_size_override("font_size", UiTokens.FONT_XS)
+	streak_best_label.add_theme_color_override("font_color", UiTokens.TEXT_SECTION)
 
 
 func _spacer_h() -> Control:
@@ -350,9 +364,21 @@ func _card_icon() -> PanelContainer:
 	return c
 
 
-func _build_theme_bar(box: VBoxContainer) -> void:
-	theme_label = _label(box, &"LabelCaption")
-	theme_label.add_theme_font_size_override("font_size", UiTokens.FONT_MD)
+func _build_theme_bar(parent: VBoxContainer) -> void:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", THEME_GAP)
+	parent.add_child(box)
+	var head := HBoxContainer.new()
+	box.add_child(head)
+	theme_label = _label(head, &"LabelCaption")
+	theme_label.add_theme_font_size_override("font_size", UiTokens.FONT_XS)
+	theme_label.add_theme_color_override("font_color", UiTokens.TEXT_SOFT)
+	theme_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	theme_label.clip_text = true
+	theme_amount = _label(head, &"LabelCaption")
+	theme_amount.add_theme_font_size_override("font_size", UiTokens.FONT_XS)
+	theme_amount.add_theme_color_override("font_color", UiTokens.ACCENT)
+	theme_amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	theme_progress = ProgressBar.new()
 	theme_progress.show_percentage = false
 	theme_progress.custom_minimum_size = Vector2(0, PROGRESS_H)
