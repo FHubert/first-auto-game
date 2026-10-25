@@ -400,6 +400,40 @@ class ShellToolsTest(unittest.TestCase):
             self.assertIn('const BUILD_INFO: String = "1.2.3+142"', gd.read_text())
 
 
+class MakeWorktreeIsolationTest(unittest.TestCase):
+    # T-221: osobny user:// per checkout (XDG_DATA_HOME) + gdUnit4 symlink nie w git status.
+    @staticmethod
+    def recipes() -> dict:
+        out, name = {}, None
+        for line in (ROOT / "Makefile").read_text(encoding="utf-8").splitlines():
+            m = re.match(r"^([a-z-]+):", line)
+            if m:
+                name = m.group(1)
+                out[name] = []
+            elif name and line.startswith("\t"):
+                out[name].append(line)
+            elif line.strip():
+                name = None
+        return out
+
+    def test_gitignore_covers_gdunit_symlink_and_userdata(self):
+        for path in ("game/addons/gdUnit4", ".godot-userdata/x"):
+            with self.subTest(path=path):
+                r = subprocess.run(["git", "check-ignore", "-q", "--no-index", path], cwd=ROOT)
+                self.assertEqual(r.returncode, 0, f"{path} must be git-ignored")
+
+    def test_test_and_playtest_recipes_use_isolated_userdata(self):
+        recipes = self.recipes()
+        for name in ("test", "playtest"):
+            with self.subTest(recipe=name):
+                body = "\n".join(recipes[name])
+                self.assertIn("XDG_DATA_HOME", body)
+                for line in recipes[name]:
+                    for m in re.finditer(r"\$\(GODOT_BIN\)", line):
+                        self.assertTrue(line[: m.start()].rstrip().endswith("XDG_DATA_HOME=$(ROOT)/.godot-userdata"), line)
+        self.assertNotIn("XDG_DATA_HOME", "\n".join(recipes["export-check"]))
+
+
 class SetupEnvAndroidTemplate(unittest.TestCase):
     def test_android_build_template_wired(self):
         script = (TOOLS / "setup_env.sh").read_text(encoding="utf-8")
