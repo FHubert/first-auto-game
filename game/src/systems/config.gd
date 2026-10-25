@@ -55,6 +55,8 @@ const DEFAULTS: Dictionary = {
 	"gen_quick_state_budget": 250,
 	"gen_exact_state_budget": 1000,
 	"gen_exact_max_colors": 6,
+	# Jak wyżej, ale dla Poziomu dnia (T-180): osobny limit, bo daily liczy się w czasie żądania
+	"gen_exact_max_colors_daily": 6,
 	"solver_max_states": 50000,
 	"solver_fallback_weight": 3.0,
 	"campaign_seed": 1,
@@ -139,6 +141,7 @@ const RANGES: Dictionary = {
 	"gen_quick_state_budget": [1, 200000],
 	"gen_exact_state_budget": [1, 200000],
 	"gen_exact_max_colors": [0, 12],
+	"gen_exact_max_colors_daily": [0, 12],
 	"solver_max_states": [1, 200000],
 	"solver_fallback_weight": [1.0, 10.0],
 	"campaign_seed": [0, 2147483647],

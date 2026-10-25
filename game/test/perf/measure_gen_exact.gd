@@ -17,22 +17,58 @@ const DAYS: int = 30
 const MID_FIRST: int = 26
 const MID_LAST: int = 37
 
+const GRID_MODES: Array = [0, 1]
+const GRID_CAMPAIGN_COLORS: Array = [6, 8]
+const GRID_DAILY_COLORS: Array = [6, 8]
+
 var _base_tubes: Dictionary = {}
 
 
+## Domyslnie siatka T-180 (8 wierszy: heuristic_mode x gen_exact_max_colors x
+## gen_exact_max_colors_daily, budzet 1000). Stara siatka T-129/T-166 (GEN_EXACT/GEN_QUICK)
+## tylko z flaga `-- --legacy` (dluga, nie potrzebna przy kazdym pomiarze).
 func _initialize() -> void:
 	var cfg: Node = root.get_node("GameConfig")
 	var gen: RefCounted = load("res://src/systems/content_generator.gd").new()
+	var legacy: bool = OS.get_cmdline_user_args().has("--legacy")
 	cfg.reset()
+	SortSolver.heuristic_mode = 0  # baza golden = dzisiejsze poziomy (tryb 0, 6/6)
 	var seed_value: int = int(cfg.get_value("campaign_seed"))
 	for lv in GOLDEN_LEVELS:
 		_base_tubes[lv] = gen.generate(seed_value, lv)["payload"]["tubes"]
-	cfg.apply_remote({"gen_exact_max_colors": BASE_COLORS, "gen_exact_state_budget": BASE_BUDGET})
-	print(_measure(cfg, gen, "GEN_EXACT colors=%d budget=%d" % [BASE_COLORS, BASE_BUDGET], true))
-	for q in QUICK_BUDGET_GRID:
-		cfg.reset()
-		cfg.apply_remote({"gen_quick_state_budget": q})
-		print(_measure(cfg, gen, "GEN_QUICK quick=%d" % q, false))
+	if legacy:
+		cfg.apply_remote(
+			{"gen_exact_max_colors": BASE_COLORS, "gen_exact_state_budget": BASE_BUDGET}
+		)
+		print(
+			_measure(cfg, gen, "GEN_EXACT colors=%d budget=%d" % [BASE_COLORS, BASE_BUDGET], true)
+		)
+		for q in QUICK_BUDGET_GRID:
+			cfg.reset()
+			cfg.apply_remote({"gen_quick_state_budget": q})
+			print(_measure(cfg, gen, "GEN_QUICK quick=%d" % q, false))
+	else:
+		for mode in GRID_MODES:
+			for cc in GRID_CAMPAIGN_COLORS:
+				for dc in GRID_DAILY_COLORS:
+					cfg.reset()
+					SortSolver.heuristic_mode = mode
+					(
+						cfg
+						. apply_remote(
+							{
+								"gen_exact_max_colors": cc,
+								"gen_exact_max_colors_daily": dc,
+								"gen_exact_state_budget": BASE_BUDGET,
+							}
+						)
+					)
+					print(
+						_measure(
+							cfg, gen, "GRID_T180 mode=%d camp=%d daily=%d" % [mode, cc, dc], false
+						)
+					)
+	SortSolver.heuristic_mode = 0  # domyslny (T-180 wycofane)
 	cfg.reset()
 	quit()
 

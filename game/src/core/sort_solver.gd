@@ -14,6 +14,9 @@ const N_PARENT: int = 4  # węzeł-rodzic (Array) albo null dla korzenia
 const N_KEY: int = 5
 const N_MOVE: int = 6  # ruch rodzic -> ten węzeł
 
+## 0 (domyślny) = heurystyka granic, 1 = max(granice, h2) (T-180, wycofane z domyślnych).
+static var heuristic_mode: int = 0
+
 
 ## Szuka najkrótszego (weight == 1.0) lub szybkiego (weight > 1.0) rozwiązania.
 ## `moves` = -1 gdy brak rozwiązania; wtedy `exact` = true oznacza dowód braku
@@ -72,7 +75,36 @@ static func heuristic(board: SortBoard) -> int:
 		for k in range(1, (t as Array).size()):
 			if int(t[k]) != int(t[k - 1]):
 				total += 1
-	return total
+	if heuristic_mode == 0:
+		return total
+	return maxi(total, _segments_h2(board))
+
+
+## h2 = suma po kolorach (liczba segmentów koloru na planszy - 1); segment = ciągła seria
+## jednego koloru w jednej probówce. Dopuszczalna: jeden przelew przenosi całą górną serię
+## jednego koloru, więc łączy co najwyżej jedną parę segmentów tego koloru (h2 spada o <= 1
+## na ruch); na planszy wygranej każdy kolor ma 1 segment, więc h2 = 0 (i h2 >= 0).
+## Jeden przebieg po probówkach, liczniki w tablicy (bez Dictionary w gorącej pętli).
+static func _segments_h2(board: SortBoard) -> int:
+	var max_color: int = -1
+	for t in board.tubes:
+		for c in t as Array:
+			if int(c) > max_color:
+				max_color = int(c)
+	if max_color < 0:
+		return 0
+	var counts := PackedInt32Array()
+	counts.resize(max_color + 1)
+	for t in board.tubes:
+		var tube: Array = t
+		for k in tube.size():
+			if k == 0 or int(tube[k]) != int(tube[k - 1]):
+				counts[int(tube[k])] += 1
+	var h2: int = 0
+	for n in counts:
+		if n > 1:
+			h2 += n - 1
+	return h2
 
 
 ## Odtwarza ścieżkę na klonie planszy. True tylko gdy każdy przelew jest legalny
