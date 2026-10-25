@@ -27,6 +27,8 @@ static func build(parent: Control, title: String, with_coins: bool) -> Dictionar
 	var back := Button.new()
 	back.theme_type_variation = &"ButtonIcon"
 	back.icon = UiTokens.icon("back")
+	back.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	back.expand_icon = false
 	back.custom_minimum_size = Vector2(UiTokens.BTN_ICON, UiTokens.BTN_ICON)
 	back.add_theme_constant_override("icon_max_width", ICON_MAX)
 	row.add_child(back)
