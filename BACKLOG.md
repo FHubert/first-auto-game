@@ -107,9 +107,39 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: w `ui_theme.tres` 3 `FontVariation` (`variation_opentype = {"wght": 700|800|900}`) na bazie `nunito.ttf`; `default_font` = 700; `LabelTitle`/`LabelSection`/wszystkie warianty `Button*` = 900, `LabelCaption` = 700 (README → „Typografia”); test gdUnit4: `theme.get_font("font", "LabelTitle")` jest `FontVariation` z `wght` 900; kadr smoke Home przed/po w opisie PR. Bez nowych plików fontów, `docs/LICENSES.md` bez zmian. ≤ ~40 linii.
   Skill: `godot-dev`
 
-- [ ] T-236 `in_progress` UI v2: odbiór — zgodność z makietami + kadry sklepowe (zależy od T-230…T-235)
+- [ ] T-236 `review` UI v2: odbiór — zgodność z makietami + kadry sklepowe (zależy od T-230…T-235) → PR #227 (werdykt FAIL — raport `docs/ui/ACCEPTANCE_T-236.md`; naprawy T-272…T-280 niżej; kadry sklepowe `fastlane/metadata` celowo NIE podmienione do czasu PASS)
   KA: `make screenshots --store` → 15 PNG EN/PL/DE. Subagent `qa-playtester` porównuje każdy ekran z `docs/ui/mockups/*.png` (Read obu obrazów): układ, kolory, typografia, brak szarych domyślnych kontrolek, brak tekstu < 24 px, brak ucięć/nakładania w 720×1280 i 720×1560 (także DE — najdłuższe teksty). Raport PASS/FAIL per ekran w opisie PR i w `docs/LOG.md`; FAIL → zadania naprawcze do P1. ~80 linii + PNG.
   Skill: `aso` + `godot-test`
+
+<!-- Odbiór T-236 (sesja #24, FAIL): zadania naprawcze UI v2 w kolejności zależności (T-272 pierwsze — blokuje ocenę reszty). Źródło: docs/ui/ACCEPTANCE_T-236.md. -->
+
+- [ ] T-272 `todo` UI v2 naprawa: tło ekranów — `Level` (po ukryciu HUD przy wygranej górny obszar jest szary: plansza rysuje tło tylko we własnym prostokącie) i `Home` w kadrze sklepowym `aso_home` (całe tło szare) na kolor tła motywu / `UiTokens.BG`
+  KA: `Level` ma pełnoekranowy `ColorRect` (pierwsze dziecko) w kolorze `background` motywu planszy, aktualizowany w `_sync_hud_backdrop`-podobnej metodzie przy `setup`/`apply_theme`; `Home` ma `ScreenHeader.add_backdrop` (lub równoważne) niezależnie od fixture; test: kolor piksela/węzła tła == `UiTokens.BG` dla Home i == tło motywu dla Level po `apply_win`; kadry `02_relax`/`03_daily` bez szarości. ≤ 60 linii. Pliki: `level.tscn`, `level.gd`, `home.gd`, testy.
+  Skill: `godot-dev`
+- [ ] T-273 `todo` UI v2 naprawa: LevelComplete — plansza dopasowana POD nagłówek „Świetnie!” (dziś `fit_board_above_panel` ustawia `offset_top = HUD_TOP_H`, a nagłówek 129 px + 74 px tytułu nachodzi na probówki; „POZIOM N” ucięty), jeden rząd ułożonych probówek (makieta 03: 8 w rzędzie, mniejsze) nad arkuszem, pasek do motywu (nazwa, N/M, `ProgressBar` `ACCENT`) i rozbicie nagrody przekazane z `Level` (scala Inbox T-270), ikony przycisków wyśrodkowane obok tekstu
+  KA: `LevelComplete.header_height()` → `Level.fit_board_above_panel` używa go jako `offset_top`; `BoardView` dostaje tryb „jeden rząd” (`columns_for` z parametrem `max_cols` = n gdy wygrana) albo `scale_for` z dostępnym obszarem; `show_result` przyjmuje słownik `breakdown` (`win`, `perfect`, `theme_name`, `theme_cost`, `coins`); test: po `apply_win` żaden `tube_rect` nie przecina `header_rect()` ani `panel_rect()` w 720×1280 i 720×1560; `lc_title` usunięty lub użyty. ≤ 300 linii. Pliki: `level_complete.gd/.tscn`, `level.gd` (`fit_board_above_panel`, `_on_round_won`), `board_view.gd`, `strings.csv`, testy.
+  Skill: `godot-dev`
+- [ ] T-274 `todo` UI v2 naprawa: przycisk zamknij (X) w StuckPanel i DailyRewardPopup — krążek ucięty/cień „półksiężyc” z `ButtonIcon`; makieta: koło 81 px, tło `CARD_ROW`, bez cienia (scala część Inbox T-269)
+  KA: wariant theme `ButtonClose` w `ui_theme.tres` (koło, `CARD_ROW`, `border_width_bottom` 0) albo override stylebox w `ScreenHeader.close_button(parent)` używany przez oba overlaye; test: `close_button.size == (81, 81)` i `get_global_rect()` wewnątrz karty. ≤ 80 linii.
+  Skill: `godot-dev`
+- [ ] T-275 `todo` UI v2 naprawa: StuckPanel — wiersze jak w makiecie 02 (Cofnij ruch · Dodatkowa probówka (reklama ALBO cena — jeden wiersz, reklama ma pierwszeństwo jak w HUD T-230) · +N cofnięć · Podpowiedź z ceną — nowy sygnał `hint_pressed` podłączony w `Level` do `_request_hint`); probówki pod arkuszem przyciemnione `DIM`, nie ucięte (plansza nad arkuszem jak przy wygranej)
+  KA: ≤ 4 wiersze widoczne naraz; `hint_pressed` → `Level._request_hint` + zamknięcie panelu; test routingu reklama/cena jak `test_hud_ui_v2`; GDD pytanie 27 (linia „ruchów od celu”) rozstrzygnięte w „Pytania do Huberta”. ≤ 200 linii. Pliki: `stuck_panel.gd/.tscn`, `level.gd`, testy.
+  Skill: `godot-dev`
+- [ ] T-276 `todo` UI v2 naprawa: Home wg makiety 04 — miniatura probówek rysowana jak `TubeView` (zaokrąglone dno, 2× większa), „Graj” dwuliniowy („Graj” 35 px + „Poziom N” 24 px), badge NOWOŚĆ na karcie Poziomu dnia, kolumny „Nagroda / Nowy za” + licznik w osobnej linii (dziś sklejony z „Ukończone: N”)
+  KA: `test_home_ui_v2` rozszerzony o brak nakładania etykiet karty w DE; zestawienie `docs/ui/compare/04_home_T-276.png`. ≤ 250 linii. Plik: `home.gd`, `strings.csv`.
+  Skill: `godot-dev`
+- [ ] T-277 `todo` UI v2 naprawa: Themes wg makiety 06 — miniatury z zaokrąglonymi probówkami (wspólny rysunek z T-276), cena z monetą dla zablokowanych motywów, karta postępu „Do motywu …” pod siatką, wyśrodkowana strzałka wstecz w `ScreenHeader` (zależy od T-280 — fixture z zablokowanymi motywami)
+  KA: kadr `05_themes` z ≥ 1 zablokowanym motywem i ceną; zestawienie `docs/ui/compare/06_themes_T-277.png`. ≤ 250 linii. Pliki: `themes_screen.gd`, `screen_header.gd`.
+  Skill: `godot-dev`
+- [ ] T-278 `todo` UI v2 naprawa: Shop wg makiety 07 — karta „Pakiet startowy” (obrys `ACCENT`, licznik okna oferty, CTA), podtytuły produktów („około N prób”, „+20 % gratis”), „Przywróć zakupy” jako link z podkreśleniem (zależy od T-280 — fixture z aktywnym pakietem startowym; scala część Inbox T-266)
+  KA: kadr smoke Shop z pakietem startowym; zestawienie `docs/ui/compare/07_shop_T-278.png`; stringi EN/PL/DE. ≤ 250 linii. Pliki: `shop_screen.gd`, `strings.csv`, `screenshot_fixtures.gd`.
+  Skill: `godot-dev`
+- [ ] T-279 `todo` UI v2 naprawa: Settings wg makiety 08 — kafelki ikon `CARD_ICON`, separatory wierszy, przełączniki 112×64 wg makiety, wiersz „Język: Polski ›” zamiast `OptionButton`, wiersz „Opcje prywatności” (consent), właściwa ikona powiadomień (dzwonek — T-266), stopka „Vialo · wersja X” (scala część Inbox T-266)
+  KA: zestawienie `docs/ui/compare/08_settings_T-279.png`; testy Settings zielone. ≤ 300 linii. Pliki: `settings_screen.gd`, `gen_assets.py` (dzwonek), `strings.csv`.
+  Skill: `godot-dev` + `asset-gen`
+- [ ] T-280 `todo` UI v2 naprawa: narzędzie kadrów — `tools/gen_screenshots.sh` z trybem rozdzielczości 720×1280 i 720×1560 (`--size`), fixture'y `aso_themes` z zablokowanym motywem i `aso_shop` z aktywnym pakietem startowym, `daily` ze streakiem ≥ 3 (Inbox T-271), żeby KA T-236 było weryfikowalne; po naprawach T-272…T-279 ponowny odbiór = T-236b (kadry sklepowe `fastlane/metadata` podmienione dopiero przy PASS)
+  KA: `bash tools/gen_screenshots.sh --store --size 720x1560` działa; `tools/test_tools.py` sprawdza parsowanie `--size`; nowe fixture'y w `screenshot_fixtures.gd` z testem. ≤ 150 linii.
+  Skill: `godot-test` + `aso`
 
 ## P2 — monetyzacja i meta (z GDD v1.0, R-003)
 
