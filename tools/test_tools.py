@@ -18,6 +18,13 @@ def run(*args, env=None, **kw):
     return subprocess.run([sys.executable, *map(str, args)], capture_output=True, text=True, env=env, **kw)
 
 
+def load_sim():
+    spec = importlib.util.spec_from_file_location("balance_sim_t199", TOOLS / "balance_sim.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 class MetricsPullTest(unittest.TestCase):
     def test_dry_run_updates_kpi_copy_idempotently(self):
         with tempfile.TemporaryDirectory() as d:
@@ -112,17 +119,49 @@ class BalanceSimTest(unittest.TestCase):
             self.assertLessEqual(j["plateau_assist_buys"], j["plateau_assist_attempts"])
 
     def test_plateau_assist_win_prob_is_monotonic_in_attempts(self):
-        # Wyzsza szansa wygranej z probowka -> szybszy awans -> nie wiecej prob na plateau
+        # Mniejszy mnoznik porazki (0 = zawsze wygrana) -> szybszy awans -> nie wiecej prob na plateau
         # (mediana monet nie jest monotoniczna: szybszy awans zmienia tez sciezke wydatkow).
         def attempts(p: str) -> float:
             with tempfile.TemporaryDirectory() as d:
                 ov = Path(d) / "o.json"
-                ov.write_text('{"plateau_assist_win_prob_26_55": %s, "plateau_assist_win_prob_56": %s}' % (p, p))
+                ov.write_text('{"plateau_assist_fail_mult_26_55": %s, "plateau_assist_fail_mult_56": %s}' % (p, p))
                 r = run(TOOLS / "balance_sim.py", "--players", "300", "--seed", "1", "--json", "--overlay", ov)
                 self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
                 return json.loads(r.stdout)["plateau_assist_attempts"]
 
-        self.assertGreaterEqual(attempts("0"), attempts("1"))
+        self.assertGreaterEqual(attempts("1"), attempts("0"))
+
+    def test_assisted_win_prob_table(self):
+        sim = load_sim()
+        self.assertAlmostEqual(sim.assisted_win_prob(0.55, 0.67), 0.6985, delta=1e-9)
+        for w in (0.0, 0.3, 0.55, 0.9):
+            self.assertAlmostEqual(sim.assisted_win_prob(w, 1.0), w, delta=1e-9)
+            self.assertAlmostEqual(sim.assisted_win_prob(w, 0.0), 1.0, delta=1e-9)
+            for m in (0.5, 0.67, 0.74):
+                self.assertGreaterEqual(sim.assisted_win_prob(w, m), w)
+
+    def test_plateau_assist_fail_mult_lever_changes_outcome(self):
+        def metrics(m: str) -> tuple:
+            with tempfile.TemporaryDirectory() as d:
+                ov = Path(d) / "o.json"
+                ov.write_text('{"plateau_assist_fail_mult_26_55": %s, "plateau_assist_fail_mult_56": %s}' % (m, m))
+                r = run(TOOLS / "balance_sim.py", "--players", "300", "--seed", "1", "--json", "--overlay", ov)
+                j = json.loads(r.stdout)
+                return (j["median_coins_day30"], j["plateau_assist_buys"], j["plateau_assist_attempts"])
+
+        self.assertNotEqual(metrics("0.5"), metrics("1.0"))
+
+    def test_plateau_assist_coins_per_dau_positive_by_default(self):
+        r = run(TOOLS / "balance_sim.py", "--players", "300", "--seed", "1", "--json")
+        self.assertGreater(json.loads(r.stdout)["plateau_assist_coins_per_dau"], 0)
+
+    def test_old_plateau_win_prob_overlay_key_is_ignored_with_warning(self):
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "o.json"
+            ov.write_text('{"plateau_assist_win_prob_26_55": 1.0}')
+            r = run(TOOLS / "balance_sim.py", "--players", "100", "--json", "--overlay", ov)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertIn("ignored overlay key", r.stdout + r.stderr)
 
     def test_starving_economy_fails(self):
         with tempfile.TemporaryDirectory() as d:
