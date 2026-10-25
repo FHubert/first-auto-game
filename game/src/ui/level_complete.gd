@@ -114,7 +114,8 @@ func show_result(
 	title_label.text = title if title != "" else tr("lc_great")
 	level_caption.visible = title == ""
 	level_caption.text = (tr("hud_level") % level_no).to_upper()
-	coins_label.text = tr("lc_coins") % coins
+	var fx_on: bool = OverlayFx.enabled_for(self, effects_enabled)
+	UiFx.count_up(coins_label, coins, UiFx.COUNT_SECONDS, tr("lc_coins"), fx_on)
 	perfect_label.text = tr("lc_perfect")
 	perfect_label.visible = perfect
 	perfect_badge.visible = perfect
@@ -128,6 +129,11 @@ func show_result(
 	hide_share()
 	visible = true
 	OverlayFx.enter($Panel, OverlayFx.enabled_for(self, effects_enabled))
+
+
+## Globalny srodek ikony monety (cel lotu monet).
+func coin_target() -> Vector2:
+	return ($Panel/Box/CoinRow/CoinIcon as Control).get_global_rect().get_center()
 
 
 func set_share(share_text: String) -> void:

@@ -31,7 +31,16 @@ var offers: LevelOffers = LevelOffers.new()
 var prefetch: LevelPrefetch = LevelPrefetch.new()
 ## Podpowiedz liczona w tle (T-222, ADR-014).
 var hint_job: HintJob = HintJob.new()
-var effects_enabled: bool = true
+var effects_enabled: bool = true:
+	set(v):
+		effects_enabled = v
+		if hud != null:
+			hud.effects_enabled = v
+		if level_complete != null:
+			level_complete.effects_enabled = v
+## T-235: nudge podpowiedzi po `hint_nudge_seconds` bez ruchu; zegar wstrzykiwalny w testach.
+var nudge: HintNudge = HintNudge.new()
+var nudge_clock: Callable = func() -> float: return Time.get_ticks_msec() / 1000.0
 ## `_ready` laduje poziom z `state.level` tylko gdy true; `App` ustawia false
 ## i sam woła resume/load_level/start_daily.
 var autoload_level: bool = true
@@ -59,6 +68,7 @@ func _exit_tree() -> void:
 
 
 func _process(_delta: float) -> void:
+	_update_nudge()
 	if not hint_job.is_busy():
 		return
 	var r: Dictionary = hint_job.poll()
@@ -73,13 +83,31 @@ func _process(_delta: float) -> void:
 		offers.buy_hint()  # monety dopiero teraz
 
 
+func _update_nudge() -> void:
+	if not effects_enabled or round == null or round.is_done():
+		return
+	if level_complete.visible or stuck_panel.visible:
+		return
+	if nudge.due(float(nudge_clock.call())):
+		hud.start_hint_nudge()
+
+
+func _reset_nudge() -> void:
+	nudge.delay = float(GameConfig.get_value("hint_nudge_seconds"))
+	nudge.reset(float(nudge_clock.call()))
+	hud.stop_hint_nudge()
+
+
 func _ready() -> void:
+	hud.effects_enabled = effects_enabled
+	level_complete.effects_enabled = effects_enabled
 	if state == null:
 		state = SaveSystem.load()
 	board.round_won.connect(_on_round_won)
 	board.pour_finished.connect(
 		func(_from: int, _to: int) -> void:
 			_cancel_hint()
+			_reset_nudge()
 			hud.refresh()
 			_refresh_offers()
 			_check_stuck()
@@ -170,6 +198,7 @@ func _bind_round(theme_id: String) -> void:
 	_reset_board_fit()
 	offers.bind(state, round, rewarded, mode, level_no)
 	_round_bound_at = int(clock.call())
+	_reset_nudge()
 	board.show_symbols = ColorSymbols.enabled(state.settings)
 	board.setup(round, theme_id)
 	_sync_hud_backdrop()
@@ -404,6 +433,10 @@ func _on_round_won() -> void:
 		)
 	fit_board_above_panel()
 	_start_confetti()
+	hud.stop_hint_nudge()
+	UiFx.fly_coins(
+		self, board.get_global_rect().get_center(), level_complete.coin_target(), effects_enabled
+	)
 	level_won.emit(level_no, coins)
 
 
@@ -518,6 +551,7 @@ func _cancel_hint() -> void:
 
 func _after_action() -> void:
 	_cancel_hint()
+	_reset_nudge()
 	board.refresh()
 	hud.refresh()
 	_refresh_offers()
@@ -528,6 +562,7 @@ func _after_action() -> void:
 func _check_stuck() -> void:
 	if round.is_stuck() and not round.is_done():
 		stuck_panel.show_for(round, mode != MODE_DAILY, offers.ad_offers())
+		hud.stop_hint_nudge()
 		assist_bar.visible = false
 		Analytics.track_design("level:stuck", round.moves_to_goal())
 
