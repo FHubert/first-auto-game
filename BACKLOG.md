@@ -145,7 +145,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `bash tools/gen_screenshots.sh --store --size 720x1560` działa; `tools/test_tools.py` sprawdza parsowanie `--size`; nowe fixture'y w `screenshot_fixtures.gd` z testem. ≤ 150 linii.
   Skill: `godot-test` + `aso`
 
-- [ ] T-282 `todo` UI v2 naprawa: Home — pigułka serii „5 dni · rekord 12” i podpis paska motywu „Do motywu <nazwa>” + „N / M” wg makiety 04 (awans z Inboxu — odkryte w T-276, sesja #25; zależy od T-276 — PR #232; pliki: `home.gd`, `strings.csv`, testy Home)
+- [ ] T-282 `in_progress` UI v2 naprawa: Home — pigułka serii „5 dni · rekord 12” i podpis paska motywu „Do motywu <nazwa>” + „N / M” wg makiety 04 (awans z Inboxu — odkryte w T-276, sesja #25; zależy od T-276 — PR #232; pliki: `home.gd`, `strings.csv`, testy Home)
   KA: pigułka serii „N dni · rekord M” z liczbą mnogą EN/PL/DE (PL: 1 dzień / 2+ dni; DE: Tag/Tage; EN: day/days) zamiast „Seria: 5 Rekord: 12”; pasek motywu: podpis „Do motywu <nazwa>” po lewej + „N / M” po prawej (jak LevelComplete T-273) zamiast „do następnego motywu: N / M”. Testy gdUnit4 ≥ 3: forma dla 1 i 5 dni w PL/DE/EN; etykiety pigułki i paska w DE w 720×1280 i 720×1560 mieszczą się w rodzicu (`get_global_rect()`, brak nakładania); istniejące testy Home zielone (dozwolona zmiana ścieżek węzłów). Zestawienie `docs/ui/compare/04_home_T-282.png`. `make check` zielone. ≤ ~120 linii.
   Metryka (KPI.md): Store conversion (wyśw.→instal.) — brak danych (gra niewydana); Home to kadr sklepowy, a jego PASS w T-283 warunkuje podmianę screenshotów pod cel ≥ 25 % (kill-line 15 %) od 1. tygodnia soft launchu.
   Skill: `godot-dev`
