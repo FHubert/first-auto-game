@@ -166,12 +166,14 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 func _bind_round(theme_id: String) -> void:
 	_cancel_hint()
 	_stop_confetti()
+	hud.visible = true
 	_reset_board_fit()
 	offers.bind(state, round, rewarded, mode, level_no)
 	_round_bound_at = int(clock.call())
 	board.show_symbols = ColorSymbols.enabled(state.settings)
 	board.setup(round, theme_id)
-	hud.bind(round, level_no)
+	_sync_hud_backdrop()
+	hud.bind(round, level_no, state)
 	stuck_panel.visible = false
 	tutorial = null
 	if level_no == 1 and not bool(state.settings.get(GameState.SETTING_TUTORIAL_DONE, false)):
@@ -313,6 +315,7 @@ func undo() -> void:
 
 func restart() -> void:
 	_stop_confetti()
+	hud.visible = true
 	_reset_board_fit()
 	round.restart()
 	state.level_restarts += 1
@@ -386,6 +389,7 @@ func _on_round_won() -> void:
 	Analytics.track_design("level:complete:boosters", float(result.get("boosters_used", 0)))
 	_track_attempt_win()
 	hud.refresh()
+	hud.visible = false
 	level_complete.show_result(
 		coins,
 		_last_win_perfect,
@@ -407,7 +411,7 @@ func _on_round_won() -> void:
 ## skaluje probowki (UI v2), wiec zawsze mieszcza sie nad panelem.
 func fit_board_above_panel() -> void:
 	var bottom: float = level_complete.panel_height()
-	board.offset_top = hud.offset_bottom
+	board.offset_top = UiTokens.HUD_TOP_H
 	board.offset_bottom = -(bottom + FIT_GAP_PX)
 
 
@@ -417,8 +421,8 @@ func _refit_board() -> void:
 
 
 func _reset_board_fit() -> void:
-	board.offset_top = 0.0
-	board.offset_bottom = 0.0
+	board.offset_top = UiTokens.HUD_TOP_H
+	board.offset_bottom = -UiTokens.HUD_BOTTOM_H
 
 
 func _start_confetti() -> void:
@@ -480,11 +484,13 @@ func _on_double_coins_granted(bonus: int) -> void:
 func refresh_after_shop() -> void:
 	if board.theme_id != state.theme_active:
 		board.apply_theme(state.theme_active)
+		_sync_hud_backdrop()
 	_after_action()
 
 
 func apply_theme(theme_id_in: String) -> void:
 	board.apply_theme(theme_id_in)
+	_sync_hud_backdrop()
 
 
 ## Podpowiedz: cache lub brak srodkow -> od razu (sklep), inaczej liczenie w tle.
@@ -553,7 +559,15 @@ static func level_id_for(mode_in: String, level_no_in: int, utc_day_in: int) -> 
 	return "level_%04d" % level_no_in
 
 
+func _sync_hud_backdrop() -> void:
+	hud.set_backdrop(Color(board.theme_data.get("background", UiTokens.BG.to_html())))
+
+
 func _refresh_offers() -> void:
 	var o: Dictionary = offers.ad_offers()
 	hud.set_ad_offers(bool(o["extra_tube"]), bool(o["undo_refill"]))
 	assist_bar.apply(offers.plateau_assist())
+	if not level_complete.visible:
+		# Plansza konczy sie nad paskiem pomocy (pasek lezy nad dolnym paskiem HUD).
+		var reserve: float = AssistBar.BAR_HEIGHT + AssistBar.BOTTOM_MARGIN
+		board.offset_bottom = -(UiTokens.HUD_BOTTOM_H + (reserve if assist_bar.visible else 0.0))

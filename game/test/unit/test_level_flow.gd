@@ -152,7 +152,7 @@ func test_undo_and_restart() -> void:
 	_level.board.tap(m.y)
 	_level.undo()
 	assert_int(_level.round.moves()).is_equal(0)
-	assert_str(_level.hud.undo_button.text).contains(str(charges - 1))
+	assert_str(_level.hud.undo_badge.text).contains(str(charges - 1))
 	_level.board.tap(m.x)
 	_level.board.tap(m.y)
 	_level.restart()
@@ -259,8 +259,8 @@ func test_win_panel_below_board_aso_win() -> void:
 		tubes = tubes.merge(_level.board.tube_rect(i))
 	assert_bool(panel.intersects(tubes)).is_false()
 	_level.load_level(_level.state.level, _level.state.theme_active)
-	assert_float(_level.board.offset_top).is_equal(0.0)
-	assert_float(_level.board.offset_bottom).is_equal(0.0)
+	assert_float(_level.board.offset_top).is_equal(float(UiTokens.HUD_TOP_H))
+	assert_float(_level.board.offset_bottom).is_equal(float(-UiTokens.HUD_BOTTOM_H))
 
 
 func test_win_prefetches_next_level() -> void:

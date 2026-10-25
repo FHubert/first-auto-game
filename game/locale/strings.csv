@@ -1,6 +1,9 @@
 keys,en,pl,de
 hud_level,Level %d,Poziom %d,Level %d
 hud_moves,Moves: %d,Ruchy: %d,Züge: %d
+hud_moves_goal,Moves: %d · goal %d,Ruchy: %d · cel %d,Züge: %d · Ziel %d
+btn_undo_short,Undo,Cofnij,Zurück
+hud_ad,Ad,Reklama,Werbung
 btn_undo,Undo (%d),Cofnij (%d),Rückgängig (%d)
 btn_restart,Restart,Od nowa,Neustart
 btn_pause,Pause,Pauza,Pause
@@ -105,7 +108,6 @@ set_section_sound,Sound and touch,Dźwięk i dotyk,Ton und Haptik
 set_section_access,Accessibility and language,Dostępność i język,Barrierefreiheit und Sprache
 set_section_account,Account and privacy,Konto i prywatność,Konto und Datenschutz
 stuck_free,Free,Za darmo,Gratis
-hud_ad,Ad,Reklama,Werbung
 stuck_row_undo,Undo move,Cofnij ruch,Zug zurück
 stuck_row_undo_desc,%d free left,Zostało %d darmowych,%d gratis übrig
 stuck_row_tube,Extra tube,Dodatkowa probówka,Extra-Röhrchen
