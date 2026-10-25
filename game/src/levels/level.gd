@@ -53,6 +53,7 @@ var _last_win_title: String = ""
 var _last_month_goal_hit: bool = false
 var _hint_key: String = ""
 
+@onready var backdrop: ColorRect = $Backdrop
 @onready var board: BoardView = $Board
 @onready var hud: Hud = $Hud
 @onready var assist_bar: AssistBar = $AssistBar
@@ -595,7 +596,9 @@ static func level_id_for(mode_in: String, level_no_in: int, utc_day_in: int) -> 
 
 
 func _sync_hud_backdrop() -> void:
-	hud.set_backdrop(Color(board.theme_data.get("background", UiTokens.BG.to_html())))
+	var bg := Color(board.theme_data.get("background", UiTokens.BG.to_html()))
+	backdrop.color = bg
+	hud.set_backdrop(bg)
 
 
 func _refresh_offers() -> void:
