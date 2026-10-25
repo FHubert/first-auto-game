@@ -8,6 +8,7 @@ const SAME_AS_EN: Dictionary = {
 	"de":
 	[
 		"hud_level",
+		"home_play_level",
 		"btn_pause",
 		"btn_shop",
 		"shop_title",

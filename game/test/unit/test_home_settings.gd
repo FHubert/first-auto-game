@@ -37,7 +37,7 @@ func test_home_shows_state() -> void:
 	home.clock = TestClock.fixed()
 	home.state = st
 	add_child(home)
-	assert_str(home.play_button.text).contains("7")
+	assert_str(home.play_level_label.text).contains("7")
 	assert_str(home.coins_label.text).contains("123")
 	assert_str(home.streak_label.text).contains("3")
 	assert_float(home.theme_progress.max_value).is_equal(600.0)

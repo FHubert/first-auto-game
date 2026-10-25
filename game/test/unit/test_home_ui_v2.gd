@@ -83,3 +83,51 @@ func test_home_has_fullscreen_backdrop() -> void:
 	assert_object(bg).is_not_null()
 	assert_that(bg.color).is_equal(UiTokens.BG)
 	assert_bool(bg.get_global_rect().encloses(Rect2(Vector2.ZERO, home.size))).is_true()
+
+
+func _labels(n: Node, out: Array[Label]) -> void:
+	for c: Node in n.get_children():
+		if c is Label and (c as Label).is_visible_in_tree():
+			out.append(c as Label)
+		_labels(c, out)
+
+
+func _daily_no_overlap(locale: String) -> void:
+	var prev: String = TranslationServer.get_locale()
+	TranslationServer.set_locale(locale)
+	var home := _home()
+	home.state.daily_completed_total = 23
+	home.state.streak_days = 5
+	home.refresh()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var labels: Array[Label] = []
+	_labels(home.daily_card, labels)
+	assert_int(labels.size()).is_greater_equal(5)
+	for i: int in labels.size():
+		for j: int in range(i + 1, labels.size()):
+			var a: Rect2 = labels[i].get_global_rect()
+			var b: Rect2 = labels[j].get_global_rect()
+			assert_bool(a.intersects(b)).is_false()
+	TranslationServer.set_locale(prev)
+
+
+func test_daily_labels_do_not_overlap_pl() -> void:
+	await _daily_no_overlap("pl")
+
+
+func test_daily_labels_do_not_overlap_de() -> void:
+	await _daily_no_overlap("de")
+
+
+func test_play_button_two_lines() -> void:
+	var home := _home()
+	assert_str(home.play_button.text).is_empty()
+	assert_str(home.play_title_label.text).is_equal(tr("home_play_title"))
+	assert_str(home.play_level_label.text).is_equal(tr("home_play_level") % home.state.level)
+
+
+func test_tubes_mini_is_tall() -> void:
+	var mini := Home.TubesMini.new([] as Array[Color])
+	assert_int(int(mini.custom_minimum_size.y)).is_greater_equal(2 * 84)
+	mini.free()

@@ -18,15 +18,23 @@ const ICON_SIZE: int = 46
 const BADGE_PAD: int = 18
 const CARD_ICON_SIZE: int = 104
 const PROGRESS_H: int = 26
-const TUBE_W: int = 56
-const TUBE_H: int = 84
-const TUBE_GAP: int = 30
+const TUBE_W: int = 70
+const TUBE_H: int = 170
+const TUBE_GAP: int = 36
+const TUBE_LIFT: int = 22
+const TUBE_RIM_ROOM: int = 12
+const TUBE_LINE: float = 5.0
+const TUBE_LIQUID_PAD: float = 9.0
+const COIN_SIZE: int = 32
+const PLAY_ICON_SIZE: int = 48
 const DAILY_INTRO_SEEN_KEY: String = GameState.SETTING_DAILY_INTRO_SEEN
 
 var state: GameState
 var root_margin: MarginContainer
 var clock: Callable = func() -> int: return int(Time.get_unix_time_from_system())
 var play_button: Button
+var play_title_label: Label
+var play_level_label: Label
 var coins_label: Label
 var streak_label: Label
 var streak_best_label: Label
@@ -41,6 +49,7 @@ var daily_new_badge: Label
 var daily_status_label: Label
 var daily_timer_label: Label
 var daily_total_label: Label
+var daily_coin_icon: TextureRect
 var daily_month_label: Label
 var daily_button: Button
 
@@ -56,7 +65,8 @@ func _ready() -> void:
 
 
 func refresh() -> void:
-	play_button.text = tr("home_play") % state.level
+	play_title_label.text = tr("home_play_title")
+	play_level_label.text = tr("home_play_level") % state.level
 	coins_label.text = str(state.coins)
 	streak_label.text = tr("home_streak") % state.streak_days
 	streak_best_label.text = tr("home_streak_best") % state.streak_best
@@ -87,18 +97,24 @@ func _refresh_daily() -> void:
 	var day: int = DailyRewards.utc_day_from_unix(now)
 	var unlocked: bool = DailyChallenge.is_unlocked(state)
 	var done: bool = DailyChallenge.is_completed_today(state, day)
+	var state_font: int = UiTokens.FONT_XS
+	daily_coin_icon.visible = false
 	if not unlocked:
 		var lvl: int = int(GameConfig.get_value("daily_unlock_level"))
 		daily_status_label.text = tr("daily_locked") % lvl
 	elif done:
 		daily_status_label.text = tr("daily_done")
 	else:
-		daily_status_label.text = tr("daily_available") % DailyChallenge.reward_amount()
+		daily_status_label.text = "+%d" % DailyChallenge.reward_amount()
+		daily_coin_icon.visible = true
+		state_font = UiTokens.FONT_BTN
+	daily_status_label.add_theme_font_size_override("font_size", state_font)
 	var left: int = DailyChallenge.seconds_to_next(now)
-	var hms: String = "%02d:%02d:%02d" % [left / 3600, (left % 3600) / 60, left % 60]
-	daily_timer_label.text = tr("daily_next_in") % hms
-	daily_total_label.text = tr("home_daily_total") % state.daily_completed_total
-	daily_total_label.visible = state.daily_completed_total > 0
+	daily_timer_label.text = "%02d:%02d:%02d" % [left / 3600, (left % 3600) / 60, left % 60]
+	if state.daily_completed_total > 0:
+		daily_total_label.text = tr("home_daily_desc") % state.daily_completed_total
+	else:
+		daily_total_label.text = tr("home_daily_desc_short")
 	var progress: int = DailyChallenge.month_progress(state, day)
 	var goal: int = DailyChallenge.month_goal()
 	if progress >= goal:
@@ -141,8 +157,7 @@ func _build() -> void:
 	box.add_child(_spacer())
 	play_button = _button(box, play_pressed, &"ButtonPrimary")
 	play_button.custom_minimum_size.y = UiTokens.PLAY_BTN
-	play_button.icon = UiTokens.icon("play")
-	play_button.add_theme_constant_override("icon_max_width", 48)
+	_build_play_content()
 	_build_daily_card(box)
 	_build_theme_bar(box)
 	box.add_child(_spacer())
@@ -257,17 +272,68 @@ func _build_daily_card(parent: Control) -> void:
 	sb.content_margin_right = BADGE_PAD
 	daily_new_badge.add_theme_stylebox_override("normal", sb)
 	daily_new_badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	daily_status_label = _label(info)
-	daily_status_label.add_theme_font_size_override("font_size", UiTokens.FONT_BTN)
+	daily_total_label = _label(info)
+	daily_total_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	daily_total_label.add_theme_font_size_override("font_size", UiTokens.FONT_XS)
+	daily_total_label.add_theme_color_override("font_color", UiTokens.TEXT_SOFT)
+	daily_month_label = _label(info, &"LabelCaption")
+	var bottom := HBoxContainer.new()
+	bottom.add_theme_constant_override("separation", 32)
+	col.add_child(bottom)
+	var reward := _caption_column(bottom, "home_daily_reward_cap")
+	var coin_row := HBoxContainer.new()
+	coin_row.add_theme_constant_override("separation", GAP)
+	reward.add_child(coin_row)
+	daily_coin_icon = _icon("coin", COIN_SIZE)
+	coin_row.add_child(daily_coin_icon)
+	daily_status_label = _label(coin_row)
 	daily_status_label.add_theme_color_override("font_color", UiTokens.ACCENT)
-	var meta := HFlowContainer.new()
-	meta.add_theme_constant_override("h_separation", GAP)
-	meta.add_theme_constant_override("v_separation", 0)
-	info.add_child(meta)
-	daily_timer_label = _label(meta, &"LabelCaption")
-	daily_month_label = _label(meta, &"LabelCaption")
-	daily_total_label = _label(meta, &"LabelCaption")
-	daily_button = _button(col, daily_pressed, &"ButtonAccent")
+	var next := _caption_column(bottom, "home_daily_next_cap")
+	daily_timer_label = _label(next)
+	daily_timer_label.add_theme_font_size_override("font_size", UiTokens.FONT_BTN)
+	bottom.add_child(_spacer_h())
+	daily_button = _button(bottom, daily_pressed, &"ButtonAccent")
+	daily_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+
+func _caption_column(parent: Control, key: String) -> VBoxContainer:
+	var c := VBoxContainer.new()
+	c.add_theme_constant_override("separation", 0)
+	parent.add_child(c)
+	var cap := _label(c, &"LabelCaption")
+	cap.text = tr(key)
+	return c
+
+
+## Wnetrze przycisku Graj: ikona play + dwie linie (tytul, poziom), wysrodkowane.
+func _build_play_content() -> void:
+	var row := HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", GAP * 2)
+	play_button.add_child(row)
+	var play_icon := _icon("play", PLAY_ICON_SIZE)
+	play_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	play_icon.modulate = UiTokens.ON_PRIMARY
+	row.add_child(play_icon)
+	var lines := VBoxContainer.new()
+	lines.alignment = BoxContainer.ALIGNMENT_CENTER
+	lines.add_theme_constant_override("separation", 0)
+	row.add_child(lines)
+	play_title_label = _label(lines)
+	play_title_label.add_theme_font_size_override("font_size", UiTokens.FONT_BTN)
+	play_level_label = _label(lines)
+	play_level_label.add_theme_font_size_override("font_size", UiTokens.FONT_XS)
+	for l: Label in [play_title_label, play_level_label]:
+		l.add_theme_color_override("font_color", UiTokens.ON_PRIMARY)
+	_ignore_mouse(row)
+
+
+func _ignore_mouse(n: Node) -> void:
+	if n is Control:
+		(n as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for c: Node in n.get_children():
+		_ignore_mouse(c)
 
 
 func _card_icon() -> PanelContainer:
@@ -339,25 +405,36 @@ class TubesMini:
 
 	func _init(palette: Array[Color]) -> void:
 		colors = palette
-		custom_minimum_size = Vector2(0, TUBE_H + 24)
+		custom_minimum_size = Vector2(0, TUBE_H + TUBE_RIM_ROOM + 4)
 
 	func _draw() -> void:
 		var total: float = 5 * TUBE_W + 4 * TUBE_GAP
 		var x0: float = (size.x - total) / 2.0
 		var fills: Array = [[0, 6], [2], [5, 4, 7, 1], [5], [3]]
 		var fill_h: Array = [0.45, 0.8, 1.0, 0.8, 0.4]
+		var bottom: float = float(TUBE_RIM_ROOM + TUBE_H)
 		for i: int in 5:
-			var top: float = 30.0 if i == 2 else 0.0 + 14.0
-			var r := Rect2(x0 + i * (TUBE_W + TUBE_GAP), top, TUBE_W, TUBE_H - top + 14.0)
-			draw_rect(r, UiTokens.CARD_ROW, true)
-			var layers: Array = fills[i]
-			var lh: float = r.size.y * float(fill_h[i]) / layers.size()
-			for j: int in layers.size():
-				if colors.is_empty():
-					break
-				var c: Color = colors[int(layers[j]) % colors.size()]
-				draw_rect(Rect2(r.position.x + 6, r.end.y - 6 - lh * (j + 1), TUBE_W - 12, lh), c)
-			draw_rect(r, UiTokens.TEXT_SECTION, false, 4.0)
-			draw_rect(
-				Rect2(r.position.x - 6, r.position.y - 6, TUBE_W + 12, 10), UiTokens.TEXT_SECTION
-			)
+			var top: float = float(TUBE_RIM_ROOM) + (0.0 if i == 2 else float(TUBE_LIFT))
+			var r := Rect2(x0 + i * (TUBE_W + TUBE_GAP), top, TUBE_W, bottom - top)
+			_draw_tube(r, fills[i], float(fill_h[i]))
+
+	func _draw_tube(r: Rect2, layers: Array, fill: float) -> void:
+		var radius: float = r.size.x * 0.5
+		draw_colored_polygon(TubeView.bottom_round_path(r, radius), UiTokens.CARD_ROW)
+		var inner := Rect2(r.position, r.size).grow(-TUBE_LIQUID_PAD)
+		var lh: float = inner.size.y * fill / maxf(layers.size(), 1)
+		for j: int in layers.size():
+			if colors.is_empty():
+				break
+			var c: Color = colors[int(layers[j]) % colors.size()]
+			var lr := Rect2(inner.position.x, inner.end.y - lh * (j + 1), inner.size.x, lh)
+			draw_colored_polygon(TubeView.layer_polygon(lr, j == 0, radius - TUBE_LIQUID_PAD), c)
+		var half: float = TUBE_LINE * 0.5
+		var line := Rect2(r.position.x + half, r.position.y, r.size.x - TUBE_LINE, r.size.y - half)
+		draw_polyline(
+			TubeView.bottom_round_path(line, radius - half), UiTokens.TEXT_SECTION, TUBE_LINE, true
+		)
+		var rim := StyleBoxFlat.new()
+		rim.bg_color = UiTokens.TEXT_SECTION
+		rim.set_corner_radius_all(6)
+		draw_style_box(rim, Rect2(r.position.x - 9.0, r.position.y - 8.0, r.size.x + 18.0, 12.0))
