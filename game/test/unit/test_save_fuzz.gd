@@ -131,19 +131,41 @@ func _check_invariants(s: GameState) -> String:
 	if not ThemeCatalog.ids().has(s.theme_active) and s.theme_active != GameState.DEFAULT_THEME:
 		return "theme %s" % s.theme_active
 	var rip: Dictionary = s.round_in_progress
-	# The snapshot is validated lazily on resume (Level.resume); here it must be safe to try.
-	if rip.get("round") is Dictionary:
-		var r: GameRound = GameRound.from_dict(rip["round"])
-		if r != null:
-			var cap: int = r.board().capacity
-			var counts: Dictionary = {}
-			for t: Array in r.board().to_tubes():
-				for c: int in t:
-					counts[c] = int(counts.get(c, 0)) + 1
-			for c: int in counts:
-				if counts[c] != cap:
-					return "color %d has %d != %d units" % [c, counts[c], cap]
+	# The board itself is validated lazily on resume (Level.resume); here it must be safe to try.
+	if not rip.is_empty() and not _snapshot_shape_ok(rip):
+		return "snapshot shape %s" % str(rip.keys())
+	return _color_problem(rip)
+
+
+func _color_problem(rip: Dictionary) -> String:
+	if not rip.get("round") is Dictionary:
+		return ""
+	var r: GameRound = GameRound.from_dict(rip["round"])
+	if r == null:
+		return ""
+	var cap: int = r.board().capacity
+	var counts: Dictionary = {}
+	for t: Array in r.board().to_tubes():
+		for c: int in t:
+			counts[c] = int(counts.get(c, 0)) + 1
+	for c: int in counts:
+		if counts[c] != cap:
+			return "color %d has %d != %d units" % [c, counts[c], cap]
 	return ""
+
+
+## T-211: a surviving snapshot has a valid mode, level_no >= 1, utc_day >= 0 and a round dict.
+func _snapshot_shape_ok(rip: Dictionary) -> bool:
+	var lvl: Variant = GameState._as_int(rip.get("level_no"))
+	var day: Variant = GameState._as_int(rip.get("utc_day"))
+	return (
+		GameState.SNAPSHOT_MODES.has(rip.get("mode"))
+		and lvl != null
+		and int(lvl) >= 1
+		and day != null
+		and int(day) >= 0
+		and rip.get("round") is Dictionary
+	)
 
 
 func test_load_survives_500_mutations() -> void:

@@ -41,6 +41,9 @@ func _ready() -> void:
 		state = SaveSystem.load()
 		if SaveSystem.last_load_source in ["backup", "fresh"]:
 			Analytics.track_design("save:recovered:%s" % SaveSystem.last_load_source)
+	if state.round_snapshot_rejected:
+		state.round_snapshot_rejected = false
+		Analytics.track_design("level:fail:abandon")  # zly kształt snapshotu (T-211)
 	_cancel_notifications()
 	Purchases.bind_state(state)
 	Locale.ensure_installed()
