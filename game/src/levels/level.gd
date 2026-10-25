@@ -30,6 +30,8 @@ var rewarded: RewardedPlacements = RewardedPlacements.new()
 var offers: LevelOffers = LevelOffers.new()
 ## Poziom N+1 generowany w tle podczas ekranu wygranej (ADR-011).
 var prefetch: LevelPrefetch = LevelPrefetch.new()
+## Podpowiedz liczona w tle (T-222, ADR-014).
+var hint_job: HintJob = HintJob.new()
 var effects_enabled: bool = true
 ## `_ready` laduje poziom z `state.level` tylko gdy true; `App` ustawia false
 ## i sam woła resume/load_level/start_daily.
@@ -41,6 +43,7 @@ var _last_win_coins: int = 0
 var _last_win_perfect: bool = false
 var _last_win_title: String = ""
 var _last_month_goal_hit: bool = false
+var _hint_key: String = ""
 
 @onready var board: BoardView = $Board
 @onready var hud: Hud = $Hud
@@ -53,6 +56,21 @@ var _last_month_goal_hit: bool = false
 
 func _exit_tree() -> void:
 	prefetch.cancel_all()
+	hint_job.cancel()
+
+
+func _process(_delta: float) -> void:
+	if not hint_job.is_busy():
+		return
+	var r: Dictionary = hint_job.poll()
+	if r.is_empty():
+		return
+	hud.set_hint_pending(false)
+	if round == null or round.is_done() or SolverCache.key_of(round.board()) != _hint_key:
+		return  # plansza zmieniona w trakcie liczenia: wynik odrzucony, monety nietkniete
+	round.solutions.put(_hint_key, int(r["moves"]), r["path"])
+	if not (r["path"] as Array).is_empty():
+		offers.buy_hint()  # monety dopiero teraz
 
 
 func _ready() -> void:
@@ -61,6 +79,7 @@ func _ready() -> void:
 	board.round_won.connect(_on_round_won)
 	board.pour_finished.connect(
 		func(_from: int, _to: int) -> void:
+			_cancel_hint()
 			hud.refresh()
 			_refresh_offers()
 			_check_stuck()
@@ -88,7 +107,7 @@ func _ready() -> void:
 	offers.action_applied.connect(_after_action)
 	offers.skip_applied.connect(_apply_skip)
 	offers.double_coins_granted.connect(_on_double_coins_granted)
-	hud.hint_pressed.connect(offers.buy_hint)
+	hud.hint_pressed.connect(_request_hint)
 	hud.extra_tube_pressed.connect(offers.buy_extra_tube)
 	stuck_panel.undo_pressed.connect(undo)
 	stuck_panel.extra_tube_pressed.connect(offers.buy_extra_tube)
@@ -145,6 +164,7 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 
 ## Podpina biezaca runde do widokow (plansza, HUD, tutorial, oferty).
 func _bind_round(theme_id: String) -> void:
+	_cancel_hint()
 	_stop_confetti()
 	_reset_board_fit()
 	offers.bind(state, round, rewarded, mode, level_no)
@@ -471,7 +491,27 @@ func apply_theme(theme_id_in: String) -> void:
 	board.apply_theme(theme_id_in)
 
 
+## Podpowiedz: cache lub brak srodkow -> od razu (sklep), inaczej liczenie w tle.
+func _request_hint() -> void:
+	if round == null or round.is_done() or hint_job.is_busy():
+		return
+	_hint_key = SolverCache.key_of(round.board())
+	if round.solutions.has_key(_hint_key) or not Economy.can_afford(state, Economy.hint_cost()):
+		offers.buy_hint()
+		return
+	hud.set_hint_pending(true)
+	var limit: int = int(GameConfig.get_value("hint_solver_max_states"))
+	var weight: float = float(GameConfig.get_value("solver_fallback_weight"))
+	hint_job.request(round.board(), limit, weight)
+
+
+func _cancel_hint() -> void:
+	hint_job.cancel()
+	hud.set_hint_pending(false)
+
+
 func _after_action() -> void:
+	_cancel_hint()
 	board.refresh()
 	hud.refresh()
 	_refresh_offers()

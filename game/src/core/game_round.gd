@@ -12,6 +12,8 @@ const NO_HINT: Vector2i = Vector2i(-1, -1)
 
 ## Aktywny czas rundy w sekundach, sumowany przez wznowienia; aktualizowany przez Level.
 var elapsed_s: float = 0.0
+## Cache rozwiązań solvera (T-222: zasilany też z HintJob przez Level).
+var solutions: SolverCache = SolverCache.new()
 var _level_data: Dictionary = {}
 var _start_tubes: Array = []
 var _board: SortBoard = SortBoard.new()
@@ -26,7 +28,6 @@ var _done: bool = false
 var _won: bool = false
 var _min_moves: int = 0
 var _min_moves_exact: bool = false
-var _solver_cache: Dictionary = {}
 
 
 static func encode_action(from: int, to: int) -> int:
@@ -53,7 +54,7 @@ func start(level_data: Dictionary) -> void:
 	elapsed_s = 0.0
 	_extra_tubes_added = 0
 	_undo_charges = _cfg_int("undo_free_per_level")
-	_solver_cache = {}
+	solutions.clear()
 	_done = _board.is_won()
 	_won = _done
 
@@ -309,19 +310,18 @@ func result() -> Dictionary:
 	}
 
 
-# Klucz = dokładny układ probówek (nie canonical_key): ścieżka zawiera indeksy probówek.
+# Cache: SolverCache (klucz = dokładny układ probówek, patrz tam).
 func _solve_cached() -> Dictionary:
-	var key: String = str(_board.tubes)
-	if _solver_cache.has(key):
-		return _solver_cache[key]
+	var key: String = SolverCache.key_of(_board)
+	if solutions.has_key(key):
+		return solutions.get_entry(key)
 	var limit: int = _cfg_int("hint_solver_max_states")
 	var r: Dictionary = SortSolver.solve(_board, limit, SortSolver.EXACT_WEIGHT)
 	if int(r["moves"]) <= 0 and not _board.is_won():
 		var w: float = float(GameConfig.get_value("solver_fallback_weight"))
 		r = SortSolver.solve(_board, limit, w)
-	var out: Dictionary = {"moves": int(r["moves"]), "path": r["path"]}
-	_solver_cache[key] = out
-	return out
+	solutions.put(key, int(r["moves"]), r["path"])
+	return solutions.get_entry(key)
 
 
 func _cfg_int(key: String) -> int:

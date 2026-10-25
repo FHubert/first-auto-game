@@ -272,3 +272,5 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 
 ## 2026-10-25 — sesja #20 (continuous-dev, 07:11– UTC)
 - T-214: `level:fail:abandon:<przedział>` (wartość = próba) przy porzuceniu snapshotu kampanii w `App._discard_snapshot`; `GameRound.extra_tubes_added()` zamiast `to_dict()` w `Level`; 3 testy; `# gdlint: ignore=max-public-methods` w `GameRound` (Inbox T-227).
+- T-222: pomiar wariantu A (limity 2000/5000/10000) — bramka T-210 niespełniona przy każdym (p95 56+ 326/748/1433 ms; poprawność 24/24, ale ścieżki dłuższe przy 2000); wybrany B (ADR-014): `HintJob` na `WorkerThreadPool` + `SolverCancel` (co 256 rozwinięć), przycisk „…”, monety po wyniku, wynik odrzucany po zmianie planszy; wątek główny 0,1–0,3 ms zamiast do 2,7 s.
+- T-222: odstępstwo od KA — `StuckPanel.show_for` zostaje synchroniczny (wołane tylko przy braku ruchów, solver rozwija 1 stan, 0,3–0,9 ms); test pilnuje ≤ 2 rozwinięć.
