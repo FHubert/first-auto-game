@@ -46,6 +46,7 @@ var nudge_clock: Callable = func() -> float: return Time.get_ticks_msec() / 1000
 var autoload_level: bool = true
 
 var _round_bound_at: int = 0
+var _stuck_tracked_attempt: int = -1
 var _tutorial_max_step: int = 0
 var _last_win_coins: int = 0
 var _last_win_perfect: bool = false
@@ -197,6 +198,7 @@ func start_round(level_data: Dictionary, theme_id: String = "classic") -> void:
 
 ## Podpina biezaca runde do widokow (plansza, HUD, tutorial, oferty).
 func _bind_round(theme_id: String) -> void:
+	_stuck_tracked_attempt = -1
 	_cancel_hint()
 	_stop_confetti()
 	hud.visible = true
@@ -601,7 +603,19 @@ func _check_stuck() -> void:
 		fit_board_above_stuck()
 		hud.stop_hint_nudge()
 		assist_bar.visible = false
-		Analytics.track_design("level:stuck", round.moves_to_goal())
+		_track_stuck()
+
+
+## T-254: 1x na probe (restarts); wartosc = wykonane ruchy, w kampanii + przedzial z numerem proby.
+func _track_stuck() -> void:
+	var attempt: int = round.counters.restarts
+	if attempt == _stuck_tracked_attempt:
+		return
+	_stuck_tracked_attempt = attempt
+	Analytics.track_design("level:stuck", float(round.moves()))
+	if mode == MODE_CAMPAIGN:
+		var id: String = LevelBrackets.id_for(level_no)
+		Analytics.track_design("level:stuck:" + id, float(attempt + 1))
 
 
 ## T-207: numer proby przy porazce (tylko kampania); attempt = restarts + 1 w chwili porazki.

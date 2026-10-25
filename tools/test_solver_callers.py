@@ -7,7 +7,6 @@ SRC = Path(__file__).resolve().parent.parent / "game" / "src"
 
 # (plik, funkcja) -> dlaczego wolno wolac moves_to_goal() (tylko przy braku legalnych ruchow).
 MOVES_ALLOWED = {
-    ("levels/level.gd", "_check_stuck"): "po is_stuck(): brak ruchow = solver rozwija 1 stan (T-222)",
     ("ui/stuck_panel.gd", "show_for"): "wolane tylko z _check_stuck (po is_stuck()) i ze screenshotu",
 }
 # (plik, funkcja) -> dlaczego wolno wolac StuckPanel.show_for( (posrednio moves_to_goal).
@@ -48,7 +47,7 @@ class SolverCallersTest(unittest.TestCase):
             self.assertIn((rel, func), SHOW_FOR_ALLOWED, f"{rel}:{no} {func}: show_for poza lista - solver na watku glownym, ADR-014")
         text = (SRC / "levels/level.gd").read_text(encoding="utf-8")
         fn = re.search(r"^func _check_stuck\(.*?(?=^func |\Z)", text, re.S | re.M).group(0)
-        self.assertLess(fn.index("is_stuck()"), fn.index("moves_to_goal("), "moves_to_goal przed is_stuck()")
+        self.assertNotIn("moves_to_goal(", fn, "T-254: _check_stuck nie liczy solverem (panel robi to sam)")
         self.assertLess(fn.index("is_stuck()"), fn.index("show_for("), "show_for przed is_stuck()")
 
     def test_solver_solve_only_from_allowed_files(self):
