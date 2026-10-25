@@ -83,8 +83,16 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: pill monet + pill serii z rekordem; logo „Vialo” (96 px, 900); miniatura 5 probówek; `ButtonPrimary` „Graj / Poziom N” 140 px; karta Poziomu dnia (ikona kalendarza, badge NOWOŚĆ, nagroda, licznik, `ButtonAccent` „Zagraj”, „ukończone N”); pasek „Do motywu X” (`ACCENT` na `BG_DEEP`); 3 × `ButtonNav` (Motywy, Sklep, Ustawienia) zamiast pełnoszerokich przycisków. Istniejące testy Home zielone (dozwolona zmiana ścieżek węzłów). Kadry 03/04 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-233 `todo` UI v2: overlaye wg `mockups/02_stuck.png`, `03_level_complete.png`, `05_daily_reward.png` (zależy od T-228, T-229)
+- [ ] T-233 `review` UI v2: overlaye wg `mockups/02_stuck.png`, `03_level_complete.png` (zależy od T-228, T-229; DailyRewardPopup → T-267, LevelComplete → T-268 — razem > 300 linii) → PR #223
   KA: StuckPanel i LevelComplete jako dolne arkusze (`Card`, promień 59 px, margines 22 px), DailyRewardPopup jako karta; `DIM` pod spodem. StuckPanel: wiersze `CardRow` „ikona · tytuł + opis · akcja” (Za darmo `PRIMARY` / Reklama biała / cena `ACCENT`) + Od nowa i Pomiń. LevelComplete: „Świetnie!” nad planszą, badge „Idealnie!”, kwota z monetą (96 px), rozbicie nagrody, pasek do motywu, `ButtonAccent` „Podwój”, `ButtonPrimary` „Dalej”, link „Menu główne”. DailyReward: siatka 4 kolumny, dzień 7 na 2 kolumny, dziś = obrys `ACCENT`, odebrane = ptaszek `PRIMARY` + przygaszona moneta. Wejście overlayu: scale 0,9→1 + fade 0,18 s (wyłączone przy `App.effects_enabled=false`). Testy overlayów zielone. Kadry przegenerowane + zestawienie z makietą. ~290 linii (podzielić, jeśli > 300).
+  Skill: `godot-dev`
+
+- [ ] T-268 `in_progress` UI v2: LevelComplete wg `mockups/03_level_complete.png` (wydzielone z T-233 — razem > 300 linii; zależy od T-233 — `OverlayFx`)
+  KA: nagłówek nad planszą („POZIOM N” caption + „Świetnie!” 74 px), dolny arkusz `Card`: badge „Idealnie!”, kwota z monetą 96 px, `progress_label`, `ButtonAccent` „Podwój” z ikoną video, `ButtonPrimary` „Dalej” ze strzałką, „Menu główne” jako link; kontrakt `panel_height()/panel_rect()/panel_height_changed` i sygnały bez zmian; testy LevelComplete zielone + nowy `test_level_complete_ui_v2.gd`. ~150 linii.
+  Skill: `godot-dev`
+
+- [ ] T-267 `in_progress` UI v2: DailyRewardPopup wg `mockups/05_daily_reward.png` (wydzielone z T-233; zależy od T-228, T-229, T-233 — `OverlayFx`)
+  KA: DailyRewardPopup jako karta (`Card`, promień 59 px, margines 30 px, `DIM` pod spodem): pill serii (płomień `STREAK`, tło `STREAK` α 0,18), tytuł 55 px, opis `TEXT_MUTED`; siatka 4 kolumny (`GridContainer`), dzień 7 na 2 kolumny (osobny wiersz/`HBoxContainer`), kafelek `TILE_RADIUS`, dziś = obrys `ACCENT`, odebrane = ptaszek `PRIMARY` + przygaszona moneta (α 0,45); `ButtonPrimary` „Odbierz N”, `ButtonAccent` „Odbierz ×2 · N” z ikoną video, „Uratuj serię” bez zmian logiki. Wejście przez `OverlayFx.enter`. Istniejące testy popupu zielone (dozwolona zmiana ścieżek węzłów). Kadr `daily_reward` przegenerowany + zestawienie z makietą. ~200 linii.
   Skill: `godot-dev`
 
 - [x] T-234 `done` UI v2: Themes, Shop, Settings wg `mockups/06_themes.png`, `07_shop.png`, `08_settings.png` (zależy od T-228, T-229) → PR #220 (zmergowany 2026-10-25)

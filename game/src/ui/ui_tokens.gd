@@ -72,6 +72,7 @@ const NAV_RADIUS := 44
 const CARD_RADIUS := 59
 const CARD_ROW_RADIUS := 37
 const TILE_RADIUS := 33
+const TILE_ICON := 44
 const SHADOW_BTN := 11
 const SHADOW_ICON := 9
 const BTN_PAD_H := 44
