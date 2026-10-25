@@ -71,7 +71,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `tools/gen_assets.py` odtwarza ikony z `docs/ui/README.md` → „Ikony” (kształty = inline `<svg>` w `docs/ui/source/*.dc.html`): liniowe, obrys 2,2/24 siatki, zaokrąglone końce; render 4× + skalowanie do 96 px PNG, biel na przezroczystym (moneta i płomień w kolorach `ACCENT`/`STREAK`). `UiTokens.icon(name) -> Texture2D`. `tools/test_tools.py`: komplet nazw, 96×96, kanał alfa, deterministyczny hash (2 przebiegi identyczne). `docs/LICENSES.md` bez zmian. ~250 linii (podzielić na 2 PR, jeśli > 300).
   Skill: `asset-gen`
 
-- [ ] T-230 `todo` UI v2: HUD planszy wg `mockups/01_level.png` (zależy od T-228, T-229)
+- [ ] T-230 `in_progress` UI v2: HUD planszy wg `mockups/01_level.png` (zależy od T-228, T-229)
   KA: górny pasek: `ButtonIcon` pauza · „Poziom N” (`LabelTitle`, 48 px) + „Ruchy: X · cel Y” (`TEXT_MUTED`, 28 px) · pill monet; dolny pasek: 4 przyciski HUD 118 px z ikoną i podpisem pod spodem (Cofnij z badge licznika ładunków, Od nowa, Podpowiedź z ceną, +Probówka z ceną / ikoną video przy rewarded). Brak tekstu w przyciskach. Wysokości pasków jako stałe `UiTokens` używane przez `Level.fit_board_*` (jedna prawda). Istniejące sygnały HUD/`LevelOffers` i asercje testów bez zmian. Test: każdy przycisk ≥ `TOUCH_MIN`, plansza poziomu 60 mieści się między paskami w 720×1280 i 720×1560. Kadry sklepowe 01/02 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
@@ -95,7 +95,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `UiFx` (czysta klasa, tweeny na przekazanym węźle): wciśnięcie przycisku = zejście w cień (0,08 s) i powrót, „pop” badge'a przy zmianie licznika, zliczanie kwoty w LevelComplete (0→N w 0,6 s, kończy na dokładnym `win_reward`), pulsowanie podpowiedzi po `hint_nudge_seconds` bez ruchu (nowy klucz `GameConfig`), lot monet do pilla (5 sprite'ów, 0,5 s). Wszystko wyłączone przy `effects_enabled=false`. Testy: brak aktywnych tweenów po `kill_all`, nudge z wstrzykniętym zegarem pojawia się i znika po ruchu, zliczanie kończy się dokładną kwotą. ~220 linii.
   Skill: `godot-dev`
 
-- [ ] T-265 `review` UI v2: wagi fontu Nunito 700/800/900 przez `FontVariation` w `ui_theme.tres` (`nunito.ttf` to font zmienny, oś `wght` 200–1000 — zweryfikowane fontTools w sesji #23; dziś wszystkie etykiety i przyciski renderują się w wadze domyślnej — kadry T-231/T-232/T-234 wyglądają „cienko” względem makiet; zależy od T-228) → PR #221
+- [x] T-265 `done` UI v2: wagi fontu Nunito 700/800/900 przez `FontVariation` w `ui_theme.tres` (`nunito.ttf` to font zmienny, oś `wght` 200–1000 — zweryfikowane fontTools w sesji #23; dziś wszystkie etykiety i przyciski renderują się w wadze domyślnej — kadry T-231/T-232/T-234 wyglądają „cienko” względem makiet; zależy od T-228) → PR #221 (zmergowany 2026-10-25)
   KA: w `ui_theme.tres` 3 `FontVariation` (`variation_opentype = {"wght": 700|800|900}`) na bazie `nunito.ttf`; `default_font` = 700; `LabelTitle`/`LabelSection`/wszystkie warianty `Button*` = 900, `LabelCaption` = 700 (README → „Typografia”); test gdUnit4: `theme.get_font("font", "LabelTitle")` jest `FontVariation` z `wght` 900; kadr smoke Home przed/po w opisie PR. Bez nowych plików fontów, `docs/LICENSES.md` bez zmian. ≤ ~40 linii.
   Skill: `godot-dev`
 
