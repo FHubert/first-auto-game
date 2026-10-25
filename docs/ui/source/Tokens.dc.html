@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Vialo — tokeny UI</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.h{font-size:15px;font-weight:900;color:#8EA0C4;letter-spacing:0.6px;margin-bottom:16px}
+.sw{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.chip{width:52px;height:52px;border-radius:14px;flex:none;box-sizing:border-box}
+.sl{display:flex;flex-direction:column;line-height:1.25}
+.sl b{font-size:15px;font-weight:900}
+.sl span{font-size:13px;font-weight:700;color:#A9B8D6;font-family:ui-monospace,Menlo,monospace}
+.btn{border:none;font-family:inherit;font-weight:900;font-size:19px;height:56px;border-radius:28px;padding:0 26px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.cap{font-size:13px;font-weight:700;color:#A9B8D6;font-family:ui-monospace,Menlo,monospace;margin-top:8px}
+</style>
+</helmet>
+<div style="width: 1330px; height: 900px; box-sizing: border-box; background: #14213D; color: #fff; font-family: 'Nunito', system-ui, sans-serif; padding: 48px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px">
+
+  <div>
+    <div class="h">KOLORY UI</div>
+    <div class="sw"><span class="chip" style="background: #14213D; border: 2px solid #2A4A82"></span><span class="sl"><b>Tło</b><span>#14213D</span></span></div>
+    <div class="sw"><span class="chip" style="background: #0E1A33"></span><span class="sl"><b>Tło głębokie (pill, tor)</b><span>#0E1A33</span></span></div>
+    <div class="sw"><span class="chip" style="background: #1F3A6B"></span><span class="sl"><b>Karta / panel</b><span>#1F3A6B</span></span></div>
+    <div class="sw"><span class="chip" style="background: #16294F"></span><span class="sl"><b>Wiersz w karcie</b><span>#16294F</span></span></div>
+    <div class="sw"><span class="chip" style="background: #2A4A82"></span><span class="sl"><b>Ikona w karcie</b><span>#2A4A82</span></span></div>
+    <div class="sw"><span class="chip" style="background: #2EC4B6"></span><span class="sl"><b>Akcja główna</b><span>#2EC4B6 / cień #1C8F85</span></span></div>
+    <div class="sw"><span class="chip" style="background: #FFD166"></span><span class="sl"><b>Monety, nagrody, reklama</b><span>#FFD166 / cień #C99A2E</span></span></div>
+    <div class="sw"><span class="chip" style="background: #FB8500"></span><span class="sl"><b>Seria</b><span>#FB8500</span></span></div>
+    <div class="sw"><span class="chip" style="background: #FFFFFF"></span><span class="sl"><b>Tekst</b><span>#FFFFFF</span></span></div>
+    <div class="sw"><span class="chip" style="background: #A9B8D6"></span><span class="sl"><b>Tekst pomocniczy</b><span>#A9B8D6 (7,9:1 na tle)</span></span></div>
+  </div>
+
+  <div>
+    <div class="h">TYPOGRAFIA · NUNITO</div>
+    <div style="font-size: 52px; font-weight: 900; line-height: 1.1">Vialo</div>
+    <div class="cap">XL 52 / 900 · logo, kwota nagrody</div>
+    <div style="font-size: 30px; font-weight: 900; margin-top: 22px">Nagroda dzienna</div>
+    <div class="cap">L 26–30 / 900 · tytuły ekranów</div>
+    <div style="font-size: 19px; font-weight: 900; margin-top: 22px">Dalej · Odbierz 150</div>
+    <div class="cap">M 17–19 / 800–900 · przyciski, wiersze</div>
+    <div style="font-size: 15px; font-weight: 700; color: #A9B8D6; margin-top: 22px">Brakuje Ci tylko 3 ruchów do celu</div>
+    <div class="cap">S 14–16 / 700 · opisy</div>
+    <div style="font-size: 13px; font-weight: 900; color: #8EA0C4; letter-spacing: 0.6px; margin-top: 22px">NAGŁÓWEK SEKCJI</div>
+    <div class="cap">XS 13 / 900 · minimum w UI</div>
+    <div style="margin-top: 34px; padding: 16px; border-radius: 16px; background: #1F3A6B; font-size: 14px; font-weight: 700; line-height: 1.5; color: #C9D4EA">Makiety w 390 pt. W Godot (viewport 720 × 1280) mnożnik ×1,846: przycisk 56 → 103 px, tekst 13 → 24 px.</div>
+  </div>
+
+  <div>
+    <div class="h">PRZYCISKI</div>
+    <div style="display: flex; flex-direction: column; gap: 22px; align-items: flex-start">
+      <div><button class="btn" style="background: #2EC4B6; color: #0B2A3C; box-shadow: 0 6px 0 #1C8F85">Dalej</button><div class="cap">Primary · 56 · r 28 · cień 6</div></div>
+      <div><button class="btn" style="background: #FFD166; color: #3D2A00; box-shadow: 0 6px 0 #C99A2E"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"></rect><path d="M16 10l5-3v10l-5-3"></path></svg>Podwój do +50</button><div class="cap">Accent · nagrody i rewarded</div></div>
+      <div><button class="btn" style="background: #16294F; color: #fff; box-shadow: 0 5px 0 #0E1A33">Od nowa</button><div class="cap">Secondary</div></div>
+      <div style="display: flex; gap: 18px; align-items: flex-start">
+        <div><button aria-label="Cofnij" style="position: relative; width: 64px; height: 64px; border-radius: 32px; border: none; background: #1F3A6B; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 0 #0E1A33"><svg class="i" viewBox="0 0 24 24" style="width: 28px; height: 28px" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg><span style="position: absolute; top: -6px; right: -6px; min-width: 24px; height: 24px; border-radius: 12px; background: #FFD166; color: #3D2A00; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; border: 2px solid #14213D; box-sizing: border-box">3</span></button><div class="cap">HUD 64</div></div>
+        <div><a aria-label="Motywy" href="#" style="width: 68px; height: 68px; border-radius: 24px; background: #1F3A6B; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 0 #0E1A33"><svg class="i" viewBox="0 0 24 24" style="width: 30px; height: 30px" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 22 9.8C22 6 17.5 3 12 3z"></path></svg></a><div class="cap">Nawigacja 68</div></div>
+        <div><button aria-label="Pauza" style="width: 48px; height: 48px; border-radius: 24px; border: none; background: #1F3A6B; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #0E1A33"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14"></path></svg></button><div class="cap">Ikona 48</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="h">ELEMENTY</div>
+    <div style="display: flex; flex-direction: column; gap: 24px">
+      <div><div style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px 0 8px; border-radius: 20px; background: #0E1A33; font-weight: 800; font-size: 17px"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2"></circle><circle cx="12" cy="12" r="5.5" fill="none" stroke="#C99A2E" stroke-width="1.8"></circle></svg>350</div><div class="cap">Pill waluty · 40</div></div>
+      <div style="display: flex; gap: 10px"><span style="height: 22px; padding: 0 8px; border-radius: 11px; background: #FFD166; color: #3D2A00; font-size: 12px; font-weight: 900; display: flex; align-items: center">NOWOŚĆ</span><span style="height: 22px; padding: 0 8px; border-radius: 11px; background: #2EC4B6; color: #0B2A3C; font-size: 12px; font-weight: 900; display: flex; align-items: center">ZA DARMO</span></div>
+      <div><div style="height: 12px; border-radius: 6px; background: #0E1A33; overflow: hidden; width: 260px"><div style="width: 58%; height: 12px; border-radius: 6px; background: #FFD166"></div></div><div class="cap">Postęp · 12 · r 6</div></div>
+      <div style="display: flex; gap: 16px; align-items: flex-end">
+        <div style="display: flex; flex-direction: column; align-items: center"><div style="width: 56px; height: 8px; border-radius: 4px; background: rgba(202,210,224,0.55); margin-bottom: -2px"></div><div style="position: relative; width: 46px; height: 180px; box-sizing: border-box; border: 3px solid rgba(202,210,224,0.55); border-top: none; border-radius: 0 0 23px 23px; background: rgba(202,210,224,0.08); display: flex; flex-direction: column-reverse; padding: 0 3px 3px; overflow: hidden"><div style="height: 41px; flex: none; background: #2A9D8F; border-radius: 0 0 18px 18px"></div><div style="height: 41px; flex: none; background: #E63946"></div><div style="height: 41px; flex: none; background: #FFD166"></div><div style="position: absolute; left: 6px; top: 12px; width: 5px; bottom: 26px; border-radius: 3px; background: rgba(255,255,255,0.22)"></div></div></div>
+        <div style="font-size: 13px; font-weight: 700; color: #A9B8D6; font-family: ui-monospace, Menlo, monospace; line-height: 1.6">Probówka 46×180<br>obrys 3 · szkło α .55<br>warstwa 41 · 4 na probówkę<br>refleks 5 px α .22<br>wybrana: −30 px, szkło α .95</div>
+      </div>
+      <div style="font-size: 13px; font-weight: 700; color: #A9B8D6; font-family: ui-monospace, Menlo, monospace; line-height: 1.6">Promienie: 12 · 16 · 22 · 26 · 32<br>Odstępy: 6 · 10 · 14 · 18 · 24<br>Cel dotyku ≥ 44 pt</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1330,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

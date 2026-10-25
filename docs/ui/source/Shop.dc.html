@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Vialo — sklep</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;box-sizing:border-box;background:#14213D;color:#fff;font-family:'Nunito',system-ui,sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:56px 20px 30px 20px;gap:16px}
+svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ib{width:48px;height:48px;border-radius:24px;border:none;background:#1F3A6B;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #0E1A33;padding:0;text-decoration:none}
+.pill{display:flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 8px;border-radius:20px;background:#0E1A33;font-weight:800;font-size:17px}
+.prod{display:flex;align-items:center;gap:14px;background:#1F3A6B;border-radius:22px;padding:14px}
+.pic{width:56px;height:56px;border-radius:18px;background:#2A4A82;display:flex;align-items:center;justify-content:center;flex:none}
+.pt{flex:1;display:flex;flex-direction:column;gap:2px}
+.pt b{font-size:18px;font-weight:900}
+.pt span{font-size:14px;font-weight:700;color:#A9B8D6}
+.buy{height:44px;min-width:96px;padding:0 14px;border-radius:22px;border:none;background:#FFD166;color:#3D2A00;font-family:inherit;font-weight:900;font-size:16px;box-shadow:0 4px 0 #C99A2E;cursor:pointer}
+</style>
+</helmet>
+<div class="scr">
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <a class="ib" href="Home.dc.html" aria-label="Wróć"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="font-size: 26px; font-weight: 900">Sklep</div>
+    <div class="pill"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2"></circle><circle cx="12" cy="12" r="5.5" fill="none" stroke="#C99A2E" stroke-width="1.8"></circle></svg>350</div>
+  </div>
+
+  <div style="position: relative; background: #2A4A82; border: 3px solid #FFD166; border-radius: 26px; padding: 20px 18px 18px 18px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #FFD166; color: #3D2A00; font-size: 13px; font-weight: 900; display: flex; align-items: center">PAKIET STARTOWY</span>
+      <span style="display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 800; color: #FFD166"><svg class="i" viewBox="0 0 24 24" style="width: 16px; height: 16px" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Jeszcze 71:59:12</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px">
+      <div style="display: flex; gap: 6px; align-items: flex-end; padding: 10px 12px; border-radius: 16px; background: #0B0B14">
+        <div style="display: flex; flex-direction: column-reverse; width: 20px; height: 74px; box-sizing: border-box; border: 2px solid rgba(138,138,168,0.8); border-top: none; border-radius: 0 0 10px 10px; padding: 0 2px 2px; overflow: hidden"><div style="height: 17px; flex: none; background: #FF1744; border-radius: 0 0 8px 8px"></div><div style="height: 17px; flex: none; background: #00E5FF"></div><div style="height: 17px; flex: none; background: #FFEA00"></div></div>
+        <div style="display: flex; flex-direction: column-reverse; width: 20px; height: 74px; box-sizing: border-box; border: 2px solid rgba(138,138,168,0.8); border-top: none; border-radius: 0 0 10px 10px; padding: 0 2px 2px; overflow: hidden"><div style="height: 17px; flex: none; background: #76FF03; border-radius: 0 0 8px 8px"></div><div style="height: 17px; flex: none; background: #D500F9"></div><div style="height: 17px; flex: none; background: #FF9100"></div><div style="height: 17px; flex: none; background: #2979FF"></div></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 24px; font-weight: 900"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2"></circle></svg>800 monet</span>
+        <span style="font-size: 16px; font-weight: 800; color: #C9D4EA">+ motyw Neonowy</span>
+        <span style="font-size: 13px; font-weight: 700; color: #A9B8D6">Tylko raz, na start</span>
+      </div>
+    </div>
+    <button style="height: 56px; border-radius: 28px; border: none; background: #2EC4B6; color: #0B2A3C; font-family: inherit; font-weight: 900; font-size: 19px; box-shadow: 0 6px 0 #1C8F85">Kup za 1,99 USD</button>
+  </div>
+
+  <div class="prod"><span class="pic"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="1.8"></circle><circle cx="12" cy="12" r="5.5" fill="none" stroke="#C99A2E" stroke-width="1.6"></circle></svg></span><span class="pt"><b>500 monet</b><span>Około 8 dodatkowych probówek</span></span><button class="buy">1,99 USD</button></div>
+  <div class="prod"><span class="pic"><svg viewBox="0 0 32 24" width="40" height="30" aria-hidden="true"><circle cx="11" cy="13" r="8.5" fill="#FFD166" stroke="#C99A2E" stroke-width="1.6"></circle><circle cx="21" cy="11" r="8.5" fill="#FFD166" stroke="#C99A2E" stroke-width="1.6"></circle><circle cx="21" cy="11" r="4.5" fill="none" stroke="#C99A2E" stroke-width="1.4"></circle></svg></span><span class="pt"><b>1500 monet</b><span style="color: #2EC4B6">+20 % gratis</span></span><button class="buy">4,99 USD</button></div>
+  <div class="prod"><span class="pic" style="color: #fff"><svg class="i" viewBox="0 0 24 24" style="width: 30px; height: 30px" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"></rect><path d="M16 10l5-3v10l-5-3"></path><path d="M2 3l20 18"></path></svg></span><span class="pt"><b>Bez reklam</b><span>Bez przerw między poziomami, na zawsze</span></span><button class="buy">3,99 USD</button></div>
+
+  <div style="flex: 1"></div>
+  <button style="background: none; border: none; color: #C9D4EA; font-family: inherit; font-size: 16px; font-weight: 800; text-decoration: underline; padding: 10px">Przywróć zakupy</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

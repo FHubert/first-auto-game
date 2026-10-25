@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Vialo — plansza</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;box-sizing:border-box;color:#fff;font-family:'Nunito',system-ui,sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.ib{width:48px;height:48px;border-radius:24px;border:none;background:#1F3A6B;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #0E1A33;padding:0;cursor:pointer}
+.pill{display:flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 8px;border-radius:20px;background:rgba(6,14,32,.55);font-weight:800;font-size:17px;color:#fff}
+svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tw{display:flex;flex-direction:column;align-items:center}
+.rim{width:56px;height:8px;border-radius:4px;margin-bottom:-2px}
+.tube{position:relative;width:46px;height:180px;box-sizing:border-box;border-width:3px;border-style:solid;border-top:none;border-radius:0 0 23px 23px;display:flex;flex-direction:column-reverse;padding:0 3px 3px;overflow:hidden}
+.tube::after{content:"";position:absolute;left:6px;top:12px;width:5px;bottom:26px;border-radius:3px;background:rgba(255,255,255,.22)}
+.lay{height:41px;flex:none}
+.lay:first-child{border-radius:0 0 18px 18px}
+.tool{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#C9D4EA}
+.tb{position:relative;width:64px;height:64px;border-radius:32px;border:none;background:#1F3A6B;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 0 #0E1A33;padding:0;cursor:pointer}
+.tb svg.i{width:28px;height:28px}
+.badge{position:absolute;top:-6px;right:-6px;min-width:24px;height:24px;border-radius:12px;background:#FFD166;color:#3D2A00;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 6px;box-sizing:border-box;border:2px solid #14213D}
+.cost{display:flex;align-items:center;gap:3px;color:#FFD166;font-weight:800}
+</style>
+</helmet>
+<div class="scr" style="background: {{bg}}">
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 56px 20px 0 20px">
+    <button class="ib" aria-label="Pauza"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14"></path></svg></button>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+      <div style="font-size: 26px; font-weight: 900; letter-spacing: 0.2px; color: {{fg}}">Poziom 20</div>
+      <div style="font-size: 15px; font-weight: 700; color: {{muted}}">Ruchy: 7 · cel 19</div>
+    </div>
+    <div class="pill"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2"></circle><circle cx="12" cy="12" r="5.5" fill="none" stroke="#C99A2E" stroke-width="1.8"></circle></svg>350</div>
+  </div>
+
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 44px; padding: 0 24px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 216px">
+      <sc-for list="{{row1}}" as="t" hint-placeholder-count="4">
+        <div class="tw" style="{{t.lift}}"><div class="rim" style="{{t.rim}}"></div><div class="tube" style="{{t.glass}}"><sc-for list="{{t.layers}}" as="l" hint-placeholder-count="3"><div class="lay" style="{{l.style}}"></div></sc-for></div></div>
+      </sc-for>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 216px">
+      <sc-for list="{{row2}}" as="t" hint-placeholder-count="4">
+        <div class="tw" style="{{t.lift}}"><div class="rim" style="{{t.rim}}"></div><div class="tube" style="{{t.glass}}"><sc-for list="{{t.layers}}" as="l" hint-placeholder-count="3"><div class="lay" style="{{l.style}}"></div></sc-for></div></div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: space-around; align-items: flex-start; padding: 0 12px 44px 12px">
+    <div class="tool"><button class="tb" aria-label="Cofnij, zostały 3"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg><span class="badge">3</span></button>Cofnij</div>
+    <div class="tool"><button class="tb" aria-label="Od nowa"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg></button>Od nowa</div>
+    <div class="tool"><button class="tb" aria-label="Podpowiedź za 25 monet"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 21.5h4"></path><path d="M12 2.5a6.8 6.8 0 0 0-4 12.3c.6.5 1 1.3 1 2.2h6c0-.9.4-1.7 1-2.2a6.8 6.8 0 0 0-4-12.3z"></path></svg></button><span class="cost"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2.5"></circle></svg>25</span></div>
+    <div class="tool"><button class="tb" aria-label="Dodatkowa probówka za 60 monet"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v13a3 3 0 0 0 6 0V3"></path><path d="M5.5 3h9"></path><path d="M19 8v6M16 11h6"></path></svg></button><span class="cost"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2.5"></circle></svg>60</span></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["classic","pastel","neon","ocean"],"default":"classic"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const T = {
+      classic: { bg: '#14213D', glass: '202,210,224', fg: '#FFFFFF', muted: '#A9B8D6', liq: ['#E63946','#FB8500','#FFD166','#80ED99','#2A9D8F','#4CC9F0'] },
+      pastel: { bg: '#F4F1EA', glass: '92,92,110', fg: '#2B2B3A', muted: '#5C5C6E', liq: ['#F4A6A6','#F9C9A0','#F6E58D','#B8E6A1','#8FD9C0','#9ADBF5'] },
+      neon: { bg: '#0B0B14', glass: '138,138,168', fg: '#FFFFFF', muted: '#A9A9C8', liq: ['#FF1744','#FF9100','#FFEA00','#76FF03','#00E676','#00E5FF'] },
+      ocean: { bg: '#0A2540', glass: '191,215,234', fg: '#FFFFFF', muted: '#A9C3DA', liq: ['#E76F51','#F4A261','#E9C46A','#9BD1A0','#2A9D8F','#4CC9F0'] }
+    };
+    const th = T[this.props.theme] || T.classic;
+    const board = [[0,4,0],[3,2,0,4],[2,5,1,3],[2,3,5,0],[4,5,2,3],[5,4],[1,1,1],[]];
+    const sel = 0;
+    const tubes = board.map((t, i) => ({
+      lift: i === sel ? 'transform: translateY(-30px)' : '',
+      rim: 'background: rgba(' + th.glass + ',' + (i === sel ? '0.95' : '0.55') + ')',
+      glass: 'border-color: rgba(' + th.glass + ',' + (i === sel ? '0.95' : '0.55') + '); background: rgba(' + th.glass + ',0.08)',
+      layers: t.map((c) => ({ style: 'background: ' + th.liq[c] }))
+    }));
+    return { bg: th.bg, fg: th.fg, muted: th.muted, row1: tubes.slice(0, 4), row2: tubes.slice(4) };
+  }
+}
+</script>
+</body>
+</html>

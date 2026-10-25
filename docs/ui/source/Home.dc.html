@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Vialo — ekran główny</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;box-sizing:border-box;background:#14213D;color:#fff;font-family:'Nunito',system-ui,sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:56px 20px 36px 20px;gap:18px}
+svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pill{display:flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 8px;border-radius:20px;background:#0E1A33;font-weight:800;font-size:17px}
+.tw{display:flex;flex-direction:column;align-items:center}
+.rim{width:34px;height:6px;border-radius:3px;margin-bottom:-2px;background:rgba(202,210,224,.6)}
+.tube{position:relative;width:28px;height:108px;box-sizing:border-box;border:2.5px solid rgba(202,210,224,.6);border-top:none;border-radius:0 0 14px 14px;background:rgba(202,210,224,.08);display:flex;flex-direction:column-reverse;padding:0 2px 2px;overflow:hidden}
+.lay{height:24px;flex:none}
+.lay:first-child{border-radius:0 0 11px 11px}
+.nav{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:14px;font-weight:800;color:#C9D4EA;text-decoration:none}
+.nb{width:68px;height:68px;border-radius:24px;background:#1F3A6B;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 0 #0E1A33}
+.nb svg.i{width:30px;height:30px}
+</style>
+</helmet>
+<div class="scr">
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <div class="pill"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2"></circle><circle cx="12" cy="12" r="5.5" fill="none" stroke="#C99A2E" stroke-width="1.8"></circle></svg>350</div>
+    <div class="pill" style="padding: 0 14px 0 10px"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 2.5c1 4 5.5 6 5.5 11a5.5 5.5 0 0 1-11 0c0-2.2 1.1-3.8 2.2-4.8 0 2.1 1 3.2 2.1 3.2 0-4.2-1-6.3 1.2-9.4z" fill="#FB8500"></path></svg>5 dni<span style="color: #8EA0C4; font-weight: 700; font-size: 14px">· rekord 12</span></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: 18px">
+    <div style="font-size: 52px; font-weight: 900; letter-spacing: -0.5px; line-height: 1">Vialo</div>
+    <div style="display: flex; gap: 14px; align-items: flex-end; height: 120px">
+      <sc-for list="{{tubes}}" as="t" hint-placeholder-count="5"><div class="tw" style="{{t.lift}}"><div class="rim"></div><div class="tube"><sc-for list="{{t.layers}}" as="l" hint-placeholder-count="4"><div class="lay" style="{{l.style}}"></div></sc-for></div></div></sc-for>
+    </div>
+  </div>
+
+  <a href="Main.dc.html" style="height: 76px; border-radius: 38px; background: #2EC4B6; color: #0B2A3C; box-shadow: 0 7px 0 #1C8F85; display: flex; align-items: center; justify-content: center; gap: 12px; text-decoration: none; margin-top: 6px">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M8 5.5l11 6.5-11 6.5z" fill="#0B2A3C"></path></svg>
+    <span style="display: flex; flex-direction: column; line-height: 1.1"><span style="font-size: 26px; font-weight: 900">Graj</span><span style="font-size: 15px; font-weight: 800; opacity: 0.8">Poziom 20</span></span>
+  </a>
+
+  <div style="background: #1F3A6B; border-radius: 26px; padding: 18px; display: flex; flex-direction: column; gap: 14px; margin-top: 8px">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <div style="width: 48px; height: 48px; border-radius: 16px; background: #2A4A82; display: flex; align-items: center; justify-content: center; color: #FFD166"><svg class="i" viewBox="0 0 24 24" style="width: 28px; height: 28px" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></div>
+      <div style="flex: 1; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; gap: 8px"><span style="font-size: 20px; font-weight: 900">Poziom dnia</span><span style="height: 22px; padding: 0 8px; border-radius: 11px; background: #FFD166; color: #3D2A00; font-size: 12px; font-weight: 900; display: flex; align-items: center">NOWOŚĆ</span></div>
+        <span style="font-size: 14px; font-weight: 700; color: #A9B8D6">Ten sam poziom dla wszystkich · ukończone 23</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 700; color: #A9B8D6">Nagroda</span><span style="display: flex; align-items: center; gap: 5px; font-size: 18px; font-weight: 900; color: #FFD166"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFD166" stroke="#C99A2E" stroke-width="2"></circle></svg>+50</span></div>
+      <div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 700; color: #A9B8D6">Nowy za</span><span style="font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums">11:42:08</span></div>
+      <a href="Main.dc.html" style="height: 46px; padding: 0 22px; border-radius: 23px; background: #FFD166; color: #3D2A00; font-weight: 900; font-size: 17px; display: flex; align-items: center; text-decoration: none; box-shadow: 0 4px 0 #C99A2E">Zagraj</a>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800"><span style="color: #C9D4EA">Do motywu Pastel</span><span style="color: #FFD166">350 / 600</span></div>
+    <div style="height: 12px; border-radius: 6px; background: #0E1A33; overflow: hidden"><div style="width: 58%; height: 12px; border-radius: 6px; background: #FFD166"></div></div>
+  </div>
+
+  <div style="flex: 1"></div>
+  <div style="display: flex; justify-content: space-around">
+    <a class="nav" href="Themes.dc.html"><span class="nb"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 22 9.8C22 6 17.5 3 12 3z"></path><circle cx="7.5" cy="11" r="1"></circle><circle cx="10" cy="7" r="1"></circle><circle cx="15" cy="7" r="1"></circle></svg></span>Motywy</a>
+    <a class="nav" href="Shop.dc.html"><span class="nb"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8h13l-1.2 12.5H6.7z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg></span>Sklep</a>
+    <a class="nav" href="Settings.dc.html"><span class="nb"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg></span>Ustawienia</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const liq = ['#E63946','#FB8500','#FFD166','#80ED99','#2A9D8F','#4CC9F0','#3A86FF','#8338EC'];
+    const board = [[6,0,0],[2,2,2,2],[4,7,1,0],[5,5,5,5],[3,3]];
+    return { tubes: board.map((t, i) => ({ lift: i === 2 ? 'transform: translateY(-14px)' : '', layers: t.map((c) => ({ style: 'background: ' + liq[c] })) })) };
+  }
+}
+</script>
+</body>
+</html>
