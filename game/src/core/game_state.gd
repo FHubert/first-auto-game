@@ -47,6 +47,8 @@ const INT_FIELDS: Array = [
 	["daily_month_count", 0],
 ]
 
+const IAP_TOKENS_MAX: int = 64
+
 var coins: int = 0
 var level: int = 1
 var streak_days: int = 0
@@ -65,6 +67,8 @@ var starter_offer_start_day: int = 0
 var daily_month_id: int = 0
 var daily_month_count: int = 0
 var purchases: Dictionary = {}
+## Newest-last store transaction tokens already granted (dedupe of redelivered PURCHASED).
+var iap_tokens: Array = []
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate(true)
 ## Snapshot rundy w toku (round_snapshot); pusty = brak rundy do wznowienia.
 var round_in_progress: Dictionary = {}
@@ -119,6 +123,7 @@ static func from_dict(d: Dictionary) -> GameState:
 	state.settings = _merge_settings(data.get("settings", {}))
 	state.themes_owned = _clean_themes(data.get("themes_owned", state.themes_owned))
 	state.purchases = _clean_purchases(data.get("purchases", {}))
+	state.iap_tokens = _clean_tokens(data.get("iap_tokens", []))
 	var active_v: Variant = data.get("theme_active", state.theme_active)
 	if typeof(active_v) == TYPE_STRING and state.themes_owned.has(active_v):
 		state.theme_active = active_v
@@ -161,6 +166,7 @@ func to_dict() -> Dictionary:
 	out["themes_owned"] = themes_owned.duplicate()
 	out["theme_active"] = theme_active
 	out["purchases"] = purchases.duplicate(true)
+	out["iap_tokens"] = iap_tokens.duplicate()
 	out["settings"] = settings.duplicate(true)
 	out["round_in_progress"] = round_in_progress.duplicate(true)
 	return out
@@ -207,6 +213,30 @@ static func _clean_themes(value: Variant) -> Array:
 	if not out.has(DEFAULT_THEME):
 		out.append(DEFAULT_THEME)
 	return out
+
+
+## Wrong type or any non-String element -> [] (T-074); keeps the IAP_TOKENS_MAX newest.
+static func _clean_tokens(value: Variant) -> Array:
+	var out: Array = []
+	if typeof(value) != TYPE_ARRAY:
+		return out
+	for item: Variant in value:
+		if typeof(item) != TYPE_STRING:
+			return []
+		out.append(item)
+	return out.slice(maxi(0, out.size() - IAP_TOKENS_MAX))
+
+
+func has_iap_token(token: String) -> bool:
+	return token != "" and iap_tokens.has(token)
+
+
+func remember_iap_token(token: String) -> void:
+	if token == "" or iap_tokens.has(token):
+		return
+	iap_tokens.append(token)
+	if iap_tokens.size() > IAP_TOKENS_MAX:
+		iap_tokens = iap_tokens.slice(iap_tokens.size() - IAP_TOKENS_MAX)
 
 
 ## Keeps only String -> bool entries; anything else is skipped.

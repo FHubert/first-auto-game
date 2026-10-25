@@ -57,3 +57,8 @@ func restore() -> void:
 func acknowledge(token: String) -> void:
 	acknowledged_tokens.append(token)
 	acknowledged.emit(token)
+
+
+## Test hook: the store delivers the same purchase again (onPurchasesUpdated + queryPurchases).
+func redeliver(sku: String, token: String) -> void:
+	purchase_updated.emit(sku, IapProvider.STATE_PURCHASED, token)

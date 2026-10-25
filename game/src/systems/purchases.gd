@@ -58,7 +58,7 @@ func restore() -> void:
 
 
 ## Pure grant logic; idempotent for non-consumables. False when nothing was granted.
-func grant(sku: String) -> bool:
+func grant(sku: String, token: String = "") -> bool:
 	if state == null or not ALL_SKUS.has(sku):
 		return false
 	if NON_CONSUMABLE.has(sku) and state.has_purchase(sku):
@@ -78,6 +78,7 @@ func grant(sku: String) -> bool:
 				state.themes_owned.append(theme_id)
 	if NON_CONSUMABLE.has(sku):
 		state.purchases[sku] = true
+	state.remember_iap_token(token)
 	save_callback.call()
 	Analytics.track_design("iap:granted:%s" % sku)
 	purchase_granted.emit(sku)
@@ -112,14 +113,21 @@ func _on_products_received(list: Array) -> void:
 func _on_purchase_updated(sku: String, st: String, token: String) -> void:
 	match st:
 		IapProvider.STATE_PURCHASED:
-			var done: bool = grant(sku)
-			if not done and NON_CONSUMABLE.has(sku) and state != null and state.has_purchase(sku):
-				done = true
-			if done:
+			# Empty token = fake/legacy provider: no dedupe (old behaviour).
+			if state != null and state.has_iap_token(token):
 				provider.acknowledge(token)
-				var p: Dictionary = products.get(sku, {})
-				var cents: int = int(round(float(p.get("price_micros", 0)) / 10000.0))
-				Analytics.track_business(sku, cents, str(p.get("currency", "USD")))
+				return
+			var owned: bool = NON_CONSUMABLE.has(sku) and state != null and state.has_purchase(sku)
+			var done: bool = grant(sku, token)
+			if not done and owned:
+				state.remember_iap_token(token)
+				save_callback.call()
+			if done or owned:
+				provider.acknowledge(token)
+				if done:
+					var p: Dictionary = products.get(sku, {})
+					var cents: int = int(round(float(p.get("price_micros", 0)) / 10000.0))
+					Analytics.track_business(sku, cents, str(p.get("currency", "USD")))
 		IapProvider.STATE_PENDING:
 			pass
 		_:

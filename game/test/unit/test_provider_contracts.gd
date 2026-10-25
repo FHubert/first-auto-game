@@ -24,6 +24,8 @@ const FAKE_ONLY: Dictionary = {
 	"fake_consent_provider.gd": ["release_form", "release_att"],
 	# Answers a held system notification permission request (hold_permission mode).
 	"fake_notification_provider.gd": ["release_permission"],
+	# Re-emits PURCHASED for the same token (duplicate delivery).
+	"fake_iap_provider.gd": ["redeliver"],
 }
 ## Safe arguments for base methods with required parameters (bool/Dictionary/Array returns).
 const NOOP_ARGS: Dictionary = {}
