@@ -111,3 +111,74 @@ func test_price_text_from_store() -> void:
 	assert_str(_p.price_text("remove_ads")).is_equal("$3.99")
 	assert_str(_p.price_text("coins_small")).is_equal("$1.99")
 	assert_str(_p.price_text("unknown")).is_equal("")
+
+
+func _business_count() -> int:
+	return _fake.events.filter(func(e: Dictionary) -> bool: return e["type"] == "business").size()
+
+
+func test_same_token_twice_grants_once_acks_twice() -> void:
+	var saves: Array = [0]
+	_p.save_callback = func() -> void: saves[0] += 1
+	_prov.redeliver("coins_small", "tok_a")
+	_prov.redeliver("coins_small", "tok_a")
+	assert_int(_state.coins).is_equal(int(GameConfig.get_value("iap_coins_small")))
+	assert_int(_business_count()).is_equal(1)
+	assert_int(saves[0]).is_equal(1)
+	assert_array(_prov.acknowledged_tokens).is_equal(["tok_a", "tok_a"])
+	assert_array(_state.iap_tokens).is_equal(["tok_a"])
+
+
+func test_two_tokens_grant_twice() -> void:
+	_prov.redeliver("coins_small", "tok_a")
+	_prov.redeliver("coins_small", "tok_b")
+	assert_int(_state.coins).is_equal(2 * int(GameConfig.get_value("iap_coins_small")))
+	assert_int(_business_count()).is_equal(2)
+
+
+func test_redelivered_remove_ads_tracks_business_once() -> void:
+	_prov.redeliver("remove_ads", "tok_r1")
+	_prov.redeliver("remove_ads", "tok_r2")
+	assert_int(_business_count()).is_equal(1)
+	assert_array(_state.iap_tokens).is_equal(["tok_r1", "tok_r2"])
+	assert_array(_prov.acknowledged_tokens).is_equal(["tok_r1", "tok_r2"])
+
+
+func test_empty_token_not_deduped() -> void:
+	_prov.redeliver("coins_small", "")
+	_prov.redeliver("coins_small", "")
+	assert_int(_state.coins).is_equal(2 * int(GameConfig.get_value("iap_coins_small")))
+	assert_array(_state.iap_tokens).is_empty()
+
+
+func test_token_list_capped_at_64_newest() -> void:
+	for i: int in range(GameState.IAP_TOKENS_MAX + 1):
+		_prov.redeliver("coins_small", "t%d" % i)
+	assert_int(_state.iap_tokens.size()).is_equal(GameState.IAP_TOKENS_MAX)
+	assert_bool(_state.iap_tokens.has("t0")).is_false()
+	assert_str(_state.iap_tokens.back()).is_equal("t64")
+
+
+func test_duplicate_rejected_after_save_load_new_purchases() -> void:
+	_prov.redeliver("coins_small", "tok_a")
+	var loaded: GameState = GameState.from_dict(JSON.parse_string(JSON.stringify(_state.to_dict())))
+	var coins_before: int = loaded.coins
+	var p2: Node = auto_free(_p.get_script().new())
+	var prov2 := FakeIapProvider.new()
+	p2.provider = prov2
+	p2.state = loaded
+	p2.save_callback = func() -> void: pass
+	p2._ready()
+	prov2.redeliver("coins_small", "tok_a")
+	assert_int(loaded.coins).is_equal(coins_before)
+	assert_array(prov2.acknowledged_tokens).is_equal(["tok_a"])
+
+
+func test_bad_iap_tokens_reset() -> void:
+	var d: Dictionary = GameState.new().to_dict()
+	d["iap_tokens"] = ["ok", 5]
+	assert_array(GameState.from_dict(d).iap_tokens).is_empty()
+	d["iap_tokens"] = "x"
+	assert_array(GameState.from_dict(d).iap_tokens).is_empty()
+	d.erase("iap_tokens")
+	assert_array(GameState.from_dict(d).iap_tokens).is_empty()
