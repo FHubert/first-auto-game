@@ -298,3 +298,23 @@ Wszystko inne wymaga nowego ADR przed dodaniem do repo.
 - Wątek główny: `HintJob.request` (klon + `add_task`) 0,1–0,3 ms zamiast do 2,7 s (tabela w GDD). Czas do podpowiedzi (worker) bez zmian — przycisk „…” do ~2,7 s na CI w najgorszym stanie; na telefonie może to być kilkanaście sekund, więc ZWERYFIKUJ w T-054 i rozważ ograniczenie budżetu (A) dodatkowo.
 - Konfiguracja czytana w wątku przez `HintJob` jest przekazywana jako argumenty z wątku głównego (limit, waga); solver nie dotyka `GameConfig`.
 - Przyszłe zmiany stanu planszy poza `pour_finished`/`_after_action` muszą wołać `_cancel_hint()` albo polegać na kluczu planszy (odrzuca wynik).
+
+
+## ADR-015: Konfiguracja dla wątków roboczych — migawka z wątku głównego — uzupełnia ADR-011 i ADR-014
+
+**Data:** 2026-10-25
+**Status:** Accepted (T-252; nie zmienia ADR-009, ADR-011 ani ADR-014)
+
+**Kontekst:**
+- `LevelPrefetch._work` wołał `ContentGenerator.generate`, który czytał `GameConfig.get_value` (~22 odczyty) na wątku roboczym, a `GameConfig.reset()`/`apply_remote()` podmieniają `_values` na wątku głównym. Wyścig dał 1× czerwony `test_daily_ui.gd > test_daily_level_flow` („Nonexistent 'float' constructor”, Inbox T-244); w grze to samo grozi przy remote configu (Faza 6) z aktywnym prefetchem. Założenie „apply_remote nie w trakcie rundy” nie było wymuszone.
+- `HintJob` (ADR-014) ma właściwy wzorzec: parametry kopiowane na wątku głównym.
+
+**Decyzja:**
+- `GameConfig.snapshot()` zwraca głęboką kopię `_values`; `GameConfig.revision()` to licznik zwiększany przez `reset()`, `set_for_test()` i `apply_remote()` (tylko gdy zastosowano >= 1 klucz).
+- `ContentGenerator._init(snapshot := {})` bierze migawkę (domyślnie `GameConfig.snapshot()` z chwili utworzenia) i czyta klucze wyłącznie przez `_cfg_int`/`_cfg_float` z klucza-literału (zgodne ze strażnikiem `test_config_keys.gd`, bez nowych wyjątków). Generator i `LevelPrefetch` nie zawierają `GameConfig.get_value` (test).
+- `LevelPrefetch.request` robi migawkę i zapamiętuje `revision()` na wątku głównym; `_work` dostaje gotowy generator. `take()` przy innej `revision()` odrzuca wynik i generuje synchronicznie (`sync_generations` +1) z bieżącą konfiguracją.
+- Wynik generacji bez zmian (golden hashe, poziomy 1..200, Poziom dnia).
+
+**Konsekwencje:**
+- Każdy nowy kod na `WorkerThreadPool` dostaje konfigurację jako argument/migawkę, nie z `GameConfig`.
+- Zmiana konfiguracji w trakcie prefetchu kosztuje jedną synchroniczną generację przy `take()` (rzadkie: remote config na starcie).
