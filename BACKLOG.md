@@ -113,7 +113,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 <!-- Odbiór T-236 (sesja #24, FAIL): zadania naprawcze UI v2 w kolejności zależności (T-272 pierwsze — blokuje ocenę reszty). Źródło: docs/ui/ACCEPTANCE_T-236.md. -->
 
-- [ ] T-272 `todo` UI v2 naprawa: tło ekranów — `Level` (po ukryciu HUD przy wygranej górny obszar jest szary: plansza rysuje tło tylko we własnym prostokącie) i `Home` w kadrze sklepowym `aso_home` (całe tło szare) na kolor tła motywu / `UiTokens.BG`
+- [ ] T-272 `in_progress` UI v2 naprawa: tło ekranów — `Level` (po ukryciu HUD przy wygranej górny obszar jest szary: plansza rysuje tło tylko we własnym prostokącie) i `Home` w kadrze sklepowym `aso_home` (całe tło szare) na kolor tła motywu / `UiTokens.BG`
   KA: `Level` ma pełnoekranowy `ColorRect` (pierwsze dziecko) w kolorze `background` motywu planszy, aktualizowany w `_sync_hud_backdrop`-podobnej metodzie przy `setup`/`apply_theme`; `Home` ma `ScreenHeader.add_backdrop` (lub równoważne) niezależnie od fixture; test: kolor piksela/węzła tła == `UiTokens.BG` dla Home i == tło motywu dla Level po `apply_win`; kadry `02_relax`/`03_daily` bez szarości. ≤ 60 linii. Pliki: `level.tscn`, `level.gd`, `home.gd`, testy.
   Skill: `godot-dev`
 - [ ] T-273 `todo` UI v2 naprawa: LevelComplete — plansza dopasowana POD nagłówek „Świetnie!” (dziś `fit_board_above_panel` ustawia `offset_top = HUD_TOP_H`, a nagłówek 129 px + 74 px tytułu nachodzi na probówki; „POZIOM N” ucięty), jeden rząd ułożonych probówek (makieta 03: 8 w rzędzie, mniejsze) nad arkuszem, pasek do motywu (nazwa, N/M, `ProgressBar` `ACCENT`) i rozbicie nagrody przekazane z `Level` (scala Inbox T-270), ikony przycisków wyśrodkowane obok tekstu
