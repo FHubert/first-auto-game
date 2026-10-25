@@ -87,7 +87,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: StuckPanel i LevelComplete jako dolne arkusze (`Card`, promień 59 px, margines 22 px), DailyRewardPopup jako karta; `DIM` pod spodem. StuckPanel: wiersze `CardRow` „ikona · tytuł + opis · akcja” (Za darmo `PRIMARY` / Reklama biała / cena `ACCENT`) + Od nowa i Pomiń. LevelComplete: „Świetnie!” nad planszą, badge „Idealnie!”, kwota z monetą (96 px), rozbicie nagrody, pasek do motywu, `ButtonAccent` „Podwój”, `ButtonPrimary` „Dalej”, link „Menu główne”. DailyReward: siatka 4 kolumny, dzień 7 na 2 kolumny, dziś = obrys `ACCENT`, odebrane = ptaszek `PRIMARY` + przygaszona moneta. Wejście overlayu: scale 0,9→1 + fade 0,18 s (wyłączone przy `App.effects_enabled=false`). Testy overlayów zielone. Kadry przegenerowane + zestawienie z makietą. ~290 linii (podzielić, jeśli > 300).
   Skill: `godot-dev`
 
-- [ ] T-234 `review` UI v2: Themes, Shop, Settings wg `mockups/06_themes.png`, `07_shop.png`, `08_settings.png` (zależy od T-228, T-229) → PR #220
+- [x] T-234 `done` UI v2: Themes, Shop, Settings wg `mockups/06_themes.png`, `07_shop.png`, `08_settings.png` (zależy od T-228, T-229) → PR #220 (zmergowany 2026-10-25)
   KA: Themes: siatka 2 × 2 kart z podglądem 4 probówek w palecie motywu, aktywny = obrys `ACCENT` + ptaszek, cena z monetą, pasek „do motywu” pod siatką. Shop: wyróżniona karta pakietu startowego (obrys `ACCENT`, licznik okna oferty), wiersze produktów z ceną z `IapProvider` w `ButtonAccent`, „Przywróć zakupy” jako link na dole. Settings: nagłówki sekcji (`LabelSection`), wiersze z ikoną, przełączniki w kolorze `PRIMARY`. Testy ekranów zielone. Kadr 05 przegenerowany + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
@@ -95,7 +95,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `UiFx` (czysta klasa, tweeny na przekazanym węźle): wciśnięcie przycisku = zejście w cień (0,08 s) i powrót, „pop” badge'a przy zmianie licznika, zliczanie kwoty w LevelComplete (0→N w 0,6 s, kończy na dokładnym `win_reward`), pulsowanie podpowiedzi po `hint_nudge_seconds` bez ruchu (nowy klucz `GameConfig`), lot monet do pilla (5 sprite'ów, 0,5 s). Wszystko wyłączone przy `effects_enabled=false`. Testy: brak aktywnych tweenów po `kill_all`, nudge z wstrzykniętym zegarem pojawia się i znika po ruchu, zliczanie kończy się dokładną kwotą. ~220 linii.
   Skill: `godot-dev`
 
-- [ ] T-265 `todo` UI v2: wagi fontu Nunito 700/800/900 przez `FontVariation` w `ui_theme.tres` (`nunito.ttf` to font zmienny, oś `wght` 200–1000 — zweryfikowane fontTools w sesji #23; dziś wszystkie etykiety i przyciski renderują się w wadze domyślnej — kadry T-231/T-232/T-234 wyglądają „cienko” względem makiet; zależy od T-228)
+- [ ] T-265 `review` UI v2: wagi fontu Nunito 700/800/900 przez `FontVariation` w `ui_theme.tres` (`nunito.ttf` to font zmienny, oś `wght` 200–1000 — zweryfikowane fontTools w sesji #23; dziś wszystkie etykiety i przyciski renderują się w wadze domyślnej — kadry T-231/T-232/T-234 wyglądają „cienko” względem makiet; zależy od T-228) → PR #221
   KA: w `ui_theme.tres` 3 `FontVariation` (`variation_opentype = {"wght": 700|800|900}`) na bazie `nunito.ttf`; `default_font` = 700; `LabelTitle`/`LabelSection`/wszystkie warianty `Button*` = 900, `LabelCaption` = 700 (README → „Typografia”); test gdUnit4: `theme.get_font("font", "LabelTitle")` jest `FontVariation` z `wght` 900; kadr smoke Home przed/po w opisie PR. Bez nowych plików fontów, `docs/LICENSES.md` bez zmian. ≤ ~40 linii.
   Skill: `godot-dev`
 

@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 
 const THEME := preload("res://assets/fonts/ui_theme.tres")
+const TAG_WGHT: int = 2003265652  # "wght" axis tag
 const STATES: Array[String] = ["normal", "hover", "pressed", "disabled", "focus"]
 const BUTTONS: Array[String] = [
 	"ButtonPrimary", "ButtonAccent", "ButtonSecondary", "ButtonIcon", "ButtonNav"
@@ -93,3 +94,15 @@ func test_icons_load_96px() -> void:
 		var tex: Texture2D = UiTokens.icon(n)
 		assert_object(tex).is_not_null()
 		assert_int(tex.get_width()).is_equal(96)
+
+
+func test_font_weights() -> void:
+	var expected: Dictionary = {"LabelTitle": 900, "ButtonPrimary": 900, "LabelCaption": 700}
+	for type_name: String in expected:
+		var f: Font = THEME.get_font("font", type_name)
+		assert_bool(f is FontVariation).is_true()
+		assert_float((f as FontVariation).variation_opentype[TAG_WGHT]).is_equal(
+			float(expected[type_name])
+		)
+	assert_bool(THEME.default_font is FontVariation).is_true()
+	assert_float((THEME.default_font as FontVariation).variation_opentype[TAG_WGHT]).is_equal(700.0)
