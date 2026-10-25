@@ -49,12 +49,28 @@ func _initialize() -> void:
 		_us[SCENARIOS[4]].append(_timed_emit(app.current_screen().daily_pressed))
 		await _free_app(app)
 	_remove_save()
+	var report: Dictionary = {}
 	print("| scenariusz | mediana ms | p95 ms |\n|---|---|---|")
 	for s: String in SCENARIOS:
 		var v: Array = _us[s]
 		v.sort()
 		print("| %s | %.1f | %.1f |" % [s, v[MEDIAN_IDX] / 1000.0, v[P95_IDX] / 1000.0])
+		report[s.split(".")[0]] = {"med_ms": v[MEDIAN_IDX] / 1000.0, "p95_ms": v[P95_IDX] / 1000.0}
+	_write_report(report)
 	quit()
+
+
+## T-241: `-- --out <sciezka wzgledem game/>` zapisuje JSON {a|b1|b2|b3|c: {med_ms, p95_ms}}.
+func _write_report(report: Dictionary) -> void:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var idx: int = args.find("--out")
+	if idx < 0 or idx + 1 >= args.size():
+		return
+	var abs_path: String = ProjectSettings.globalize_path("res://").path_join(args[idx + 1])
+	DirAccess.make_dir_recursive_absolute(abs_path.get_base_dir())
+	var f := FileAccess.open(abs_path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(report, "\t"))
+	f.close()
 
 
 func _make_app(returning: bool) -> Control:

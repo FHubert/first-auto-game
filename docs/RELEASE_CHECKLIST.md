@@ -6,6 +6,7 @@ Każdy punkt sprawdzamy przed `git tag`. Niezaznaczony punkt oznacza brak wydani
 - [ ] Testy zielone: `make check` (lint + gdUnit4 + export-check) na tagowanym commicie.
 - [ ] Playtest bez softlocka: `game/test/reports/playtest.json` bez softlocka.
 - [ ] Crash-free na Firebase Test Lab.
+- [ ] `make perf` na CI (`game/test/reports/perf.json`) i ten sam scenariusz na urządzeniu budżetowym (T-054) — iloraz telefon/CI wpisany do ADR-011/ADR-014 jako uzupełnienie w nowym ADR, nie edycją.
 - [ ] Screenshoty aktualne (`make screenshots`).
 - [ ] Changelog w `fastlane/metadata`.
 - [ ] Adapter SDK (reklamy, IAP, zgoda, powiadomienia, analityka) dopisany do `PAIRS` w `test_provider_contracts.gd` i zielony przed podpięciem w `App`/autoloadzie (Faza 5).

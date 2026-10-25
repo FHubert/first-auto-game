@@ -18,7 +18,7 @@ endif
 
 export GODOT_VERSION GDUNIT_REF
 
-.PHONY: setup test test-tools lint playtest sim export-check check screenshots screenshots-smoke
+.PHONY: setup test test-tools lint playtest sim export-check check perf screenshots screenshots-smoke
 
 setup:
 	bash tools/setup_env.sh
@@ -63,6 +63,19 @@ export-check:
 	fi
 
 check: lint test test-tools export-check
+
+# T-241: stala baza wydajnosci (CI, nie urzadzenie) -> game/test/reports/perf.json. Poza `check` (kilka minut).
+PERF_TMP := $(PROJECT)/test/reports/perf
+PERF_RUN = XDG_DATA_HOME=$(ROOT)/.godot-userdata timeout 900 $(GODOT_BIN) --headless --path $(PROJECT) --script
+
+perf:
+	mkdir -p $(PERF_TMP) $(ROOT)/.godot-userdata
+	$(PERF_RUN) res://test/perf/measure_startup.gd -- --out test/reports/perf/startup.json
+	$(PERF_RUN) res://test/perf/measure_hint.gd -- --out test/reports/perf/hint.json
+	$(PERF_RUN) res://test/perf/measure_prefetch.gd -- --out test/reports/perf/prefetch.json
+	python3 tools/perf_merge.py --startup $(PERF_TMP)/startup.json --hint $(PERF_TMP)/hint.json \
+		--prefetch $(PERF_TMP)/prefetch.json --out $(PROJECT)/test/reports/perf.json \
+		--commit "$$(git rev-parse --short HEAD)" --godot-version "$(GODOT_VERSION)"
 
 screenshots:
 	bash tools/gen_screenshots.sh --store
