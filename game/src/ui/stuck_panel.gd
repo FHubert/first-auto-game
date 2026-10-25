@@ -69,10 +69,12 @@ func _ready() -> void:
 		Pill.PRICE,
 		str(Economy.extra_tube_cost())
 	)
-	_build_row(undo_refill_ad_button, "undo", refill_title, refill_desc, Pill.AD, tr("hud_ad"))
+	_build_row(
+		undo_refill_ad_button, "undo_clock", refill_title, refill_desc, Pill.AD, tr("hud_ad")
+	)
 	_build_row(
 		undo_refill_button,
-		"undo",
+		"undo_clock",
 		refill_title,
 		refill_desc,
 		Pill.PRICE,

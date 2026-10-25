@@ -9,7 +9,8 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parent
 NAMES = (
     "pause undo restart hint add_tube coin streak calendar palette bag gear play video close back "
-    "arrow_right check skip music speaker vibration symbols globe shield bell chevron_right"
+    "arrow_right check skip music speaker vibration symbols globe shield bell chevron_right "
+    "clock coins_stack video_off undo_clock"
 ).split()
 
 
@@ -44,7 +45,7 @@ class UiIconsTest(unittest.TestCase):
         from PIL import Image
 
         def near(path, rgb):
-            px = Image.open(path).convert("RGBA").getdata()
+            px = Image.open(path).convert("RGBA").get_flattened_data()
             return any(p[3] == 255 and all(abs(p[i] - rgb[i]) < 12 for i in range(3)) for p in px)
 
         with tempfile.TemporaryDirectory() as a:

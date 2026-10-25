@@ -161,3 +161,17 @@ func test_price_rows_touch_size() -> void:
 	]:
 		assert_bool(b.is_visible_in_tree()).is_true()
 		assert_int(int(b.size.y)).is_greater_equal(UiTokens.TOUCH_MIN)
+
+
+func test_undo_refill_row_uses_undo_clock_icon() -> void:
+	var panel: StuckPanel = _stuck()
+	var found: Array[String] = []
+	_icon_files(panel, found)
+	assert_array(found).contains(["undo_clock.png"])
+
+
+func _icon_files(n: Node, out: Array[String]) -> void:
+	if n is TextureRect and (n as TextureRect).texture != null:
+		out.append((n as TextureRect).texture.resource_path.get_file())
+	for c in n.get_children():
+		_icon_files(c, out)

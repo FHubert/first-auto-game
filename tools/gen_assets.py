@@ -251,6 +251,13 @@ UI_V2_ICONS: dict[str, list[tuple]] = {
     "bell": [("arc", 12, 10, 6, 180, 0), ("poly", [(6, 10), (6, 15), (4, 17), (20, 17), (18, 15), (18, 10)], False),
              ("arc", 12, 18.5, 2.5, 0, 180), ("line", 12, 3, 12, 4)],
     "chevron_right": [("poly", [(9, 5), (16, 12), (9, 19)], False)],
+    "clock": [("circle", 12, 12, 9, None, "#FFFFFF", 2.2), ("poly", [(12, 7), (12, 12), (15, 14)], False)],
+    "coins_stack": [("circle", 8.25, 12.75, 6.4, _COIN, _COIN_EDGE, 1.8), ("circle", 15.75, 11.25, 6.4, _COIN, _COIN_EDGE, 1.8),
+                    ("circle", 15.75, 11.25, 3.4, None, _COIN_EDGE, 1.6)],
+    "video_off": [("rrect", 3, 6, 13, 12, 2), ("poly", [(16, 10), (21, 7), (21, 17), (16, 14)], False),
+                  ("line", 2, 3, 22, 21)],
+    "undo_clock": [("arc", 12, 12, 9, 228, 180), ("poly", [(6, 5.3), (3, 8)], False),
+                   ("poly", [(3, 3), (3, 8), (8, 8)], False), ("poly", [(12, 8), (12, 12), (14.5, 14)], False)],
 }
 
 
