@@ -149,3 +149,17 @@ func test_win_single_row_720x1280() -> void:
 
 func test_win_single_row_720x1560() -> void:
 	await _assert_win_single_row(Vector2(720, 1560))
+
+
+func test_stuck_board_not_under_panel_720x1280() -> void:
+	_level.size = Vector2(720, 1280)
+	_level.load_level(1)
+	_level.stuck_panel.show_for(_level.round, true, _level.offers.ad_offers())
+	_level.stuck_panel.show_sample_rows()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_level.fit_board_above_stuck()
+	await get_tree().process_frame
+	var panel: Rect2 = _level.stuck_panel.panel_rect()
+	for i in _level.round.board().tube_count():
+		assert_bool(panel.intersects(_level.board.tube_rect(i))).is_false()

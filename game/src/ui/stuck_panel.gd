@@ -9,11 +9,14 @@ signal extra_tube_ad_pressed
 signal undo_refill_ad_pressed
 signal restart_pressed
 signal skip_pressed
+signal hint_pressed
 signal closed
+signal panel_height_changed
 
 enum Pill { FREE, AD, PRICE }
 
 const SAMPLE_DISTANCE: int = 3
+const SAMPLE_UNDO_CHARGES: int = 2
 
 const ROW_PAD: int = 22
 const ROW_GAP: int = 22
@@ -32,6 +35,7 @@ var effects_enabled: bool = true
 @onready var undo_button: Button = $Panel/Box/UndoButton
 @onready var extra_tube_button: Button = $Panel/Box/ExtraTubeButton
 @onready var undo_refill_button: Button = $Panel/Box/UndoRefillButton
+@onready var hint_button: Button = $Panel/Box/HintButton
 @onready var extra_tube_ad_button: Button = $Panel/Box/ExtraTubeAdButton
 @onready var undo_refill_ad_button: Button = $Panel/Box/UndoRefillAdButton
 @onready var restart_button: Button = $Panel/Box/Bottom/RestartButton
@@ -73,6 +77,21 @@ func _ready() -> void:
 		refill_desc,
 		Pill.PRICE,
 		str(Economy.undo_refill_cost())
+	)
+	_build_row(
+		hint_button,
+		"hint",
+		tr("stuck_row_hint"),
+		tr("stuck_row_hint_desc"),
+		Pill.PRICE,
+		str(Economy.hint_cost())
+	)
+	$Panel.minimum_size_changed.connect(func() -> void: panel_height_changed.emit())
+	hint_button.pressed.connect(
+		func() -> void:
+			visible = false
+			closed.emit()
+			hint_pressed.emit()
 	)
 	extra_tube_ad_button.pressed.connect(func() -> void: extra_tube_ad_pressed.emit())
 	undo_refill_ad_button.pressed.connect(func() -> void: undo_refill_ad_pressed.emit())
@@ -205,6 +224,16 @@ func _ignore_mouse(n: Node) -> void:
 		_ignore_mouse(c)
 
 
+## Odleglosc gornej krawedzi panelu od dolnej krawedzi ekranu (px, z marginesem); jak LevelComplete.
+func panel_height() -> float:
+	var min_h: float = $Panel.get_combined_minimum_size().y - $Panel.offset_bottom
+	return maxf(-$Panel.offset_top, min_h)
+
+
+func panel_rect() -> Rect2:
+	return $Panel.get_global_rect()
+
+
 func show_for(round_in: GameRound, allow_skip: bool = true, offers: Dictionary = {}) -> void:
 	var dist: int = round_in.moves_to_goal()
 	distance_label.text = tr("stuck_distance") % dist if dist >= 0 else tr("stuck_no_solution")
@@ -212,19 +241,33 @@ func show_for(round_in: GameRound, allow_skip: bool = true, offers: Dictionary =
 	undo_desc_label.text = tr("stuck_row_undo_desc") % charges
 	undo_button.disabled = charges <= 0
 	undo_button.modulate.a = 0.5 if charges <= 0 else 1.0
-	extra_tube_ad_button.visible = bool(offers.get("extra_tube", false))
-	undo_refill_ad_button.visible = bool(offers.get("undo_refill", false))
+	_set_offer_rows(bool(offers.get("extra_tube", false)), bool(offers.get("undo_refill", false)))
+	hint_button.visible = dist >= 0
 	skip_button.visible = allow_skip and round_in.can_skip() and bool(offers.get("skip", false))
 	visible = true
 	OverlayFx.enter($Panel, OverlayFx.enabled_for(self, effects_enabled))
 
 
+## Reklama ma pierwszenstwo przed cena (jak w HUD): jeden wiersz na akcje.
+func _set_offer_rows(tube_ad: bool, refill_ad: bool) -> void:
+	extra_tube_ad_button.visible = tube_ad
+	extra_tube_button.visible = not tube_ad
+	undo_refill_ad_button.visible = refill_ad
+	undo_refill_button.visible = not refill_ad
+
+
 func show_sample() -> void:
-	distance_label.text = tr("stuck_distance") % SAMPLE_DISTANCE
-	undo_desc_label.text = tr("stuck_row_undo_desc") % 0
-	undo_button.disabled = true
-	skip_button.visible = true
-	extra_tube_ad_button.visible = true
-	undo_refill_ad_button.visible = true
+	show_sample_rows()
 	visible = true
 	OverlayFx.enter($Panel, OverlayFx.enabled_for(self, effects_enabled))
+
+
+## Wiersze i dystans jak na makiecie (bez animacji wejscia) - podglad sceny i kadr.
+func show_sample_rows() -> void:
+	distance_label.text = tr("stuck_distance") % SAMPLE_DISTANCE
+	undo_desc_label.text = tr("stuck_row_undo_desc") % SAMPLE_UNDO_CHARGES
+	undo_button.disabled = false
+	undo_button.modulate.a = 1.0
+	skip_button.visible = true
+	_set_offer_rows(true, false)
+	hint_button.visible = true

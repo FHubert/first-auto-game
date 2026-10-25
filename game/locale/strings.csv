@@ -118,4 +118,6 @@ stuck_row_tube,Extra tube,Dodatkowa probówka,Extra-Röhrchen
 stuck_row_tube_desc,"Empty, until the level ends","Pusta, do końca poziomu","Leer, bis zum Levelende"
 stuck_row_refill,+%d undos,+%d cofnięć,+%d Rückgängig
 stuck_row_refill_desc,Add undo charges,Dodaj ładunki cofania,Rückgängig-Ladungen hinzufügen
+stuck_row_hint,Hint,Podpowiedź,Tipp
+stuck_row_hint_desc,Shows the best move,Pokaże najlepszy ruch,Zeigt den besten Zug
 lc_great,Great!,Świetnie!,Super!

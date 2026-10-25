@@ -94,3 +94,36 @@ func test_show_for_respects_offers() -> void:
 	assert_bool(panel.skip_button.visible).is_false()
 	panel.show_for(_level.round)
 	assert_bool(panel.extra_tube_ad_button.visible).is_false()
+
+
+func _assert_tubes_clear_of_panel() -> void:
+	var panel: Rect2 = _level.stuck_panel.panel_rect()
+	for i in _level.round.board().tube_count():
+		assert_bool(panel.intersects(_level.board.tube_rect(i))).is_false()
+
+
+func test_board_fits_above_panel_on_every_stuck() -> void:
+	_level.size = Vector2(720, 1280)
+	_level.start_round(DEADLOCK)
+	_level._check_stuck()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_bool(_level.stuck_panel.visible).is_true()
+	_assert_tubes_clear_of_panel()
+	_level.stuck_panel.close_button.pressed.emit()
+	assert_float(_level.board.offset_bottom).is_equal(float(-UiTokens.HUD_BOTTOM_H))
+	_level._check_stuck()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_assert_tubes_clear_of_panel()
+
+
+func test_hint_row_closes_panel_and_resets_board() -> void:
+	_level.state.coins = 500
+	_level.size = Vector2(720, 1280)
+	_level.start_round(DEADLOCK)
+	_level._check_stuck()
+	_level.stuck_panel.hint_button.visible = true
+	_level.stuck_panel.hint_button.pressed.emit()
+	assert_bool(_level.stuck_panel.visible).is_false()
+	assert_float(_level.board.offset_bottom).is_equal(float(-UiTokens.HUD_BOTTOM_H))

@@ -149,6 +149,9 @@ func _ready() -> void:
 	level_complete.double_pressed.connect(func() -> void: offers.watch_double_coins())
 	stuck_panel.restart_pressed.connect(restart)
 	stuck_panel.skip_pressed.connect(offers.watch_skip)
+	stuck_panel.hint_pressed.connect(_request_hint)
+	stuck_panel.panel_height_changed.connect(_refit_board)
+	stuck_panel.closed.connect(_reset_board_fit)
 	assist_bar.coins_pressed.connect(func() -> void: offers.assist_buy_extra_tube())
 	assist_bar.ad_pressed.connect(func() -> void: offers.assist_watch_extra_tube())
 	hud.undo_pressed.connect(undo)
@@ -471,6 +474,15 @@ func _win_breakdown() -> Dictionary:
 func _refit_board() -> void:
 	if level_complete.visible:
 		fit_board_above_panel()
+	elif stuck_panel.visible:
+		fit_board_above_stuck()
+
+
+## Plansza nad arkuszem "Utknales": HUD gora zostaje, siatka (nie jeden rzad).
+func fit_board_above_stuck() -> void:
+	board.set_single_row(false)
+	board.offset_top = UiTokens.HUD_TOP_H
+	board.offset_bottom = -(stuck_panel.panel_height() + FIT_GAP_PX)
 
 
 func _reset_board_fit() -> void:
@@ -576,14 +588,17 @@ func _after_action() -> void:
 	_reset_nudge()
 	board.refresh()
 	hud.refresh()
-	_refresh_offers()
+	if stuck_panel.visible and not level_complete.visible:
+		_reset_board_fit()
 	stuck_panel.visible = false
+	_refresh_offers()
 	_check_stuck()
 
 
 func _check_stuck() -> void:
 	if round.is_stuck() and not round.is_done():
 		stuck_panel.show_for(round, mode != MODE_DAILY, offers.ad_offers())
+		fit_board_above_stuck()
 		hud.stop_hint_nudge()
 		assist_bar.visible = false
 		Analytics.track_design("level:stuck", round.moves_to_goal())
