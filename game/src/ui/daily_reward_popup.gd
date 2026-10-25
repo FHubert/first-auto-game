@@ -21,6 +21,7 @@ const COIN_SIZE_WIDE: int = 56
 const CHECK_BADGE: int = 44
 const ENTER_TIME: float = 0.18
 const SAMPLE_DAY: int = 20750
+const ICON_TEXT_GAP: int = 14
 
 var state: GameState
 var rewarded: RewardedPlacements = RewardedPlacements.new()
@@ -63,6 +64,7 @@ func show_for(state_in: GameState, utc_day: int) -> void:
 	claim_button.text = "%s %d" % [tr("btn_claim"), int(pv["amount"])]
 	claim_button.disabled = not bool(pv["can_claim"])
 	claim_x2_button.text = tr("btn_claim_x2") % preview_x2_amount()
+	_place_icon(claim_x2_button)
 	claim_x2_button.visible = (
 		bool(pv["can_claim"]) and rewarded.can_offer(RewardedPlacements.DAILY_X2)
 	)
@@ -71,6 +73,7 @@ func show_for(state_in: GameState, utc_day: int) -> void:
 		and DailyRewards.can_save_streak(state, utc_day)
 		and rewarded.can_offer(RewardedPlacements.STREAK_SAVE)
 	)
+	_place_icon(save_streak_button)
 	visible = true
 	if not was_visible:
 		_enter_fx()
@@ -331,13 +334,43 @@ func _button(parent: Control, variation: StringName, icon_name: String, cb: Call
 	var b := Button.new()
 	b.theme_type_variation = variation
 	b.custom_minimum_size = Vector2(0, UiTokens.BTN_H)
-	if icon_name != "":
-		b.icon = UiTokens.icon(icon_name)
-		b.expand_icon = true
-		b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.add_theme_constant_override("icon_max_width", 48)
-		for c in ["normal", "hover", "pressed", "focus"]:
-			b.add_theme_color_override("icon_%s_color" % c, UiTokens.ON_ACCENT)
 	b.pressed.connect(cb)
 	parent.add_child(b)
+	if icon_name != "":
+		_add_inline_icon(b, icon_name)
 	return b
+
+
+## Button.icon rysuje ikone przy krawedzi przycisku - ikona jako dziecko stoi tuz przed
+## wysrodkowanym tekstem (wzorzec LevelComplete, T-273).
+func _add_inline_icon(b: Button, icon_name: String) -> void:
+	var tr_icon := TextureRect.new()
+	tr_icon.name = "InlineIcon"
+	tr_icon.texture = UiTokens.icon(icon_name)
+	tr_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr_icon.size = Vector2.ONE * UiTokens.TILE_ICON
+	tr_icon.modulate = UiTokens.ON_ACCENT
+	tr_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(tr_icon)
+	# Margines po lewej przesuwa wysrodkowany tekst o pol (ikona + odstep): grupa jest w srodku.
+	for state in ["normal", "hover", "pressed", "focus", "disabled"]:
+		var sb := b.get_theme_stylebox(state).duplicate() as StyleBox
+		sb.content_margin_left = maxf(sb.get_margin(SIDE_LEFT), 0.0) + _icon_shift()
+		b.add_theme_stylebox_override(state, sb)
+	b.resized.connect(_place_icon.bind(b))
+
+
+func _place_icon(b: Button) -> void:
+	var tr_icon := b.get_node_or_null("InlineIcon") as TextureRect
+	if tr_icon == null:
+		return
+	var font: Font = b.get_theme_font("font")
+	var fsize: int = b.get_theme_font_size("font_size")
+	var text_w: float = font.get_string_size(b.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fsize).x
+	var x: float = (b.size.x + _icon_shift()) * 0.5 - text_w * 0.5 - ICON_TEXT_GAP - tr_icon.size.x
+	tr_icon.position = Vector2(x, (b.size.y - tr_icon.size.y) * 0.5)
+
+
+func _icon_shift() -> float:
+	return UiTokens.TILE_ICON + ICON_TEXT_GAP
