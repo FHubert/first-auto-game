@@ -10,6 +10,7 @@ game/test/reports/*.json
 game/test/reports/*.html
 game/test/reports/*/
 game/test/reports/test_output.log
+game/test/reports/log_warnings.txt
 game/test/reports/test_exit
 # gdUnit4 default report dir when run outside `make test` (e.g. single suite from CLI)
 game/reports/
