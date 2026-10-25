@@ -1,3 +1,4 @@
+# gdlint: ignore=max-public-methods
 class_name GameRound
 extends RefCounted
 ## Runda water sort: ruchy, cofnij, dodatkowa probówka, restart, podpowiedź.
@@ -245,6 +246,10 @@ func can_add_extra_tube() -> bool:
 
 func restarts() -> int:
 	return _restarts
+
+
+func extra_tubes_added() -> int:
+	return _extra_tubes_added
 
 
 func can_skip() -> bool:
