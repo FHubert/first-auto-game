@@ -16,18 +16,77 @@ var deferred: bool = false
 var releases: int = 0
 ## FIFO of held shows: {"kind": String, "cb": Callable}; release() frees the oldest.
 var held: Array[Dictionary] = []
+## Loading (T-225): a loaded ad is ready until shown; default load succeeds at once.
+var rewarded_load_calls: int = 0
+var interstitial_load_calls: int = 0
+## While true, load_* waits for release_load(ok) instead of finishing at once.
+var hold_loads: bool = false
+var pending_loads: Array[String] = []
+var _fail_loads_left: int = 0
+var _fail_code: int = 0
+var _rewarded_loaded: bool = true
+var _interstitial_loaded: bool = true
 
 
 func initialize() -> void:
 	initialize_calls += 1
 
 
+## The next n loads (any format) fail with code instead of succeeding.
+func fail_next_loads(n: int, code: int = 3) -> void:
+	_fail_loads_left = n
+	_fail_code = code
+
+
+func load_rewarded() -> void:
+	rewarded_load_calls += 1
+	_finish_or_hold("rewarded")
+
+
+func load_interstitial() -> void:
+	interstitial_load_calls += 1
+	_finish_or_hold("interstitial")
+
+
+## Completes the oldest held load: ok = loaded, otherwise failed with the fail code.
+func release_load(ok: bool) -> void:
+	if pending_loads.is_empty():
+		return
+	_complete_load(pending_loads.pop_front(), ok)
+
+
+func _finish_or_hold(kind: String) -> void:
+	if hold_loads:
+		pending_loads.append(kind)
+		return
+	var ok: bool = _fail_loads_left <= 0
+	if not ok:
+		_fail_loads_left -= 1
+	_complete_load(kind, ok)
+
+
+func _complete_load(kind: String, ok: bool) -> void:
+	if kind == "rewarded":
+		_rewarded_loaded = ok
+		if ok:
+			rewarded_loaded.emit()
+		else:
+			rewarded_load_failed.emit(_fail_code)
+	else:
+		_interstitial_loaded = ok
+		if ok:
+			interstitial_loaded.emit()
+		else:
+			interstitial_load_failed.emit(_fail_code)
+
+
 func is_rewarded_ready() -> bool:
-	return always_ready
+	return always_ready and _rewarded_loaded
 
 
 func show_rewarded(callback: Callable) -> void:
 	rewarded_shown += 1
+	_rewarded_loaded = false
 	if hold_show:
 		held.append({"kind": "rewarded", "cb": callback})
 		return
@@ -41,11 +100,12 @@ func show_rewarded(callback: Callable) -> void:
 
 
 func is_interstitial_ready() -> bool:
-	return always_ready
+	return always_ready and _interstitial_loaded
 
 
 func show_interstitial() -> void:
 	interstitials_shown += 1
+	_interstitial_loaded = false
 	if hold_show:
 		held.append({"kind": "interstitial", "cb": Callable()})
 		return
