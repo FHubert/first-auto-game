@@ -81,14 +81,12 @@ BUILTIN = {
     "booster_ad_share": 0.5,  # sim-only
     # ZWERYFIKUJ po soft launchu eventem `level:assist:*`
     "plateau_assist_take_rate": 0.3,  # sim-only: P(player takes the plateau tube) per eligible attempt
-    # T-195: szansa wygranej proby Z probowka z paska = won_with_tube / attempts_with_tube z
-    # raportu bota (T-188 liczniki, greedy; ZWERYFIKUJ po soft launchu). Zrodlo: `godot --headless
-    # --path game -- --playtest --assist --rounds=400 --seed=42` (make playtest, DEFAULTS 26/3):
-    # 26-55: 17/73 = 0.23; 56+: 33/173 = 0.19. Z `--extra-tube-from=2` (26/2): 26-55: 22/62 = 0.35;
-    # 56+: 56/220 = 0.25. Poprzednio (T-185) gorna granica 0.41 / 0.21. Zastepuje T-178 `plateau_assist_win_prob`.
-    "plateau_assist_win_prob_26_55": 0.23,  # sim-only
-    "plateau_assist_win_prob_56": 0.19,  # sim-only
-    "plateau_assist_bracket_split": 56,  # sim-only: od tego poziomu obowiazuje win_prob_56
+    # T-199: pomoc = wzgledny mnoznik porazki: win' = 1 - (1 - win_p) * m (m=1 brak efektu). Zrodlo: GDD -> Progresja,
+    # tabela T-175, 1. proba bez probowki vs z probowka od 1. proby: 26-55 25,6 -> 50,0 %, 56+ 2,8 -> 28,0 %
+    # => (1-0,500)/(1-0,256) ~ 0,67; (1-0,280)/(1-0,028) ~ 0,74. ZWERYFIKUJ po soft launchu eventami T-207.
+    "plateau_assist_fail_mult_26_55": 0.67,  # sim-only
+    "plateau_assist_fail_mult_56": 0.74,  # sim-only
+    "plateau_assist_bracket_split": 56,  # sim-only: od tego poziomu obowiazuje fail_mult_56
     "daily_challenge_play_rate": 0.6,  # sim-only
     "daily_x2_watch_rate": 0.5,  # sim-only
     "streak_save_watch_rate": 0.5,  # sim-only
@@ -223,6 +221,11 @@ def fmt(m: dict) -> str:
 PLACEMENTS = ("double_coins", "daily_x2", "streak_save", "extra_tube", "undo_refill")
 
 
+def assisted_win_prob(win_p: float, fail_mult: float) -> float:
+    """Szansa wygranej z probowka z paska: porazka skalowana mnoznikiem (0..1; 1 = brak efektu)."""
+    return 1.0 - (1.0 - win_p) * fail_mult
+
+
 def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool = True) -> dict:
     rnd = random.Random(seed)
     coins_by_day = [[] for _ in range(days)]  # per day: balances of engaged players
@@ -315,17 +318,17 @@ def simulate(cfg: dict, players: int, days: int, seed: int, plateau_assist: bool
                         ):
                             cost = int(cfg["extra_tube_cost_coins"])
                             split = level >= cfg["plateau_assist_bracket_split"]
-                            assist_p = cfg["plateau_assist_win_prob_56" if split else "plateau_assist_win_prob_26_55"]
+                            fail_mult = cfg["plateau_assist_fail_mult_56" if split else "plateau_assist_fail_mult_26_55"]
                             # max 1 probowka na probe: jedna galaz ponizej (extra_tube_max_per_level)
                             if rnd.random() < cfg["booster_ad_share"]:
                                 rewarded["extra_tube"] += 1
                                 assist_buys += 1
-                                win_p = max(win_p, assist_p)
+                                win_p = assisted_win_prob(win_p, fail_mult)
                             elif coins >= cost:
                                 coins -= cost
                                 assist_coins += cost
                                 assist_buys += 1
-                                win_p = max(win_p, assist_p)
+                                win_p = assisted_win_prob(win_p, fail_mult)
                         if rnd.random() < win_p:
                             attempt = 0
                             total = int(cfg["win_reward_coins"])
