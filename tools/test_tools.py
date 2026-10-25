@@ -844,5 +844,17 @@ class PerfReportTest(unittest.TestCase):
         self.assertNotIn("perf", deps)
 
 
+class AdsTestHygieneTest(unittest.TestCase):
+    """T-240: suites that dirty the Ads singleton must call Ads.reset_for_test()."""
+
+    def test_ads_singleton_state_is_reset_in_suites(self):
+        dirty = re.compile(r"(?<![\w.])Ads\.(set_ads_removed\(true\)|ads_removed = true)")
+        for f in sorted((ROOT / "game" / "test").rglob("*.gd")):
+            text = f.read_text(encoding="utf-8")
+            if dirty.search(text):
+                with self.subTest(file=f.name):
+                    self.assertIn("Ads.reset_for_test()", text)
+
+
 if __name__ == "__main__":
     unittest.main()

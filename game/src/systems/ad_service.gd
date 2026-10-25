@@ -39,6 +39,14 @@ var _giveup_tracked: Dictionary = {}
 var _giveup_at: Dictionary = {}
 var _preload_started: bool = false
 var _signals_provider: AdProvider
+## Stable callables (connect/disconnect/is_connected by equality), in order:
+## rewarded ok/fail, interstitial ok/fail.
+var _load_callables: Array[Callable] = [
+	_on_load_done.bind("rewarded", true),
+	_on_load_failed.bind("rewarded"),
+	_on_load_done.bind("interstitial", true),
+	_on_load_failed.bind("interstitial"),
+]
 
 
 func _ready() -> void:
@@ -364,15 +372,55 @@ func _request_load(kind: String, now: float) -> void:
 func _connect_load_signals() -> void:
 	if _signals_provider == provider:
 		return
+	_disconnect_load_signals()
 	_signals_provider = provider
-	provider.rewarded_loaded.connect(_on_load_done.bind("rewarded", true))
-	provider.rewarded_load_failed.connect(
-		func(_code: int) -> void: _on_load_done("rewarded", false)
-	)
-	provider.interstitial_loaded.connect(_on_load_done.bind("interstitial", true))
-	provider.interstitial_load_failed.connect(
-		func(_code: int) -> void: _on_load_done("interstitial", false)
-	)
+	for i: int in 4:
+		var sig: Signal = _load_signal(provider, i)
+		if not sig.is_connected(_load_callables[i]):
+			sig.connect(_load_callables[i])
+
+
+func _disconnect_load_signals() -> void:
+	if _signals_provider != null and is_instance_valid(_signals_provider):
+		for i: int in 4:
+			var sig: Signal = _load_signal(_signals_provider, i)
+			if sig.is_connected(_load_callables[i]):
+				sig.disconnect(_load_callables[i])
+	_signals_provider = null
+
+
+func _load_signal(p: AdProvider, index: int) -> Signal:
+	return [
+		p.rewarded_loaded,
+		p.rewarded_load_failed,
+		p.interstitial_loaded,
+		p.interstitial_load_failed,
+	][index]
+
+
+## Tests / bot only: back to the state right after startup (singleton hygiene between suites).
+func reset_for_test() -> void:
+	reset_consent()
+	_disconnect_load_signals()
+	ads_removed = false
+	_policies = {"rewarded": AdLoadPolicy.new(), "interstitial": AdLoadPolicy.new()}
+	_loading = {"rewarded": false, "interstitial": false}
+	_giveup_tracked = {}
+	_giveup_at = {}
+	_preload_started = false
+	_rewarded_in_break = false
+	_ad_break_open = false
+	_watchdog_fired = false
+	_watchdog_ids = {}
+	_open_interstitials = {}
+	_muted_at_s = -INF
+	interstitials_shown = 0
+	reset_interstitial_cooldown()
+	Audio.set_app_muted(false)
+
+
+func _on_load_failed(_code: int, kind: String) -> void:
+	_on_load_done(kind, false)
 
 
 func _on_load_done(kind: String, ok: bool) -> void:

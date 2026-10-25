@@ -48,16 +48,7 @@ func after_test() -> void:
 
 ## Back to a pristine singleton: consent, remove-ads flag and the whole load machinery.
 func _reset_ads() -> void:
-	Ads.reset_consent()
-	Ads.ads_removed = false
-	Ads._policies = {"rewarded": AdLoadPolicy.new(), "interstitial": AdLoadPolicy.new()}
-	Ads._loading = {"rewarded": false, "interstitial": false}
-	Ads._giveup_tracked = {}
-	Ads._giveup_at = {}
-	Ads._preload_started = false
-	Ads._signals_provider = null
-	Ads._rewarded_in_break = false
-	Ads.reset_interstitial_cooldown()
+	Ads.reset_for_test()
 
 
 func _level() -> Level:
