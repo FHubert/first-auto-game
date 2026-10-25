@@ -186,6 +186,19 @@ class BalanceSimTest(unittest.TestCase):
             self.assertIn("ignored overlay key: starter_offer_min_level", r.stderr)
             self.assertIn("overlay=ov.json", r.stdout)
 
+    def test_overlay_meta_key_is_silent_unknown_key_warns(self):
+        with tempfile.TemporaryDirectory() as d:
+            meta = Path(d) / "meta.json"
+            meta.write_text(json.dumps({"remote_config_variant": "h1_b", "rewarded_multiplier": 3.0}))
+            r = run(TOOLS / "balance_sim.py", "--players", "100", "--overlay", meta)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertNotIn("ignored overlay key", r.stderr)
+            unk = Path(d) / "unk.json"
+            unk.write_text(json.dumps({"remote_config_variant": "h1_b", "no_such_key": 1}))
+            r = run(TOOLS / "balance_sim.py", "--players", "100", "--overlay", unk)
+            self.assertIn("ignored overlay key: no_such_key", r.stderr)
+            self.assertNotIn("ignored overlay key: remote_config_variant", r.stderr)
+
     def test_overlay_bad_json_exits_2(self):
         with tempfile.TemporaryDirectory() as d:
             ov = Path(d) / "bad.json"

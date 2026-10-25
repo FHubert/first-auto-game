@@ -72,16 +72,17 @@ Ceny lokalne (PLN, EUR) pobierane ze sklepu (`IapProvider`), nigdy z kodu. Integ
 
 ### Przewidywanie `make sim` (seed 1, 1000 graczy, 30 dni)
 
-`python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 --overlay docs/remote_config/<wariant>.json` (klucze nieznane symulacji, np. `starter_offer_min_level`, są ignorowane).
+`python3 tools/balance_sim.py --players 1000 --days 30 --seed 1 --overlay docs/remote_config/<wariant>.json` (default = bez `--overlay`; klucze nieznane symulacji, np. `starter_offer_min_level`, są ignorowane z ostrzeżeniem na stderr, a `remote_config_variant` jako klucz meta jest pomijany po cichu). Stan po T-178/T-185/T-189 (pomoc na plateau, kalibracja `--assist`, metryki motywów z n i progiem `MIN_N` = 30).
 
-| wariant | impresje/DAU (rewarded + interstitial = total) | 1. motyw (dzień, mediana) | 3. motyw (dzień) | mediana monet d30 / d1 | exit code |
-|---|---|---|---|---|---|
-| default | 2.722 + 1.350 = 4.072 | 4 | 24 | 560 / 335 | 0 |
-| h1_b (`rewarded_multiplier` 3.0) | 2.697 + 1.323 = 4.020 | 3 | 25 | 610 / 350 | 0 |
-| h2_b (interstitial co 4 rundy, od lvl 5) | 2.722 + 1.780 = 4.502 | 4 | 24 | 560 / 335 | 0 |
-| h3_b (`starter_offer_min_level` 6) | 2.722 + 1.350 = 4.072 | 4 | 24 | 560 / 335 | 0 |
+| wariant | impresje/DAU (rewarded + interstitial = total) | rewarded `extra_tube`/DAU | 1. motyw (dzień kalendarzowy, mediana) | 3. motyw (dzień, n) | mediana monet d30 / d1 | exit code |
+|---|---|---|---|---|---|---|
+| default | 2.85 + 1.34 = 4.19 | 0.206 | 4 | n/a (n=0) | 575 / 335 | 0 |
+| h1_b (`rewarded_multiplier` 3.0) | 2.87 + 1.34 = 4.21 | 0.222 | 3 | n/a (n=10) | 600 / 350 | 0 |
+| h2_b (interstitial co 4 rundy, od lvl 5) | 2.85 + 1.77 = 4.62 | 0.206 | 4 | n/a (n=0) | 575 / 335 | 0 |
+| h3_b (`starter_offer_min_level` 6) | 2.85 + 1.34 = 4.19 | 0.206 | 4 | n/a (n=0) | 575 / 335 | 0 |
+| h4_assist_2 (`plateau_assist_from_attempt` 2) | 3.05 + 1.35 = 4.40 | 0.421 | 4 | n/a (n=0) | 585 / 330 | 0 |
 
-H2 podnosi interstitiale z 1.35 do 1.78/DAU (total 4.50), bez wpływu na ekonomię monet. H1 podnosi monety tylko nieznacznie (d30 560 -> 610), 3. motyw nadal ok. 25. dnia - brak ryzyka inflacji w modelu; H3 nie jest modelowany przez symulację (wynik identyczny z default).
+H2 podnosi interstitiale z 1.34 do 1.77/DAU (total 4.19 -> 4.62), bez wpływu na ekonomię monet (d30 575 jak w default). H1 podnosi monety d30 z 575 do 600 (d1 335 -> 350), rewarded 2.85 -> 2.87/DAU; 3. motyw kupiło 10 z 847 graczy (1,2 %), poniżej `MIN_N` = 30, więc dzień jest raportowany jako n/a - brak sygnału inflacji w modelu. H3 nie jest modelowany przez symulację (wynik identyczny z default). Poprzednia wersja tabeli (przed T-178) podawała 3. motyw w 24.-25. dniu i total 4.07; po T-178/T-185 pomoc na plateau zużywa monety (sink ok. 7,8 monet/DAU), więc nikt w default nie dochodzi do 3. motywu w 30 dni.
 
 ### H4 - przewidywanie `make sim --overlay docs/remote_config/h4_assist_2.json` (seed 1, 1000 graczy, 30 dni)
 
@@ -96,4 +97,4 @@ H2 podnosi interstitiale z 1.35 do 1.78/DAU (total 4.50), bez wpływu na ekonomi
 | ads/DAU total | 4.19 | 4.40 |
 | mediana monet po 7. dniu aktywnym | 650 | 522 |
 
-Hipoteza: D7 rośnie (56+ 38,3 → 44,2 % w <= 3 próbach), ARPDAU ok. +5 % (rewarded +0,2/DAU, total 4.19 → 4.40); koszt: ok. 2,4x więcej monet wydanych na pomoc (sink -128 monet w medianie d7), więc wolniejszy zakup motywów. Metryka decyzji: D7 kohorty, `level:assist:*`/DAU, rewarded/DAU; minimalny czas testu jak H1-H3 (>= 14 dni na wariant, D7 wymaga pełnych kohort). Decyzja 26/3 vs 26/2 (pytanie 12 w GDD) zapada w A/B w Fazie 6: wygrywa 2 tylko gdy D7 rośnie istotnie, a ryzyko natrętności (spadek D1, więcej `level:assist:*`) nie przekracza progu.
+Liczby zgodne z tabelą wyżej po T-189: metryka 3. motywu jest n/a, bo n=0 < `MIN_N` = 30 (obie próby). Hipoteza: D7 rośnie (56+ 38,3 → 44,2 % w <= 3 próbach), ARPDAU ok. +5 % (rewarded +0,2/DAU, total 4.19 → 4.40); koszt: ok. 2,4x więcej monet wydanych na pomoc (sink -128 monet w medianie d7), więc wolniejszy zakup motywów. Metryka decyzji: D7 kohorty, `level:assist:*`/DAU, rewarded/DAU; minimalny czas testu jak H1-H3 (>= 14 dni na wariant, D7 wymaga pełnych kohort). Decyzja 26/3 vs 26/2 (pytanie 12 w GDD) zapada w A/B w Fazie 6: wygrywa 2 tylko gdy D7 rośnie istotnie, a ryzyko natrętności (spadek D1, więcej `level:assist:*`) nie przekracza progu.

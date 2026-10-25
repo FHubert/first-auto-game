@@ -129,6 +129,10 @@ def load_config(path: Path) -> tuple[dict, list[str]]:
     return cfg, notes
 
 
+# Metadata keys of remote-config overlays that carry no balance value (silently skipped).
+OVERLAY_META_KEYS = frozenset({"remote_config_variant"})
+
+
 def apply_overlay(cfg: dict, path: Path) -> tuple[list[str], list[str]]:
     """Overlay a remote-config JSON on cfg in place; returns (applied keys, ignored keys).
 
@@ -145,6 +149,8 @@ def apply_overlay(cfg: dict, path: Path) -> tuple[list[str], list[str]]:
     applied: list[str] = []
     ignored: list[str] = []
     for key, val in data.items():
+        if key in OVERLAY_META_KEYS:
+            continue
         old = cfg.get(key)
         if key not in cfg or isinstance(val, (str, bool)) or val is None:
             ignored.append(key)
