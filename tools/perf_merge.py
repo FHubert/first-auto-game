@@ -6,7 +6,7 @@ from pathlib import Path
 
 STARTUP_MAP = {"first_run": "a", "resume_prefetch": "b2", "resume_no_prefetch": "b3", "daily": "c"}
 BRACKETS = ("8-25", "26-55", "56+", "daily")
-TOP_KEYS = ("commit", "godot_version", "startup", "hint", "prefetch")
+TOP_KEYS = ("commit", "godot_version", "startup", "hint", "prefetch", "moves_stuck", "moves_midround")
 
 
 def merge(startup: dict, hint: dict, prefetch: dict, commit: str, godot_version: str) -> dict:
@@ -23,7 +23,17 @@ def merge(startup: dict, hint: dict, prefetch: dict, commit: str, godot_version:
             for b in BRACKETS
         },
         "prefetch": prefetch,
+        # T-253: moves_gate liczony na stanach utkniecia (to wola gra); midround = sciezka niewolana.
+        "moves_stuck": {b: _stat3(summary[b]["moves_stuck_ms"], n=summary[b]["stuck_n"], gate=summary[b]["moves_gate"]) for b in BRACKETS},
+        "moves_midround": {
+            **{b: _stat3(summary[b]["moves_midround_ms"]) for b in BRACKETS},
+            "note": "sciezka niewolana w grze (bez bramki)",
+        },
     }
+
+
+def _stat3(stat, **extra) -> dict:
+    return {**dict(zip(("med", "p95", "max"), stat)), **extra}
 
 
 def _numbers(node, path=""):
@@ -48,6 +58,10 @@ def validate(report: dict) -> None:
         for part in ("main_thread", "worker"):
             if not {"med", "p95", "max"} <= set(report["hint"].get(b, {}).get(part, {})):
                 raise ValueError(f"hint.{b}.{part} needs med, p95, max")
+    for key in ("moves_stuck", "moves_midround"):
+        for b in BRACKETS:
+            if not {"med", "p95", "max"} <= set(report[key].get(b, {})):
+                raise ValueError(f"{key}.{b} needs med, p95, max")
     if not report["prefetch"]:
         raise ValueError("prefetch is empty")
     for path, value in _numbers({k: v for k, v in report.items() if k not in ("commit", "godot_version")}):

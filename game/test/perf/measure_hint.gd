@@ -5,6 +5,8 @@ extends SceneTree
 ##     -- --out test/reports/hint_perf.json
 ## Stany: 0/25/50/75 % ruchow przebiegu greedy (seed 42) na poziomach kampanii i Poziomach dnia.
 ## Kazdy pomiar na SWIEZYM GameRound (pusty cache), mediana z REPEATS prob.
+## T-253: bramka moves_gate = moves_to_goal() na stanach UTKNIECIA (bot losowy, seed 42) - jedyna
+## sciezka, ktora gra woluje (is_stuck() -> 1 rozwiniecie); pomiar w trakcie rundy = moves_midround.
 
 const CAMPAIGN_LEVELS: Array = [8, 26, 40, 56, 80, 120]
 const DAYS: Array = [20750, 20751, 20752]
@@ -12,6 +14,8 @@ const PROGRESS: Array = [0, 25, 50, 75]
 const BOT_SEED: int = 42
 const REPEATS: int = 5
 const MAX_STEPS: int = 400
+const STUCK_PER_LEVEL: int = 3
+const STUCK_ATTEMPTS: int = 400
 const USEC_PER_MS: float = 1000.0
 const P95_Q: float = 0.95
 const BRACKETS: Array = ["8-25", "26-55", "56+", "daily"]
@@ -47,12 +51,16 @@ func _initialize() -> void:
 	var daily_cls: GDScript = load("res://src/systems/daily_challenge.gd")
 	var seed_value: int = int(_cfg().get_value("campaign_seed"))
 	var rows: Array = []
+	var stuck_rows: Array = []
 	for lv: int in CAMPAIGN_LEVELS:
 		var data: Dictionary = gen_cls.new().generate(seed_value, lv)
 		rows.append_array(_measure_level(data, lv, "campaign", _bracket(lv)))
+		stuck_rows.append_array(_measure_stuck(data, lv, _bracket(lv)))
 	for day: int in DAYS:
-		rows.append_array(_measure_level(daily_cls.level_for_day(day), day, "daily", "daily"))
-	var summary: Dictionary = _summary(rows)
+		var day_data: Dictionary = daily_cls.level_for_day(day)
+		rows.append_array(_measure_level(day_data, day, "daily", "daily"))
+		stuck_rows.append_array(_measure_stuck(day_data, day, "daily"))
+	var summary: Dictionary = _summary(rows, stuck_rows)
 	var report: Dictionary = {
 		"limit_exact": int(_cfg().get_value("hint_exact_max_states")),
 		"limit_moves": int(_cfg().get_value("hint_solver_max_states")),
@@ -64,17 +72,25 @@ func _initialize() -> void:
 	var f := FileAccess.open(abs_path, FileAccess.WRITE)
 	f.store_string(JSON.stringify(report, "\t"))
 	f.close()
-	print("| przedzial | n | hint ms | m2g ms | po podp. | dluzsze | bramka podp. | bramka m2g |")
+	print(
+		"| przedzial | n | hint ms | m2g w rundzie ms (niewolane) | po podp. | dluzsze | bramka podp. |"
+	)
 	for b: String in BRACKETS:
 		var s: Dictionary = summary[b]
 		var h: Array = s["hint_ms"]
-		var m: Array = s["moves_to_goal_ms"]
+		var m: Array = s["moves_midround_ms"]
 		var sv: String = "%d/%d (%.0f%%)" % [s["solved"], s["solvable"], s["solved_pct"]]
 		print(
 			(
-				"| %s | %d | %s | %s | %s | %d | %s | %s |"
-				% [b, s["n"], _fmt(h), _fmt(m), sv, s["longer"], s["gate"], s["moves_gate"]]
+				"| %s | %d | %s | %s | %s | %d | %s |"
+				% [b, s["n"], _fmt(h), _fmt(m), sv, s["longer"], s["gate"]]
 			)
+		)
+	print("| przedzial | stany utkniecia n | moves_to_goal med/p95/max ms | moves_gate |")
+	for b: String in BRACKETS:
+		var s: Dictionary = summary[b]
+		print(
+			"| %s | %d | %s | %s |" % [b, s["stuck_n"], _fmt(s["moves_stuck_ms"]), s["moves_gate"]]
 		)
 	print("| przedzial | HintJob.request (watek glowny) med/p95/max ms | do wyniku (worker) |")
 	for b: String in BRACKETS:
@@ -138,6 +154,42 @@ func _measure_level(data: Dictionary, level: int, mode: String, bracket: String)
 	return rows
 
 
+## T-253: snapshoty utkniecia (brak legalnych ruchow) z losowej gry (seed 42, restart po utknieciu),
+## czas moves_to_goal() na swiezym GameRound (mediana z REPEATS) - to wola gra w _check_stuck.
+func _measure_stuck(data: Dictionary, level: int, bracket: String) -> Array:
+	var rows: Array = []
+	var r: RefCounted = _round_cls.new()
+	r.start(data)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = BOT_SEED
+	var steps: int = 0
+	var attempts: int = 0
+	while rows.size() < STUCK_PER_LEVEL and attempts < STUCK_ATTEMPTS:
+		var legal: Array[Vector2i] = r.board().legal_moves()
+		if r.is_done() or legal.is_empty() or steps >= MAX_STEPS:
+			if not r.is_done() and legal.is_empty():
+				rows.append(_stuck_row(r.to_dict(), level, bracket))
+			r.restart()
+			steps = 0
+			attempts += 1
+			continue
+		var m: Vector2i = legal[rng.randi_range(0, legal.size() - 1)]
+		r.try_move(m.x, m.y)
+		steps += 1
+	print("poziom ", level, ": ", rows.size(), " stanow utkniecia")
+	return rows
+
+
+func _stuck_row(snap: Dictionary, level: int, bracket: String) -> Dictionary:
+	var us: Array = []
+	for _r in REPEATS:
+		var r: RefCounted = _round_cls.from_dict(snap)
+		var t0: int = Time.get_ticks_usec()
+		r.moves_to_goal()
+		us.append(Time.get_ticks_usec() - t0)
+	return {"level": level, "bracket": bracket, "moves_to_goal_ms": _median(us) / USEC_PER_MS}
+
+
 ## T-237: ruchy do celu po podpowiedzi (hint_solver_max_states); -1 = brak. "Rozwiazane" liczone
 ## wsrod stanow rozwiazywalnych w pelnym budzecie (moves_to_goal > 0), jak w T-222.
 func _moves_after_hint(snap: Dictionary) -> int:
@@ -186,13 +238,14 @@ func _greedy_snapshots(data: Dictionary) -> Array:
 	return out
 
 
-func _summary(rows: Array) -> Dictionary:
+func _summary(rows: Array, stuck_rows: Array) -> Dictionary:
 	var out: Dictionary = {}
 	for b: String in BRACKETS:
 		var h: Array = []
 		var m: Array = []
 		var am: Array = []
 		var aw: Array = []
+		var sm: Array = []
 		var solvable: int = 0
 		var solved: int = 0
 		var longer: int = 0
@@ -205,8 +258,12 @@ func _summary(rows: Array) -> Dictionary:
 				solvable += 1 if row["solvable"] else 0
 				solved += 1 if row["solved_after_hint"] else 0
 				longer += 1 if row["longer_than_optimal"] else 0
+		for srow: Dictionary in stuck_rows:
+			if srow["bracket"] == b:
+				sm.append(srow["moves_to_goal_ms"])
 		var hs: Array = _stats(h)
-		var ms: Array = _stats(m)
+		var ms: Array = _stats(sm)
+		var mid: Array = _stats(m)
 		var ws: Array = _stats(aw)
 		var pct: float = 100.0 * solved / maxi(solvable, 1)
 		var moves_ok: bool = ms[1] <= GATE_P95_MS and ms[2] <= GATE_MAX_MS
@@ -216,7 +273,10 @@ func _summary(rows: Array) -> Dictionary:
 		out[b] = {
 			"n": h.size(),
 			"hint_ms": hs,
-			"moves_to_goal_ms": ms,
+			"moves_stuck_ms": ms,
+			"stuck_n": sm.size(),
+			"moves_midround_ms": mid,
+			"moves_midround_note": "sciezka niewolana w grze (bez bramki)",
 			"main_ms": _stats(am),
 			"worker_ms": ws,
 			"solvable": solvable,

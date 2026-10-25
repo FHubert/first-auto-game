@@ -806,7 +806,9 @@ class PerfReportTest(unittest.TestCase):
 
     def example(self, mod):
         stat = [1.0, 2.0, 3.0]
-        hint = {"summary": {b: {"main_ms": stat, "worker_ms": stat} for b in mod.BRACKETS}}
+        row = {"main_ms": stat, "worker_ms": stat, "moves_stuck_ms": stat, "moves_midround_ms": stat,
+               "stuck_n": 3, "moves_gate": "OK"}
+        hint = {"summary": {b: dict(row) for b in mod.BRACKETS}}
         startup = {k: {"med_ms": 5.0, "p95_ms": 9.0} for k in ("a", "b2", "b3", "c")}
         return mod.merge(startup, hint, {"2": {"sync_us": 10, "prefetched_us": 1}}, "abc1234", "4.7.2-stable")
 
@@ -815,7 +817,13 @@ class PerfReportTest(unittest.TestCase):
         report = self.example(mod)
         mod.validate(report)
         self.assertEqual(report["hint"]["56+"]["worker"], {"med": 1.0, "p95": 2.0, "max": 3.0})
+        self.assertEqual(report["moves_stuck"]["26-55"]["n"], 3)
+        self.assertIn("niewolana", report["moves_midround"]["note"])
         del report["startup"]["daily"]
+        with self.assertRaises(ValueError):
+            mod.validate(report)
+        report = self.example(mod)
+        del report["moves_stuck"]["daily"]["p95"]
         with self.assertRaises(ValueError):
             mod.validate(report)
         report = self.example(mod)
