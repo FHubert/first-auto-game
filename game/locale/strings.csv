@@ -25,13 +25,17 @@ btn_close,Close,Zamknij,Schließen
 tut_pick_source,Tap the highlighted tube,Stuknij podświetloną probówkę,Tippe auf das markierte Röhrchen
 tut_pick_target,Now tap where to pour,"Teraz stuknij, gdzie przelać",Tippe jetzt auf das Ziel
 tut_finish,Finish it - sort the colors!,Dokończ — posortuj kolory!,Mach weiter - sortiere die Farben!
-home_play,Play: level %d,Graj: poziom %d,Spielen: Level %d
+home_play_title,Play,Graj,Spielen
+home_play_level,Level %d,Poziom %d,Level %d
 home_streak,Streak: %d,Seria: %d,Serie: %d
 home_streak_best,Best: %d,Rekord: %d,Rekord: %d
 home_daily_month,This month: %d/%d,W tym miesiącu: %d/%d,Diesen Monat: %d/%d
 home_daily_month_done,Monthly goal reached!,Cel miesiąca zdobyty!,Monatsziel erreicht!
 lc_month_goal,Monthly goal: +%d coins!,Cel miesiąca: +%d monet!,Monatsziel: +%d Münzen!
-home_daily_total,Completed: %d,Ukończone: %d,Geschafft: %d
+home_daily_desc,Same level for everyone · completed %d,Ten sam poziom dla wszystkich · ukończone %d,Dasselbe Level für alle · geschafft %d
+home_daily_desc_short,Same level for everyone,Ten sam poziom dla wszystkich,Dasselbe Level für alle
+home_daily_reward_cap,Reward,Nagroda,Belohnung
+home_daily_next_cap,New in,Nowy za,Neu in
 home_daily_new,New!,Nowość!,Neu!
 lc_new_color,Next level: +1 color,Następny poziom: +1 kolor,Nächstes Level: +1 Farbe
 lc_theme_progress,Next theme: %d / %d,Następny motyw: %d / %d,Nächstes Thema: %d / %d
@@ -60,8 +64,6 @@ btn_save_streak,Save streak,Uratuj serię,Streak retten
 daily_challenge_title,Daily level,Poziom dnia,Tagesrätsel
 daily_locked,From level %d,Od poziomu %d,Ab Level %d
 daily_done,Done today,Ukończono dziś,Heute geschafft
-daily_available,+%d coins,+%d monet,+%d Münzen
-daily_next_in,Next in %s,Następny za %s,Nächstes in %s
 btn_play_daily,Play,Graj,Spielen
 hud_daily,Daily level,Poziom dnia,Tagesrätsel
 lc_daily_title,Daily level done!,Poziom dnia ukończony!,Tagesrätsel geschafft!

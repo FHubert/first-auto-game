@@ -12,8 +12,8 @@ func _home(total: int, best: int) -> Home:
 	return home
 
 
-func test_daily_total_hidden_when_zero() -> void:
-	assert_bool(_home(0, 0).daily_total_label.visible).is_false()
+func test_daily_total_omitted_when_zero() -> void:
+	assert_str(_home(0, 0).daily_total_label.text).is_equal(tr("home_daily_desc_short"))
 
 
 func test_daily_total_shown() -> void:

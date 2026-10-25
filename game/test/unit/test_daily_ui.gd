@@ -105,14 +105,11 @@ func test_home_daily_card_spacing() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var btn_y: float = home.daily_button.global_position.y
-	var timer_bottom: float = (
-		home.daily_timer_label.global_position.y + home.daily_timer_label.size.y
-	)
-	var status_bottom: float = (
-		home.daily_status_label.global_position.y + home.daily_status_label.size.y
-	)
-	assert_float(btn_y - timer_bottom).is_greater_equal(float(Home.CARD_SEPARATION))
-	assert_float(btn_y - status_bottom).is_greater_equal(float(Home.CARD_SEPARATION))
+	var row_y: float = (home.daily_button.get_parent() as Control).global_position.y
+	for l: Label in [home.daily_total_label, home.daily_month_label]:
+		var bottom: float = l.global_position.y + l.size.y
+		assert_float(row_y - bottom).is_greater_equal(float(Home.CARD_SEPARATION))
+	assert_float(btn_y).is_greater_equal(row_y)
 
 
 func test_daily_level_flow() -> void:
