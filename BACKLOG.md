@@ -79,7 +79,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `TubeView`: wymiary, obrys, alfy szkła (0,55 / wybrana 0,95), rant, zaokrąglone dno, refleks i podniesienie wybranej dokładnie wg README (×1,846). Układ: ≤ 8 probówek → max 4 w rzędzie; > 8 → skalowanie proporcjonalne, rzędy po max 7. Tło płaskie w kolorze `background` motywu. Test: dla n = 4…14 wszystkie probówki w granicach ekranu i bez nakładania; brak regresji `test_board_view*`/`test_tube_view*`. Kadry 01/02 przegenerowane + zestawienie z makietą. ~250 linii.
   Skill: `godot-dev`
 
-- [ ] T-232 `in_progress` UI v2: Home wg `mockups/04_home.png` (zależy od T-228, T-229)
+- [ ] T-232 `review` UI v2: Home wg `mockups/04_home.png` (zależy od T-228, T-229) → PR #219
   KA: pill monet + pill serii z rekordem; logo „Vialo” (96 px, 900); miniatura 5 probówek; `ButtonPrimary` „Graj / Poziom N” 140 px; karta Poziomu dnia (ikona kalendarza, badge NOWOŚĆ, nagroda, licznik, `ButtonAccent` „Zagraj”, „ukończone N”); pasek „Do motywu X” (`ACCENT` na `BG_DEEP`); 3 × `ButtonNav` (Motywy, Sklep, Ustawienia) zamiast pełnoszerokich przycisków. Istniejące testy Home zielone (dozwolona zmiana ścieżek węzłów). Kadry 03/04 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
@@ -93,6 +93,10 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 
 - [ ] T-235 `todo` UI v2: mikroanimacje (zależy od T-230, T-232)
   KA: `UiFx` (czysta klasa, tweeny na przekazanym węźle): wciśnięcie przycisku = zejście w cień (0,08 s) i powrót, „pop” badge'a przy zmianie licznika, zliczanie kwoty w LevelComplete (0→N w 0,6 s, kończy na dokładnym `win_reward`), pulsowanie podpowiedzi po `hint_nudge_seconds` bez ruchu (nowy klucz `GameConfig`), lot monet do pilla (5 sprite'ów, 0,5 s). Wszystko wyłączone przy `effects_enabled=false`. Testy: brak aktywnych tweenów po `kill_all`, nudge z wstrzykniętym zegarem pojawia się i znika po ruchu, zliczanie kończy się dokładną kwotą. ~220 linii.
+  Skill: `godot-dev`
+
+- [ ] T-265 `todo` UI v2: wagi fontu Nunito 700/800/900 przez `FontVariation` w `ui_theme.tres` (`nunito.ttf` to font zmienny, oś `wght` 200–1000 — zweryfikowane fontTools w sesji #23; dziś wszystkie etykiety i przyciski renderują się w wadze domyślnej — kadry T-231/T-232/T-234 wyglądają „cienko” względem makiet; zależy od T-228)
+  KA: w `ui_theme.tres` 3 `FontVariation` (`variation_opentype = {"wght": 700|800|900}`) na bazie `nunito.ttf`; `default_font` = 700; `LabelTitle`/`LabelSection`/wszystkie warianty `Button*` = 900, `LabelCaption` = 700 (README → „Typografia”); test gdUnit4: `theme.get_font("font", "LabelTitle")` jest `FontVariation` z `wght` 900; kadr smoke Home przed/po w opisie PR. Bez nowych plików fontów, `docs/LICENSES.md` bez zmian. ≤ ~40 linii.
   Skill: `godot-dev`
 
 - [ ] T-236 `todo` UI v2: odbiór — zgodność z makietami + kadry sklepowe (zależy od T-230…T-235)
