@@ -125,7 +125,7 @@ func watch_undo_refill() -> bool:
 	return rewarded.offer(
 		RewardedPlacements.UNDO_REFILL,
 		func() -> void:
-			round.add_undo_charges(int(GameConfig.get_value("undo_refill_amount")))
+			round.counters.add_undo_charges(int(GameConfig.get_value("undo_refill_amount")))
 			Analytics.track_design("booster:undo_refill:rewarded")
 			action_applied.emit()
 	)
@@ -137,7 +137,11 @@ func ad_offers() -> Dictionary:
 		"extra_tube":
 		live and round.can_add_extra_tube() and rewarded.can_offer(RewardedPlacements.EXTRA_TUBE),
 		"undo_refill":
-		live and round.undo_charges() == 0 and rewarded.can_offer(RewardedPlacements.UNDO_REFILL),
+		(
+			live
+			and round.counters.undo_charges == 0
+			and rewarded.can_offer(RewardedPlacements.UNDO_REFILL)
+		),
 		"skip":
 		(
 			mode != MODE_DAILY
@@ -153,8 +157,8 @@ func plateau_assist() -> Dictionary:
 	var coins: bool = base and Economy.can_afford(state, Economy.extra_tube_cost())
 	var ad: bool = base and rewarded.can_offer(RewardedPlacements.EXTRA_TUBE)
 	var show: bool = coins or ad
-	if show and _assist_offered_attempt != round.restarts():
-		_assist_offered_attempt = round.restarts()
+	if show and _assist_offered_attempt != round.counters.restarts:
+		_assist_offered_attempt = round.counters.restarts
 		Analytics.track_design("level:assist:offered")
 	return {"show": show, "coins": coins, "rewarded": ad}
 
@@ -174,7 +178,7 @@ func _assist_base() -> bool:
 	return (
 		mode == MODE_CAMPAIGN
 		and level_no >= int(GameConfig.get_value("plateau_assist_min_level"))
-		and round.restarts() + 1 >= int(GameConfig.get_value("plateau_assist_from_attempt"))
+		and round.counters.restarts + 1 >= int(GameConfig.get_value("plateau_assist_from_attempt"))
 		and round.moves() == 0
 		and not round.is_done()
 		and round.can_add_extra_tube()

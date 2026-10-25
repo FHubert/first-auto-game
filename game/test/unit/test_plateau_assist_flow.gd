@@ -86,7 +86,7 @@ func _restart_until_attempt(level: Level, attempt: int) -> void:
 func test_coins_scenario_bar_purchase_events() -> void:
 	var level := _new_level(_min_level(), _cost() + 40)
 	_restart_until_attempt(level, _from())
-	assert_int(level.round.restarts() + 1).is_equal(_from())
+	assert_int(level.round.counters.restarts + 1).is_equal(_from())
 	assert_bool(level.assist_bar.visible).is_true()
 	assert_int(_count(EV_OFFERED)).is_equal(1)
 	level.assist_bar.coins_pressed.emit()

@@ -90,7 +90,7 @@ func refresh() -> void:
 	var charges: int = 0
 	if _round != null:
 		moves = _round.moves()
-		charges = _round.undo_charges()
+		charges = _round.counters.undo_charges
 	moves_label.text = tr("hud_moves") % moves
 	undo_button.text = tr("btn_undo") % charges
 	undo_button.disabled = charges <= 0
