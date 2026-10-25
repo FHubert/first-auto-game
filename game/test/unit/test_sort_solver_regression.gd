@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Regresja SortSolver (T-124): wyniki zapisane z implementacji sprzed optymalizacji.
 ## Optymalizacja nie może zmienić ruchów, `exact`, `expanded` ani ścieżki.
+## CASES to kontrakt trybu 0 (heurystyka granic); tryb 1 (max(h, h2), T-180) ma osobny test.
 
 const DAILY_DAY: int = 20750
 const FAIL_HASH: String = "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
@@ -99,6 +100,14 @@ const CASES: Array = [
 ]
 
 
+func before() -> void:
+	SortSolver.heuristic_mode = 0
+
+
+func after() -> void:
+	SortSolver.heuristic_mode = 0
+
+
 func _board_for(level: int) -> SortBoard:
 	var data: Dictionary
 	if level == 0:
@@ -125,3 +134,26 @@ func test_results_match_recorded_baseline() -> void:
 func test_recorded_paths_replay_to_win() -> void:
 	var r: Dictionary = SortSolver.solve(_board_for(26), 50000, 1.0)
 	assert_bool(SortSolver.replay(_board_for(26), r["path"])).is_true()
+
+
+## Dopuszczalność h2 (dowód empiryczny): tryb 1 daje te same `moves` co tryb 0 tam,
+## gdzie wynik jest dokładny; `expanded` trybu 1 trafia do komunikatu/print.
+func test_mode1_keeps_exact_moves() -> void:
+	for c in CASES:
+		if not c["exact"]:
+			continue
+		var label: String = "L%d b%d w%s" % [c["level"], c["budget"], c["weight"]]
+		SortSolver.heuristic_mode = 1
+		var r: Dictionary = SortSolver.solve(_board_for(c["level"]), c["budget"], c["weight"])
+		print(
+			(
+				"T-180 mode1 %s moves=%d expanded=%d (mode0: %d)"
+				% [label, r["moves"], r["expanded"], c["expanded"]]
+			)
+		)
+		assert_bool(r["exact"]).override_failure_message(label + " exact").is_true()
+		assert_int(r["moves"]).override_failure_message(label + " moves").is_equal(c["moves"])
+		assert_bool(SortSolver.replay(_board_for(c["level"]), r["path"])).is_true()
+		assert_int(r["expanded"]).override_failure_message(label + " expanded").is_less_equal(
+			c["expanded"]
+		)

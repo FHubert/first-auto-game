@@ -58,7 +58,13 @@ func _mix(a: int, b: int) -> int:
 
 
 func _generate_with_params(level_seed: int, params: Dictionary, level: int) -> Dictionary:
-	var result: Dictionary = _search(level_seed, params)
+	# level 0 = Poziom dnia (osobny limit kolorów exact, T-180)
+	var exact_colors: int = (
+		int(GameConfig.get_value("gen_exact_max_colors_daily"))
+		if level == 0
+		else int(GameConfig.get_value("gen_exact_max_colors"))
+	)
+	var result: Dictionary = _search(level_seed, params, exact_colors)
 	if result.is_empty():
 		push_error("ContentGenerator: no solvable board for level %d, fewer colors" % level)
 		var reduced: Dictionary = params.duplicate()
@@ -66,7 +72,7 @@ func _generate_with_params(level_seed: int, params: Dictionary, level: int) -> D
 		reduced["colors"] = colors
 		reduced["tubes"] = colors + int(params["empty_tubes"])
 		reduced["min_moves_floor"] = mini(int(params["min_moves_floor"]), colors)
-		result = _search(level_seed, reduced)
+		result = _search(level_seed, reduced, exact_colors)
 		result["fallback"] = true
 		if not result.has("tubes"):
 			result = _empty_payload(reduced)
@@ -76,18 +82,22 @@ func _generate_with_params(level_seed: int, params: Dictionary, level: int) -> D
 
 ## Tries gen_max_attempts shuffles; returns the first board reaching the floor,
 ## else the best solvable one, else {}.
-func _search(level_seed: int, params: Dictionary) -> Dictionary:
+func _search(level_seed: int, params: Dictionary, exact_max_colors: int) -> Dictionary:
 	var max_states: int = int(GameConfig.get_value("solver_max_states"))
 	# Cheap pass first: boards the solver cannot crack quickly are skipped (reshuffled).
 	var quick_budget: int = int(GameConfig.get_value("gen_quick_state_budget"))
-	var quick: Dictionary = _search_pass(level_seed, params, mini(max_states, quick_budget))
+	var quick: Dictionary = _search_pass(
+		level_seed, params, mini(max_states, quick_budget), exact_max_colors
+	)
 	if not quick.is_empty():
 		return quick
-	return _search_pass(level_seed, params, max_states)
+	return _search_pass(level_seed, params, max_states, exact_max_colors)
 
 
 ## One pass over the attempts with `max_states` for both exact and weighted solves.
-func _search_pass(level_seed: int, params: Dictionary, max_states: int) -> Dictionary:
+func _search_pass(
+	level_seed: int, params: Dictionary, max_states: int, exact_max_colors: int
+) -> Dictionary:
 	var attempts: int = int(GameConfig.get_value("gen_max_attempts"))
 	var weight: float = float(GameConfig.get_value("solver_fallback_weight"))
 	var floor_moves: int = int(params["min_moves_floor"])
@@ -100,7 +110,7 @@ func _search_pass(level_seed: int, params: Dictionary, max_states: int) -> Dicti
 			continue
 		# Exact A* is too slow on big boards (~0.4 ms/state), so try a small budget first.
 		var res: Dictionary = {"moves": SortSolver.NO_SOLUTION, "exact": false}
-		if int(params["colors"]) <= int(GameConfig.get_value("gen_exact_max_colors")):
+		if int(params["colors"]) <= exact_max_colors:
 			var exact_budget: int = int(GameConfig.get_value("gen_exact_state_budget"))
 			res = SortSolver.solve(board, mini(max_states, exact_budget))
 		if int(res["moves"]) == SortSolver.NO_SOLUTION and not res["exact"]:
