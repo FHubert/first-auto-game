@@ -11,6 +11,7 @@ const WAIT_MSEC: int = 150
 
 func _initialize() -> void:
 	# load() w runtime: autoloady (GameConfig) istnieja dopiero po kompilacji tego skryptu.
+	var report: Dictionary = {}
 	var prefetch: RefCounted = load("res://src/systems/level_prefetch.gd").new()
 	for level in LEVELS:
 		var cold: Array = []
@@ -32,5 +33,20 @@ func _initialize() -> void:
 				% [level, cold[MEDIAN_IDX], warm[MEDIAN_IDX]]
 			)
 		)
+		report[str(level)] = {"sync_us": cold[MEDIAN_IDX], "prefetched_us": warm[MEDIAN_IDX]}
 	prefetch.cancel_all()
+	_write_report(report)
 	quit()
+
+
+## T-241: `-- --out <sciezka wzgledem game/>` zapisuje JSON {poziom: {sync_us, prefetched_us}}.
+func _write_report(report: Dictionary) -> void:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var idx: int = args.find("--out")
+	if idx < 0 or idx + 1 >= args.size():
+		return
+	var abs_path: String = ProjectSettings.globalize_path("res://").path_join(args[idx + 1])
+	DirAccess.make_dir_recursive_absolute(abs_path.get_base_dir())
+	var f := FileAccess.open(abs_path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(report, "\t"))
+	f.close()
