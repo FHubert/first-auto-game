@@ -26,6 +26,8 @@ const DEFAULT_SETTINGS: Dictionary = {
 	SETTING_NOTIFICATIONS_ON: true,
 	SETTING_NOTIF_PERMISSION_ASKED: false,
 }
+## Dozwolone tryby w round_in_progress (= Level.MODE_CAMPAIGN / MODE_DAILY).
+const SNAPSHOT_MODES: Array = ["campaign", "daily"]
 ## Int fields as [name, minimum]; default is the initial value of the member.
 const INT_FIELDS: Array = [
 	["coins", 0],
@@ -66,6 +68,8 @@ var purchases: Dictionary = {}
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate(true)
 ## Snapshot rundy w toku (round_snapshot); pusty = brak rundy do wznowienia.
 var round_in_progress: Dictionary = {}
+## Transient (nie w to_dict): from_dict odrzucil snapshot o zlej strukturze (T-211).
+var round_snapshot_rejected: bool = false
 
 
 ## Upgrades an older save dict to SCHEMA_VERSION. Returns a copy.
@@ -120,8 +124,26 @@ static func from_dict(d: Dictionary) -> GameState:
 		state.theme_active = active_v
 	var rip: Variant = data.get("round_in_progress", {})
 	if typeof(rip) == TYPE_DICTIONARY:
-		state.round_in_progress = (rip as Dictionary).duplicate(true)
+		var snap: Dictionary = (rip as Dictionary).duplicate(true)
+		if snap.is_empty() or _valid_snapshot(snap):
+			state.round_in_progress = snap
+		else:
+			state.round_snapshot_rejected = true
+	elif data.has("round_in_progress"):
+		state.round_snapshot_rejected = true
 	return state
+
+
+## Struktura snapshotu rundy (T-211); sama plansza (GameRound) jest walidowana w Level.resume.
+static func _valid_snapshot(snap: Dictionary) -> bool:
+	var mode: Variant = snap.get("mode")
+	if typeof(mode) != TYPE_STRING or not SNAPSHOT_MODES.has(mode):
+		return false
+	var lvl: Variant = _as_int(snap.get("level_no"))
+	var day: Variant = _as_int(snap.get("utc_day"))
+	if lvl == null or int(lvl) < 1 or day == null or int(day) < 0:
+		return false
+	return typeof(snap.get("round")) == TYPE_DICTIONARY
 
 
 func owns_theme(id: String) -> bool:
