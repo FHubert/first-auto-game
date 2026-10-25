@@ -17,12 +17,15 @@ func initialize() -> void:
 	pass
 
 
-## Starts loading a rewarded ad; result arrives as rewarded_loaded / rewarded_load_failed.
+## Starts loading a rewarded ad. Called while an ad is already loaded, it replaces it with a
+## new one (T-257: AdService reloads ads older than ad_max_age_seconds).
+## Result arrives as rewarded_loaded / rewarded_load_failed.
 func load_rewarded() -> void:
 	pass
 
 
-## Starts loading an interstitial; result arrives as interstitial_loaded / ..._load_failed.
+## Starts loading an interstitial; replaces an already loaded one (see load_rewarded).
+## Result arrives as interstitial_loaded / interstitial_load_failed.
 func load_interstitial() -> void:
 	pass
 

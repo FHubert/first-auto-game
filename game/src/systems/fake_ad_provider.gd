@@ -22,6 +22,12 @@ var interstitial_load_calls: int = 0
 ## While true, load_* waits for release_load(ok) instead of finishing at once.
 var hold_loads: bool = false
 var pending_loads: Array[String] = []
+## T-257: > 0 = a loaded ad expires this many seconds after `loaded` (still "ready", but its
+## show ends with granted=false). Time comes from `clock`; load_* replaces a loaded ad.
+var expire_after_seconds: float = 0.0
+var clock: Callable = func() -> float: return Time.get_ticks_msec() / 1000.0
+var _rewarded_at: float = 0.0
+var _interstitial_at: float = 0.0
 var _fail_loads_left: int = 0
 var _fail_code: int = 0
 var _rewarded_loaded: bool = true
@@ -68,12 +74,14 @@ func _finish_or_hold(kind: String) -> void:
 func _complete_load(kind: String, ok: bool) -> void:
 	if kind == "rewarded":
 		_rewarded_loaded = ok
+		_rewarded_at = float(clock.call())
 		if ok:
 			rewarded_loaded.emit()
 		else:
 			rewarded_load_failed.emit(_fail_code)
 	else:
 		_interstitial_loaded = ok
+		_interstitial_at = float(clock.call())
 		if ok:
 			interstitial_loaded.emit()
 		else:
@@ -84,9 +92,18 @@ func is_rewarded_ready() -> bool:
 	return always_ready and _rewarded_loaded
 
 
+func _expired(loaded_at: float) -> bool:
+	return expire_after_seconds > 0.0 and float(clock.call()) - loaded_at >= expire_after_seconds
+
+
 func show_rewarded(callback: Callable) -> void:
 	rewarded_shown += 1
 	_rewarded_loaded = false
+	if _expired(_rewarded_at):
+		if callback.is_valid():
+			callback.call(false)
+		rewarded_closed.emit(false)
+		return
 	if hold_show:
 		held.append({"kind": "rewarded", "cb": callback})
 		return
@@ -106,6 +123,9 @@ func is_interstitial_ready() -> bool:
 func show_interstitial(ad_id: int) -> void:
 	interstitials_shown += 1
 	_interstitial_loaded = false
+	if _expired(_interstitial_at):
+		interstitial_closed.emit(ad_id)
+		return
 	if hold_show:
 		held.append({"kind": "interstitial", "cb": Callable(), "id": ad_id})
 		return

@@ -37,6 +37,9 @@ var _loading: Dictionary = {"rewarded": false, "interstitial": false}
 var _giveup_tracked: Dictionary = {}
 ## Clock time of each format's giveup (T-239); a resume after the cap starts a new series.
 var _giveup_at: Dictionary = {}
+## Last `loaded` per format (T-257): [provider instance id, clock time]; absent = no ad
+## loaded or shown since. An entry of another provider instance is ignored.
+var _loaded_at: Dictionary = {}
 var _preload_started: bool = false
 var _signals_provider: AdProvider
 ## Stable callables (connect/disconnect/is_connected by equality), in order:
@@ -212,8 +215,9 @@ func maybe_show_interstitial(level_no: int, p_ads_removed: bool = false) -> bool
 		return false
 	if rewarded_in_break:
 		return false
-	if not provider.is_interstitial_ready():
+	if not provider.is_interstitial_ready() or _is_stale("interstitial", now):
 		return false
+	_loaded_at.erase("interstitial")
 	if not provider.interstitial_closed.is_connected(_on_interstitial_closed):
 		provider.interstitial_closed.connect(_on_interstitial_closed)
 	var id: int = _begin_ad_break()
@@ -253,16 +257,21 @@ func reset_interstitial_cooldown() -> void:
 func is_rewarded_ready() -> bool:
 	if consent_state == ConsentState.PENDING:
 		return false
-	return provider != null and provider.is_rewarded_ready()
+	return (
+		provider != null
+		and provider.is_rewarded_ready()
+		and not _is_stale("rewarded", float(clock.call()))
+	)
 
 
 ## Shows a rewarded ad; on_reward is called (no args) only if the reward was earned.
 func request_rewarded(placement_id: String, on_reward: Callable) -> bool:
 	if consent_state == ConsentState.PENDING:
 		return false
-	if provider == null or not provider.is_rewarded_ready():
+	if not is_rewarded_ready():
 		Analytics.track_design("ads:rewarded:%s:unavailable" % placement_id)
 		return false
+	_loaded_at.erase("rewarded")
 	_rewarded_in_break = true
 	var break_id: int = _begin_ad_break()
 	var rewarded_done: Array[bool] = [false]
@@ -316,6 +325,7 @@ func poll_loads() -> void:
 	for kind: String in _policies:
 		if (_policies[kind] as AdLoadPolicy).is_due(now):
 			_request_load(kind, now)
+	_refresh_stale(now)
 
 
 ## Back from background (T-239): a format that gave up at least `ad_load_retry_max_seconds`
@@ -336,6 +346,23 @@ func on_app_resumed() -> void:
 		_giveup_tracked.erase(kind)
 		_giveup_at.erase(kind)
 		_request_load(kind, now)
+	_refresh_stale(now)
+
+
+## T-257: a loaded ad older than `ad_max_age_seconds` is not ready (AdMob ads expire after
+## an hour). Missing timestamp = nothing known, treated as fresh.
+func _is_stale(kind: String, now: float) -> bool:
+	if not _loaded_at.has(kind) or int(_loaded_at[kind][0]) != provider.get_instance_id():
+		return false
+	return now - float(_loaded_at[kind][1]) >= float(GameConfig.get_value("ad_max_age_seconds"))
+
+
+## One new load per stale format; replacing an expired ad is not a policy failure
+## (no `ads:load:fail`). With failures pending the normal retry path handles it.
+func _refresh_stale(now: float) -> void:
+	for kind: String in _policies:
+		if _is_stale(kind, now) and (_policies[kind] as AdLoadPolicy).failures() == 0:
+			_request_load(kind, now)
 
 
 ## After a close: load again unless already loading/ready/failed (failures wait for backoff).
@@ -407,6 +434,7 @@ func reset_for_test() -> void:
 	_loading = {"rewarded": false, "interstitial": false}
 	_giveup_tracked = {}
 	_giveup_at = {}
+	_loaded_at = {}
 	_preload_started = false
 	_rewarded_in_break = false
 	_ad_break_open = false
@@ -428,7 +456,9 @@ func _on_load_done(kind: String, ok: bool) -> void:
 	_loading[kind] = false
 	if ok:
 		policy.on_loaded()
+		_loaded_at[kind] = [provider.get_instance_id(), float(clock.call())]
 		return
+	_loaded_at.erase(kind)
 	policy.on_failed(float(clock.call()))
 	Analytics.track_design("ads:load:fail:%s" % kind, float(policy.failures()))
 	if policy.gave_up() and not _giveup_tracked.has(kind):
