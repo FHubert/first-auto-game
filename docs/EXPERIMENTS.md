@@ -1,0 +1,82 @@
+# EXPERIMENTS
+
+Plan eksperymentów A/B (EXP-001…EXP-004 = H1…H4 z `docs/MONETIZATION.md`). Format wg skilla `analytics-review` (A5). Testy A/B działają od Fazy 6 (ADR-004); wcześniej = porównanie kohort przed/po (nie A/B). Paczki wariantu B: `docs/remote_config/<nazwa>.json` (`remote_config_variant` = nazwa pliku). Wszystkie: podział 50/50, wariant A = `default.json` (`DEFAULTS` po T-198).
+
+## Wspólne reguły
+- Guardraile (każdy EXP): D1 wariantu B nie spada o > 2 pp vs A (KPI cel 35 %, kill-line 25 %); ARPDAU B nie niższe niż A (cel 0,05 USD, kill-line 0,02); crash-free B >= 99,5 % (kill-line 99,0 %). Naruszenie guardrailu = zatrzymanie testu i powrót do A.
+- Czas >= 14 dni na wariant; nie zatrzymuj wcześniej poza guardrailem; nie "podglądaj" wyniku do decyzji. DAU < 100 = "za mała próbka" (A2).
+- Próbka (α = 0,05 dwustronnie, moc 0,8): proporcje n/wariant = (1,96 + 0,84)² × [p₁(1 − p₁) + p₂(1 − p₂)] / Δ²; zmienna ciągła n = 2 × (1,96 + 0,84)² × σ² / Δ².
+- Jednostka = zainstalowany gracz kohorty (instalacje, nie DAU). Progi guardraili służą jako reguła stopu; ich moc nie jest liczona osobno.
+
+## Policzone próbki (python3, wzór wyżej)
+| metryka | p₁ → p₂ (Δ) | n/wariant | instalacje łącznie |
+|---|---|---|---|
+| D7 retention | 12 % → 14 % (2 pp) | 4 430 | 8 860 |
+| D1 retention | 35 % → 37 % (2 pp) | 9 028 | 18 056 |
+| IAP conversion | 1,5 % → 2,0 % (0,5 pp) | 10 780 | 21 560 |
+| Impresje/DAU (ciągła) | Δ = 0,3 impr./DAU | 174 przy σ = 1; 697 przy σ = 2 | 348 / 1 394 |
+
+Impresje/DAU: `tools/balance_sim.py --json` podaje tylko średnie (`impressions_per_dau`), nie rozkład per gracz, więc σ = ZWERYFIKUJ (sim nie wypisuje rozkładu per gracz; zmierzyć na pierwszych danych GA). Wiersz σ = 1 i 2 jest ilustracyjny, nie pomiarem.
+
+## Ruch potrzebny (łącznie 2 warianty, 50/50)
+Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7, D1: +1, IAP: +7 okno zakupu), minimum 14 dni zbierania.
+
+| eksperyment (metryka główna) | instal./wariant | 300/dzień | 1000/dzień | 3000/dzień |
+|---|---|---|---|---|
+| EXP-004 / D7 | 4 430 | 30 + 7 = 37 d | 14 + 7 = 21 d | 14 + 7 = 21 d |
+| D1 (guardrail EXP-002) | 9 028 | 61 + 1 = 62 d | 19 + 1 = 20 d | 14 + 1 = 15 d |
+| EXP-003 / IAP conv | 10 780 | 72 + 7 = 79 d | 22 + 7 = 29 d | 14 + 7 = 21 d |
+| EXP-001, EXP-002 / impresje (σ = 2, ilustracyjnie) | 697 | 14 d | 14 d | 14 d |
+
+## Kolejność
+1. EXP-001 (H1) + EXP-002 (H2): tanie (impresje), mogą iść równolegle. EXP-002 jest też strażnikiem D1 (patrz tabela).
+2. EXP-003 (H3, IAP) po zakończeniu EXP-001 lub przy >= 1000 instalacji/dzień; EXP-004 (H4) ostatni, wymaga pełnych kohort D7 (>= 14 dni + 7).
+3. Przy < 1000 instalacji/dzień maks. 2 eksperymenty równolegle; parametry nie mogą się nakładać na ten sam ekran/placement (H1 i H2 to różne parametry: OK). Użytkownik jest w jednym eksperymencie naraz tam, gdzie to możliwe.
+
+## EXP-001: Mnożnik nagrody `double_coins` ×3 (H1)
+- Data startu: do ustalenia (Faza 6) · Status: planned
+- Hipoteza: Jeśli zwiększymy `rewarded_multiplier` z 2.0 do 3.0, odsetek obejrzanych reklam i impresje/DAU wzrosną, a inflacja monet nie obniży D7.
+- Parametr: `rewarded_multiplier` · paczka `h1_b`
+- Warianty: A 2.0 · B 3.0 · 50/50
+- Metryka główna: Ad impressions / DAU (cel >= 3,0); kontrolnie D7 >= 12 %. Sim (seed 1) przewiduje 4.21 vs 4.40 total (brak wzrostu w modelu), więc sygnał nie jest oczekiwany z sim.
+- Guardraile: D1 −2 pp, ARPDAU, crash-free (wspólne)
+- Min. próbka: 697/wariant przy σ = 2 (ZWERYFIKUJ σ); D7 guardrail: czytaj kohortę, 4 430/wariant dla pełnej mocy
+- Czas: >= 14 dni
+- Decyzja: wdrożyć B, jeśli impresje/DAU +0,3 przy braku regresji D7 (< 1 pp) i guardrailach; inaczej A
+- Wynik: (puste)
+
+## EXP-002: Gęstszy interstitial (H2)
+- Data startu: do ustalenia · Status: planned
+- Hipoteza: Jeśli interstitial pojawia się co 4 rundy (min 90 s, od poziomu 5) zamiast 5/120/8, impresje/DAU wzrosną bez spadku D1.
+- Parametry: `interstitial_every_n_rounds`, `interstitial_min_seconds`, `interstitial_min_level` · paczka `h2_b`
+- Warianty: A 5 / 120 / 8 · B 4 / 90 / 5 · 50/50
+- Metryka główna: Ad impressions / DAU (cel >= 3,0); guardrail twardy: D1 >= 35 % i −2 pp. Sim: 4.62 vs 4.40 total.
+- Guardraile: D1 −2 pp (kluczowy, bo interstitial w pierwszej sesji), ARPDAU, crash-free
+- Min. próbka: 697/wariant (impresje, σ = 2, ZWERYFIKUJ); D1 guardrail: 9 028/wariant dla mocy 0,8 na Δ = 2 pp
+- Czas: >= 14 dni
+- Decyzja: wdrożyć B, jeśli impresje/DAU rosną, D1 nie spada o > 2 pp i ARPDAU rośnie; inaczej A
+- Wynik: (puste)
+
+## EXP-003: Wcześniejsza oferta `starter_pack` (H3)
+- Data startu: do ustalenia · Status: planned
+- Hipoteza: Jeśli oferta `starter_pack` pojawia się po poziomie 6 zamiast 12, konwersja IAP wzrośnie.
+- Parametr: `starter_offer_min_level` · paczka `h3_b`
+- Warianty: A 12 · B 6 · 50/50 (sim tego nie modeluje)
+- Metryka główna: IAP conversion (cel >= 1,5 %), próg efektu 1,5 % → 2,0 %
+- Guardraile: D1 −2 pp, ARPDAU, crash-free; dodatkowo odsetek zwrotów/ocen sklepu
+- Min. próbka: 10 780/wariant (21 560 instalacji)
+- Czas: >= 14 dni + 7 dni okna zakupu
+- Decyzja: wdrożyć B, jeśli IAP conv >= 2,0 % (lub różnica istotna, p < 0,05) bez regresji; inaczej A
+- Wynik: (puste)
+
+## EXP-004: Pomoc na plateau od 3. próby (H4)
+- Data startu: do ustalenia · Status: planned
+- Hipoteza: Jeśli pomoc plateau zaczyna się od 3. próby (zamiast 2.), jest mniej natrętna (`level:assist:*`/DAU niżej, wolniejszy sink monet) bez utraty D7 kohorty 56+ (T-187: 46,0 % vs 34,4 %, górna granica z botem).
+- Parametr: `plateau_assist_from_attempt` · paczka `h4_assist_3`
+- Warianty: A 2 (default od T-198) · B 3 · 50/50
+- Metryka główna: D7 kohorty (cel >= 12 %); drugorzędne: `level:assist:*`/DAU, rewarded/DAU. Sim: ARPDAU ok. −5 % w B (total 4.40 → 4.19).
+- Guardraile: D1 −2 pp, ARPDAU, crash-free
+- Min. próbka: 4 430/wariant (D7 12 → 14 %; kohorta 56+ jest mniejsza, więc dłużej lub analiza całej populacji)
+- Czas: >= 14 dni + 7 dni na pełne kohorty D7
+- Decyzja: B tylko gdy D7 nie spada istotnie, D1 i natrętność się poprawiają, ARPDAU nie spada > 5 %; inaczej A
+- Wynik: (puste)
