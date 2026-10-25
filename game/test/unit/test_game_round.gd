@@ -89,14 +89,14 @@ func test_undo_restores_state_and_charges() -> void:
 	assert_array(r.board().to_tubes()).is_equal([[0, 1], [1], []])
 	assert_int(r.moves()).is_equal(0)
 	assert_int(r.result()["undos_used"]).is_equal(1)
-	assert_int(r.undo_charges()).is_equal(free - 1)
+	assert_int(r.counters.undo_charges).is_equal(free - 1)
 	for i in free - 1:
 		r.try_move(0, 1)
 		assert_bool(r.undo()).is_true()
 	r.try_move(0, 1)
 	assert_bool(r.undo()).is_false()
 	assert_int(r.moves()).is_equal(1)
-	r.add_undo_charges(3)
+	r.counters.add_undo_charges(3)
 	assert_int(r.result()["boosters_used"]).is_equal(1)
 	assert_bool(r.undo()).is_true()
 
@@ -108,8 +108,8 @@ func test_restart_resets() -> void:
 	r.restart()
 	assert_array(r.board().to_tubes()).is_equal([[0, 1], [1], []])
 	assert_int(r.moves()).is_equal(0)
-	assert_int(r.undo_charges()).is_equal(int(GameConfig.get_value("undo_free_per_level")))
-	assert_int(r.restarts()).is_equal(1)
+	assert_int(r.counters.undo_charges).is_equal(int(GameConfig.get_value("undo_free_per_level")))
+	assert_int(r.counters.restarts).is_equal(1)
 	assert_bool(r.can_skip()).is_false()
 	assert_bool(r.add_extra_tube()).is_true()
 	for i in int(GameConfig.get_value("skip_unlock_restarts")) - 1:
@@ -207,7 +207,7 @@ func _three_moves_one_undo() -> GameRound:
 func _same_state(a: GameRound, b: GameRound) -> void:
 	assert_array(b.board().tubes).is_equal(a.board().tubes)
 	assert_int(b.moves()).is_equal(a.moves())
-	assert_int(b.undo_charges()).is_equal(a.undo_charges())
+	assert_int(b.counters.undo_charges).is_equal(a.counters.undo_charges)
 	assert_dict(b.result()).is_equal(a.result())
 	assert_int(b.min_moves()).is_equal(a.min_moves())
 
