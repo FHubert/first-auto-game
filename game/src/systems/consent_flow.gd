@@ -5,10 +5,13 @@ extends RefCounted
 ## A failed consent info update ends the flow unpersonalized (UMP_ERROR), without a form.
 
 signal finished(result: Dictionary)
+## A form/prompt answered after form_timeout ended the flow: kind is "ump" or "att".
+signal late_result(kind: String, status: String)
 
 const ATT_SKIPPED := "skipped"
 const UMP_TIMEOUT := "timeout"
 const UMP_ERROR := "error"
+const FORM_TIMEOUT := "form_timeout"
 
 var provider: ConsentProvider
 var ads: Node
@@ -20,6 +23,10 @@ var _started_at: float = 0.0
 var _ump_reported: bool = false
 var _att_reported: bool = false
 var _awaiting_user: bool = false
+var _form_kind: String = ""
+var _form_opened_at: float = 0.0
+var _late_kind: String = ""
+var _ump_final: String = ""
 
 
 func _init(p_provider: ConsentProvider = null) -> void:
@@ -33,8 +40,13 @@ func start() -> void:
 
 ## Call every frame from Boot; finishes the flow once the timeout elapsed.
 func poll() -> void:
-	# Timeout only covers waiting for the SDK, not the user reading a form/dialog.
-	if is_finished or _awaiting_user:
+	if is_finished:
+		return
+	if _awaiting_user:
+		# The SDK timeout does not cover a form/dialog; it has its own limit from opening.
+		var form_limit: float = float(GameConfig.get_value("consent_form_timeout_seconds"))
+		if clock.call() - _form_opened_at >= form_limit:
+			_form_timed_out()
 		return
 	var timeout: float = float(GameConfig.get_value("consent_timeout_seconds"))
 	if clock.call() - _started_at < timeout:
@@ -43,6 +55,25 @@ func poll() -> void:
 	if provider.is_att_supported():
 		_report("att", ATT_SKIPPED)
 	_finish(UMP_TIMEOUT, "", true)
+
+
+func _form_timed_out() -> void:
+	_late_kind = _form_kind
+	_report(_form_kind, FORM_TIMEOUT)
+	if _form_kind == "ump":
+		var att: String = ""
+		if provider.is_att_supported():
+			att = ATT_SKIPPED
+			_report("att", att)
+		_finish(FORM_TIMEOUT, att, true)
+	else:
+		_finish(_ump_final, FORM_TIMEOUT, true)
+
+
+func _open_form(kind: String) -> void:
+	_awaiting_user = true
+	_form_kind = kind
+	_form_opened_at = clock.call()
 
 
 func _on_info_updated(ok: bool) -> void:
@@ -56,7 +87,7 @@ func _on_info_updated(ok: bool) -> void:
 			_report("att", att)
 		_finish(UMP_ERROR, att, false)
 	elif provider.is_form_required():
-		_awaiting_user = true
+		_open_form("ump")
 		provider.show_consent_form(_after_ump)
 	else:
 		_after_ump(provider.get_ump_status())
@@ -64,7 +95,9 @@ func _on_info_updated(ok: bool) -> void:
 
 func _after_ump(status: String) -> void:
 	if is_finished:
+		_emit_late("ump", status)
 		return
+	_ump_final = status
 	_report("ump", status)
 	if not provider.is_att_supported():
 		_finish(status, "", false)
@@ -72,10 +105,11 @@ func _after_ump(status: String) -> void:
 		_report("att", ATT_SKIPPED)
 		_finish(status, ATT_SKIPPED, false)
 	elif provider.get_att_status() == ConsentProvider.ATT_NOT_DETERMINED:
-		_awaiting_user = true
+		_open_form("att")
 		provider.request_att(
 			func(att: String) -> void:
 				if is_finished:
+					_emit_late("att", att)
 					return
 				_report("att", att)
 				_finish(status, att, false)
@@ -84,6 +118,13 @@ func _after_ump(status: String) -> void:
 		var att_now: String = provider.get_att_status()
 		_report("att", att_now)
 		_finish(status, att_now, false)
+
+
+func _emit_late(kind: String, status: String) -> void:
+	if _late_kind != kind:
+		return
+	_late_kind = ""
+	late_result.emit(kind, status)
 
 
 func _report(kind: String, status: String) -> void:

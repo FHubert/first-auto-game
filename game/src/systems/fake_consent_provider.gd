@@ -16,7 +16,10 @@ var respond: bool = true
 var hold_form: bool = false
 ## When false request_consent_info_update reports a failure (ok=false).
 var info_update_ok: bool = true
+## When true the ATT prompt stays open: its callback is stored, not called.
+var hold_att: bool = false
 var pending_form_callback: Callable
+var pending_att_callback: Callable
 var pending_info_callback: Callable
 var info_update_calls: int = 0
 var form_shown: int = 0
@@ -92,7 +95,22 @@ func get_att_status() -> String:
 
 func request_att(on_done: Callable) -> void:
 	att_requests += 1
+	if hold_att:
+		pending_att_callback = func(status: String) -> void:
+			_att_current = status
+			on_done.call(status)
+		return
 	if not respond:
 		return
 	_att_current = att_status
 	on_done.call(_att_current)
+
+
+## Test hook: answers a held UMP form (hold_form mode).
+func release_form(status: String) -> void:
+	pending_form_callback.call(status)
+
+
+## Test hook: answers a held ATT prompt (hold_att mode).
+func release_att(status: String) -> void:
+	pending_att_callback.call(status)

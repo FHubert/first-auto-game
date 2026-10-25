@@ -93,6 +93,7 @@ func begin_consent(p_provider: ConsentProvider = null) -> void:
 	_consent_flow.clock = clock
 	consent_state = ConsentState.PENDING
 	_consent_flow.finished.connect(_on_consent_finished)
+	_consent_flow.late_result.connect(_on_consent_late_result)
 	_consent_flow.start()
 
 
@@ -126,6 +127,23 @@ func _on_privacy_options_closed(status: String) -> void:
 	if provider != null:
 		provider.set_personalized(personalized)
 	report_consent("ump", ump)
+	consent_finished.emit(consent_result)
+
+
+## Form answered after consent_form_timeout_seconds: same path as closing privacy options.
+func _on_consent_late_result(kind: String, status: String) -> void:
+	if kind == "ump":
+		_on_privacy_options_closed(status)
+		return
+	var ump: String = str(consent_result.get("ump_status", ""))
+	var ump_ok: bool = ump in [ConsentProvider.UMP_OBTAINED, ConsentProvider.UMP_NOT_REQUIRED]
+	var personalized: bool = ump_ok and status == ConsentProvider.ATT_AUTHORIZED
+	consent_result = consent_result.duplicate()
+	consent_result["att_status"] = status
+	consent_result["personalized"] = personalized
+	if provider != null:
+		provider.set_personalized(personalized)
+	report_consent("att", status)
 	consent_finished.emit(consent_result)
 
 
