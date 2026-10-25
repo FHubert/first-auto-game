@@ -67,7 +67,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: `game/src/ui/ui_tokens.gd` (`class_name UiTokens`): wszystkie kolory z tabeli „Tokeny” (nazwy 1:1), rozmiary fontu i wymiary z tabeli „Skala” już w px Godota (np. `FONT_XS=24`, `BTN_H=103`, `HUD_BTN=118`, `TOUCH_MIN=81`, `SCREEN_PAD=37`). `ui_theme.tres`: domyślny `Button` = wariant Secondary oraz type variations `ButtonPrimary`, `ButtonAccent`, `ButtonSecondary`, `ButtonIcon`, `ButtonNav`, `LabelTitle`, `LabelCaption`, `LabelSection`, `Card`, `CardRow`; każdy przycisk ma stany normal/hover/pressed/disabled/focus jako `StyleBoxFlat` z efektem „wypukłym” (cień bez rozmycia, offset 7–13 px w `*_SHADOW`; pressed = cień 0 + `content_margin_top` +N). Test gdUnit4: każdy wariant istnieje, kontrast tekst/tło ≥ 4,5:1 liczony z hex dla każdego wariantu, min. wysokości ≥ `TOUCH_MIN`. Brak zmian w logice ani w wyglądzie ekranów (same zasoby). ~220 linii.
   Skill: `godot-dev` + `asset-gen`
 
-- [ ] T-229 `todo` UI v2: ikony z makiet w `gen_assets.py` (zależy od T-228)
+- [ ] T-229 `in_progress` UI v2: ikony z makiet w `gen_assets.py` (zależy od T-228)
   KA: `tools/gen_assets.py` odtwarza ikony z `docs/ui/README.md` → „Ikony” (kształty = inline `<svg>` w `docs/ui/source/*.dc.html`): liniowe, obrys 2,2/24 siatki, zaokrąglone końce; render 4× + skalowanie do 96 px PNG, biel na przezroczystym (moneta i płomień w kolorach `ACCENT`/`STREAK`). `UiTokens.icon(name) -> Texture2D`. `tools/test_tools.py`: komplet nazw, 96×96, kanał alfa, deterministyczny hash (2 przebiegi identyczne). `docs/LICENSES.md` bez zmian. ~250 linii (podzielić na 2 PR, jeśli > 300).
   Skill: `asset-gen`
 

@@ -178,6 +178,136 @@ UI_ICONS = {
 }
 
 
+# --- UI v2 icons (T-229): mini-DSL on a 24 grid, rasterised with PIL (4x supersampling -> 96 px) ---
+def _bez(p0, p1, p2, p3, n=12):
+    pts = []
+    for i in range(n + 1):
+        t = i / n
+        u = 1 - t
+        pts.append(tuple(u**3 * a + 3 * u * u * t * b + 3 * u * t * t * c + t**3 * d for a, b, c, d in zip(p0, p1, p2, p3)))
+    return pts
+
+
+def _mirror(pts):
+    return [(24 - x, y) for x, y in reversed(pts)]
+
+
+_FLAME = (
+    [(12, 2.5)] + _bez((12, 2.5), (13, 6.5), (17.5, 8.5), (17.5, 13.5))[1:]
+    + [(12 + 5.5 * math.cos(math.radians(a)), 13.5 + 5.5 * math.sin(math.radians(a))) for a in range(0, 181, 15)][1:-1]
+    + _bez((6.5, 13.5), (6.5, 11.3), (7.6, 9.7), (8.7, 8.7))
+    + _bez((8.7, 8.7), (8.7, 10.8), (9.7, 11.9), (10.8, 11.9))
+    + _bez((10.8, 11.9), (10.8, 7.7), (9.8, 5.6), (12, 2.5))
+)
+_SHIELD_R = _bez((20, 12), (20, 16.5), (16.6, 20.3), (12, 21))
+_SHIELD = [(12, 3), (20, 6)] + _SHIELD_R + _mirror(_SHIELD_R)[1:] + [(4, 6)]
+_PALETTE = [(14, 19), (13.5, 17.7), (13, 16.5), (15, 14.5), (17.3, 14.5)]
+_PALETTE_TOP = _bez((22, 9.8), (22, 6), (17.5, 3), (12, 3))
+_COIN = "#FFD166"
+_COIN_EDGE = "#C99A2E"
+
+
+def _L(*c):
+    return [("line", *c[i : i + 4]) for i in range(0, len(c), 4)]
+
+
+UI_V2_ICONS: dict[str, list[tuple]] = {
+    "pause": _L(9, 5, 9, 19, 15, 5, 15, 19),
+    "undo": [("poly", [(9, 14), (4, 9), (9, 4)], False), ("line", 4, 9, 14.5, 9), ("arc", 14.5, 14.5, 5.5, -90, 90),
+             ("line", 14.5, 20, 11, 20)],
+    "restart": [("arc", 12, 12, 9, 228, 180), ("poly", [(6, 5.3), (3, 8)], False),
+                ("poly", [(3, 3), (3, 8), (8, 8)], False)],
+    "hint": [("arc", 12, 9.3, 6.8, 125, 55), ("poly", [(8.1, 14.9), (9, 17), (15, 17), (15.9, 14.9)], False),
+             *_L(9, 18, 15, 18, 10, 21.5, 14, 21.5)],
+    "add_tube": [("poly", [(7, 3), (7, 16)], False), ("arc", 10, 16, 3, 0, 180), *_L(13, 16, 13, 3, 5.5, 3, 14.5, 3),
+                 *_L(19, 8, 19, 14, 16, 11, 22, 11)],
+    "coin": [("circle", 12, 12, 9.5, _COIN, _COIN_EDGE, 2.2), ("circle", 12, 12, 5.5, None, _COIN_EDGE, 2.0)],
+    "streak": [("poly", _FLAME, True, "#FB8500")],
+    "calendar": [("rrect", 3, 5, 18, 16, 3), *_L(3, 10, 21, 10, 8, 3, 8, 7, 16, 3, 16, 7)],
+    "palette": [("arc", 12, 12, 9, 90, 270), ("poly", _PALETTE, False), ("arc", 17.3, 9.8, 4.7, 0, 90),
+                ("poly", _PALETTE_TOP, False), ("circle", 7.5, 11, 1.1, "#FFFFFF", None, 0),
+                ("circle", 10, 7, 1.1, "#FFFFFF", None, 0), ("circle", 15, 7, 1.1, "#FFFFFF", None, 0)],
+    "bag": [("poly", [(5.5, 8), (18.5, 8), (17.3, 20.5), (6.7, 20.5)], True), ("arc", 12, 8, 3, 180, 0)],
+    "gear": [("circle", 12, 12, 3, None, "#FFFFFF", 2.2),
+             *_L(12, 2.5, 12, 5.5, 12, 18.5, 12, 21.5, 2.5, 12, 5.5, 12, 18.5, 12, 21.5, 12),
+             *_L(5.3, 5.3, 7.4, 7.4, 16.6, 16.6, 18.7, 18.7, 5.3, 18.7, 7.4, 16.6, 16.6, 7.4, 18.7, 5.3)],
+    "play": [("poly", [(8, 5), (19, 12), (8, 19)], True, "#FFFFFF")],
+    "video": [("rrect", 3, 6, 13, 12, 2), ("poly", [(16, 10), (21, 7), (21, 17), (16, 14)], False)],
+    "close": _L(6, 6, 18, 18, 18, 6, 6, 18),
+    "back": [("poly", [(15, 5), (8, 12), (15, 19)], False)],
+    "arrow_right": [("line", 5, 12, 19, 12), ("poly", [(13, 6), (19, 12), (13, 18)], False)],
+    "check": [("poly", [(5, 12), (10, 17), (20, 7)], False)],
+    "skip": [("poly", [(5, 5), (14, 12), (5, 19)], True), ("line", 18, 5, 18, 19)],
+    "music": [("poly", [(9, 18), (9, 5), (20, 3), (20, 16)], False), ("circle", 6, 18, 3, None, "#FFFFFF", 2.2),
+              ("circle", 17, 16, 3, None, "#FFFFFF", 2.2)],
+    "speaker": [("poly", [(4, 9), (4, 15), (8, 15), (13, 19), (13, 5), (8, 9)], True), ("arc", 12.5, 12, 5, -37, 37),
+                ("arc", 13, 12, 8.5, -45, 45)],
+    "vibration": [("rrect", 7, 3, 10, 18, 2), *_L(3, 8, 3, 16, 21, 8, 21, 16)],
+    "symbols": [("circle", 7, 7, 3, None, "#FFFFFF", 2.2), ("rrect", 14, 4, 6, 6, 1),
+                ("poly", [(7, 14), (10, 20), (4, 20)], True), ("poly", [(17, 14), (20, 17), (17, 20), (14, 17)], True)],
+    "globe": [("circle", 12, 12, 9, None, "#FFFFFF", 2.2), ("line", 3, 12, 21, 12), ("arc", 1.28, 12, 14, -40, 40),
+              ("arc", 22.72, 12, 14, 140, 220)],
+    "shield": [("poly", _SHIELD, True)],
+}
+
+
+def render_icon(prims: list[tuple], size: int = 96, scale: int = 4):
+    from PIL import Image, ImageDraw
+
+    big = size * scale
+    u = big / 24.0
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    white = (255, 255, 255, 255)
+    w = round(2.2 * u)
+
+    def dot(x, y, col=white, r=None):
+        r = w / 2 if r is None else r
+        d.ellipse((x * u - r, y * u - r, x * u + r, y * u + r), fill=col)
+
+    def seg(x1, y1, x2, y2):
+        d.line((x1 * u, y1 * u, x2 * u, y2 * u), fill=white, width=w)
+        dot(x1, y1)
+        dot(x2, y2)
+
+    for pr in prims:
+        kind = pr[0]
+        if kind == "line":
+            seg(*pr[1:5])
+        elif kind == "poly":
+            pts, closed = pr[1], pr[2]
+            if len(pr) > 3:
+                d.polygon([(x * u, y * u) for x, y in pts], fill=pr[3])
+                continue
+            for i in range(len(pts) - (0 if closed else 1)):
+                seg(*pts[i], *pts[(i + 1) % len(pts)])
+        elif kind == "circle":
+            cx, cy, r = pr[1:4]
+            fill, stroke, sw = (list(pr[4:]) + [None, None, 2.2])[:3] if len(pr) > 4 else (None, "#FFFFFF", 2.2)
+            if fill:
+                d.ellipse(((cx - r) * u, (cy - r) * u, (cx + r) * u, (cy + r) * u), fill=fill)
+            if stroke and sw > 0:
+                ro = (r + sw / 2) * u
+                d.ellipse((cx * u - ro, cy * u - ro, cx * u + ro, cy * u + ro), outline=stroke, width=round(sw * u))
+        elif kind == "arc":
+            cx, cy, r, a0, a1 = pr[1:6]
+            d.arc(((cx - r) * u - w / 2, (cy - r) * u - w / 2, (cx + r) * u + w / 2, (cy + r) * u + w / 2), a0, a1,
+                  fill=white, width=w)
+            for a in (a0, a1):
+                dot(cx + r * math.cos(math.radians(a)), cy + r * math.sin(math.radians(a)))
+        elif kind == "rrect":
+            x, y, rw, rh, rx = pr[1:6]
+            d.rounded_rectangle((x * u - w / 2, y * u - w / 2, (x + rw) * u + w / 2, (y + rh) * u + w / 2),
+                                rx * u + w / 2, outline=white, width=w)
+    return img.resize((size, size), Image.LANCZOS)
+
+
+def write_ui_v2_icons(out: Path) -> None:
+    (out / "ui" / "v2").mkdir(parents=True, exist_ok=True)
+    for name, prims in UI_V2_ICONS.items():
+        render_icon(prims).save(out / "ui" / "v2" / f"{name}.png", optimize=False)
+
+
 def tube_image(shape: str):
     from PIL import Image, ImageDraw
 
@@ -270,9 +400,10 @@ def main() -> int:
     for name, body in UI_ICONS.items():
         (args.out / "ui" / f"{name}.svg").write_text(svg(128, 128, body), encoding="utf-8")
     write_pngs(args.out)
+    write_ui_v2_icons(args.out)
     args.themes_out.parent.mkdir(parents=True, exist_ok=True)
     args.themes_out.write_text(themes_doc(), encoding="utf-8")
-    print(f"wrote 6 ui icons, tubes, icons, {args.themes_out.name}")
+    print(f"wrote 6 ui icons, {len(UI_V2_ICONS)} v2 icons, tubes, icons, {args.themes_out.name}")
     return 0
 
 
