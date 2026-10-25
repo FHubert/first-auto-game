@@ -272,7 +272,11 @@ Godot 4.4.1 → 4.7.2, gdUnit4 → v7, target API 36 (ADR-008). make check zielo
 
 ## 2026-10-25 — sesja #20 (continuous-dev, 07:11– UTC)
 - T-209: `make sim` — `impressions_per_player_day` {mean, sd, n} i `ads_per_dau_ci95` (rewarded/interstitial/total); sd = 3,15 impr./gracz-dzień (5000 graczy, seed 1), połowa CI total 0,095 / 0,041 / 0,029 dla 1000 / 5000 / 10 000; domyślne `--players` 1000 → 5000 (0,6 s); EXP-001/002 próbka 1 724 gracz-dni/wariant (σ z modelu, ZWERYFIKUJ). 59 testów tools (56 → 59).
+- T-219: `TestClock.ticking_float` (zegar `float` dla `ConsentFlow`/`AdService`) w 3 suitach zgody/reklam (liczba testów bez zmian) + `test_consent_att_next_start.gd` (2 testy: po `att:skipped` następny start pyta ATT 1×, po `att:denied` nie pyta); bez zmian w `game/src`.
 - T-214: `level:fail:abandon:<przedział>` (wartość = próba) przy porzuceniu snapshotu kampanii w `App._discard_snapshot`; `GameRound.extra_tubes_added()` zamiast `to_dict()` w `Level`; 3 testy; `# gdlint: ignore=max-public-methods` w `GameRound` (Inbox T-227).
 - T-222: pomiar wariantu A (limity 2000/5000/10000) — bramka T-210 niespełniona przy każdym (p95 56+ 326/748/1433 ms; poprawność 24/24, ale ścieżki dłuższe przy 2000); wybrany B (ADR-014): `HintJob` na `WorkerThreadPool` + `SolverCancel` (co 256 rozwinięć), przycisk „…”, monety po wyniku, wynik odrzucany po zmianie planszy; wątek główny 0,1–0,3 ms zamiast do 2,7 s.
 - T-222: odstępstwo od KA — `StuckPanel.show_for` zostaje synchroniczny (wołane tylko przy braku ruchów, solver rozwija 1 stan, 0,3–0,9 ms); test pilnuje ≤ 2 rozwinięć.
 - T-225: `AdProvider.load_rewarded/load_interstitial` + 4 sygnały, `FakeAdProvider` (`fail_next_loads`, `hold_loads`/`release_load`, gotowość od `loaded` do pokazu), `AdService.poll_loads` (preload po zgodzie, ponowne ładowanie po zamknięciu/watchdogu, ponawianie wg `AdLoadPolicy`), `Ads.set_ads_removed` z `Purchases`, eventy `ads:load:fail|giveup:<format>`; 6 testów (642 → 648), `make playtest` identyczny jak przed zmianą (poza `elapsed_ms`); ADR-013 Accepted.
+
+## 2026-10-25 — sesja interaktywna (Hubert)
+- Zlecenie: redesign UI. Do P1 dopisane T-228…T-236 („UI v2”: tokeny + Theme, ikony, HUD, plansza, Home, overlaye, Themes/Shop/Settings, mikroanimacje, odbiór kadrów sklepowych). Kierunek w „Pytania do Huberta”.

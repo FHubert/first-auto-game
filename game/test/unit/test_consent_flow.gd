@@ -4,7 +4,7 @@ var _fake: FakeAnalyticsProvider
 var _prev_analytics: AnalyticsProvider
 var _provider: FakeConsentProvider
 var _flow: ConsentFlow
-var _now: float = 0.0
+var _now: Array[float] = [0.0]
 var _finished_count: int = 0
 
 
@@ -15,9 +15,9 @@ func before_test() -> void:
 	GameConfig.reset()
 	_provider = FakeConsentProvider.new()
 	_flow = ConsentFlow.new(_provider)
-	_now = 100.0
+	_now[0] = 100.0
 	_finished_count = 0
-	_flow.clock = func() -> float: return _now
+	_flow.clock = TestClock.ticking_float(_now)
 	_flow.finished.connect(func(_r: Dictionary) -> void: _finished_count += 1)
 
 
@@ -85,16 +85,16 @@ func test_outside_eea_no_form() -> void:
 func test_timeout_finishes_unpersonalized() -> void:
 	_provider.respond = false
 	_flow.start()
-	_now = 107.9
+	_now[0] = 107.9
 	_flow.poll()
 	assert_bool(_flow.is_finished).is_false()
-	_now = 108.0
+	_now[0] = 108.0
 	_flow.poll()
 	assert_bool(_flow.is_finished).is_true()
 	assert_bool(_flow.result["timed_out"]).is_true()
 	assert_bool(_flow.result["personalized"]).is_false()
 	assert_bool(_flow.result["can_request_ads"]).is_true()
-	_now = 200.0
+	_now[0] = 200.0
 	_flow.poll()
 	assert_int(_finished_count).is_equal(1)
 	assert_int(_count("consent:ump:")).is_equal(1)
@@ -136,7 +136,7 @@ func test_timeout_ios_reports_both_once() -> void:
 	_provider.respond = false
 	_provider.att_supported = true
 	_flow.start()
-	_now = 120.0
+	_now[0] = 120.0
 	_flow.poll()
 	assert_int(_count("consent:ump:")).is_equal(1)
 	assert_int(_count("consent:att:")).is_equal(1)
@@ -150,7 +150,7 @@ func test_user_reading_form_is_not_timeout() -> void:
 	_eea("obtained")
 	_provider.hold_form = true
 	_flow.start()
-	_now = 200.0
+	_now[0] = 200.0
 	_flow.poll()
 	assert_bool(_flow.is_finished).is_false()
 	_provider.pending_form_callback.call("obtained")
@@ -165,7 +165,7 @@ func test_late_callback_after_timeout_ignored() -> void:
 	_eea("obtained")
 	_provider.respond = false
 	_flow.start()
-	_now = 120.0
+	_now[0] = 120.0
 	_flow.poll()
 	_flow.poll()
 	var before: Dictionary = _flow.result.duplicate()
@@ -217,7 +217,7 @@ func test_info_update_error_ios_reports_att_skipped() -> void:
 func test_info_update_error_then_poll_no_timeout() -> void:
 	_provider.info_update_ok = false
 	_flow.start()
-	_now = 200.0
+	_now[0] = 200.0
 	_flow.poll()
 	assert_int(_count("consent:ump:")).is_equal(1)
 	assert_bool(_has("consent:ump:timeout")).is_false()
