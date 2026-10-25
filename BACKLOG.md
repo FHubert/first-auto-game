@@ -75,11 +75,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: górny pasek: `ButtonIcon` pauza · „Poziom N” (`LabelTitle`, 48 px) + „Ruchy: X · cel Y” (`TEXT_MUTED`, 28 px) · pill monet; dolny pasek: 4 przyciski HUD 118 px z ikoną i podpisem pod spodem (Cofnij z badge licznika ładunków, Od nowa, Podpowiedź z ceną, +Probówka z ceną / ikoną video przy rewarded). Brak tekstu w przyciskach. Wysokości pasków jako stałe `UiTokens` używane przez `Level.fit_board_*` (jedna prawda). Istniejące sygnały HUD/`LevelOffers` i asercje testów bez zmian. Test: każdy przycisk ≥ `TOUCH_MIN`, plansza poziomu 60 mieści się między paskami w 720×1280 i 720×1560. Kadry sklepowe 01/02 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-231 `review` UI v2: probówki i plansza wg `docs/ui/README.md` → „Plansza i probówki” (zależy od T-228) → PR #218
+- [x] T-231 `done` UI v2: probówki i plansza wg `docs/ui/README.md` → „Plansza i probówki” (zależy od T-228) → PR #218 (zmergowany 2026-10-25)
   KA: `TubeView`: wymiary, obrys, alfy szkła (0,55 / wybrana 0,95), rant, zaokrąglone dno, refleks i podniesienie wybranej dokładnie wg README (×1,846). Układ: ≤ 8 probówek → max 4 w rzędzie; > 8 → skalowanie proporcjonalne, rzędy po max 7. Tło płaskie w kolorze `background` motywu. Test: dla n = 4…14 wszystkie probówki w granicach ekranu i bez nakładania; brak regresji `test_board_view*`/`test_tube_view*`. Kadry 01/02 przegenerowane + zestawienie z makietą. ~250 linii.
   Skill: `godot-dev`
 
-- [ ] T-232 `review` UI v2: Home wg `mockups/04_home.png` (zależy od T-228, T-229) → PR #219
+- [x] T-232 `done` UI v2: Home wg `mockups/04_home.png` (zależy od T-228, T-229) → PR #219 (zmergowany 2026-10-25)
   KA: pill monet + pill serii z rekordem; logo „Vialo” (96 px, 900); miniatura 5 probówek; `ButtonPrimary` „Graj / Poziom N” 140 px; karta Poziomu dnia (ikona kalendarza, badge NOWOŚĆ, nagroda, licznik, `ButtonAccent` „Zagraj”, „ukończone N”); pasek „Do motywu X” (`ACCENT` na `BG_DEEP`); 3 × `ButtonNav` (Motywy, Sklep, Ustawienia) zamiast pełnoszerokich przycisków. Istniejące testy Home zielone (dozwolona zmiana ścieżek węzłów). Kadry 03/04 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
