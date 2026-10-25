@@ -1,6 +1,6 @@
 # EXPERIMENTS
 
-Plan eksperymentów A/B (EXP-001…EXP-004 = H1…H4 z `docs/MONETIZATION.md`). Format wg skilla `analytics-review` (A5). Testy A/B działają od Fazy 6 (ADR-004); wcześniej = porównanie kohort przed/po (nie A/B). Paczki wariantu B: `docs/remote_config/<nazwa>.json` (`remote_config_variant` = nazwa pliku). Wszystkie: podział 50/50, wariant A = `default.json` (`DEFAULTS` po T-198).
+Plan eksperymentów A/B (EXP-001…EXP-004 = H1…H4 z `docs/MONETIZATION.md`; EXP-005 — meta/D7, przegląd 2026-W43). Format wg skilla `analytics-review` (A5). Testy A/B działają od Fazy 6 (ADR-004); wcześniej = porównanie kohort przed/po (nie A/B). Paczki wariantu B: `docs/remote_config/<nazwa>.json` (`remote_config_variant` = nazwa pliku). Wszystkie: podział 50/50, wariant A = `default.json` (`DEFAULTS` po T-198).
 
 ## Wspólne reguły
 - Guardraile (każdy EXP): D1 wariantu B nie spada o > 2 pp vs A (KPI cel 35 %, kill-line 25 %); ARPDAU B nie niższe niż A (cel 0,05 USD, kill-line 0,02); crash-free B >= 99,5 % (kill-line 99,0 %). Naruszenie guardrailu = zatrzymanie testu i powrót do A.
@@ -32,6 +32,7 @@ Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7
 1. EXP-001 (H1) + EXP-002 (H2): tanie (impresje), mogą iść równolegle. EXP-002 jest też strażnikiem D1 (patrz tabela).
 2. EXP-003 (H3, IAP) po zakończeniu EXP-001 lub przy >= 1000 instalacji/dzień; EXP-004 (H4) ostatni, wymaga pełnych kohort D7 (>= 14 dni + 7).
 3. Przy < 1000 instalacji/dzień maks. 2 eksperymenty równolegle; parametry nie mogą się nakładać na ten sam ekran/placement (H1 i H2 to różne parametry: OK). Użytkownik jest w jednym eksperymencie naraz tam, gdzie to możliwe.
+4. EXP-005 (notyfikacja „powrót”, D7) po EXP-004 albo równolegle z EXP-001/EXP-002 — nigdy równolegle z EXP-004 (ta sama metryka główna D7); wymaga pluginu notyfikacji (Faza 5, ADR-012) i paczki `h5_comeback_2` (T-284).
 
 ## EXP-001: Mnożnik nagrody `double_coins` ×3 (H1)
 - Data startu: do ustalenia (Faza 6) · Status: planned
@@ -79,4 +80,15 @@ Dni = ceil(instalacje łącznie / instalacje dziennie) + okno obserwacji (D7: +7
 - Min. próbka: 4 430/wariant (D7 12 → 14 %; kohorta 56+ jest mniejsza, więc dłużej lub analiza całej populacji)
 - Czas: >= 14 dni + 7 dni na pełne kohorty D7
 - Decyzja: B tylko gdy D7 nie spada istotnie, D1 i natrętność się poprawiają, ARPDAU nie spada > 5 %; inaczej A
+- Wynik: (puste)
+
+## EXP-005: Notyfikacja „powrót” w oknie ratowania serii (D7, meta)
+- Data startu: do ustalenia (Faza 6; wcześniej porównanie kohort przed/po, nie A/B) · Status: planned
+- Hipoteza: Jeśli skrócimy `notif_comeback_days` z 3 do 2, D7 wzrośnie, bo przypomnienie „powrót” przyjdzie w lokalnym dniu D+2 — gdy powracający gracz z serią jest jeszcze w stanie grace (`streak_grace_days` = 1) i może ją uratować rewarded `streak_save` — zamiast w D+3, gdy seria jest już zresetowana do 1 (`NotificationPlanner.plan`: wpis `comeback` = `local_day + notif_comeback_days`; `DailyRewards`: grace gdy `utc_day − last − 1 ≤ streak_grace_days`).
+- Parametr (remote config / GameConfig): `notif_comeback_days` (`RANGES` 2..14) · paczka `h5_comeback_2` (T-284)
+- Warianty: A (kontrola) 3 · B 2 · podział 50/50
+- Metryka główna: D7 retention kohorty (KPI.md, cel ≥ 12 %, kill-line 8 %); drugorzędne: `streak:saved` / DAU i `ads:rewarded:streak_save:*` / DAU (dźwignia, której dotyczy hipoteza), `notif:scheduled:comeback` / DAU (kontrola ekspozycji); guardraile: wspólne (D1 −2 pp, ARPDAU, crash-free) + opt-out powiadomień `settings:notifications:off` / DAU w B ≤ A + 1 pp (event z T-284).
+- Min. próbka: >= 4 430 instalacji/wariant (D7 12 % → 14 %, tabela „Policzone próbki”) lub 14 dni + 7 dni na pełne kohorty D7; efekt dotyczy tylko graczy ze zgodą na notyfikacje (`notif:permission:granted` albo `not_required`) — analiza główna na całej kohorcie (intent-to-treat), podgrupa ze zgodą raportowana osobno; zatrzymaj wcześniej tylko przy guardrailu.
+- Czas: >= 14 dni zbierania + 7 dni obserwacji D7 (przy 300 instal./dzień ok. 37 dni — tabela „Ruch potrzebny”, wiersz D7).
+- Decyzja po teście: wdrożyć B (`DEFAULTS` `notif_comeback_days` = 2), jeśli D7 +≥ 2 pp (lub różnica istotna, p < 0,05) bez naruszenia guardraili i opt-out B ≤ A + 1 pp; inaczej zostaw A. Przed Fazą 6 (bez Remote Config A/B): zmiana w `DEFAULTS` i porównanie tygodniowych kohort D7 przed/po (to NIE jest A/B — sezonowość i mix ruchu zaburzają wynik; decyzja tylko przy różnicy ≥ 2 pp w 2 kolejnych kohortach).
 - Wynik: (puste)
