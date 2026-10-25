@@ -75,11 +75,11 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: górny pasek: `ButtonIcon` pauza · „Poziom N” (`LabelTitle`, 48 px) + „Ruchy: X · cel Y” (`TEXT_MUTED`, 28 px) · pill monet; dolny pasek: 4 przyciski HUD 118 px z ikoną i podpisem pod spodem (Cofnij z badge licznika ładunków, Od nowa, Podpowiedź z ceną, +Probówka z ceną / ikoną video przy rewarded). Brak tekstu w przyciskach. Wysokości pasków jako stałe `UiTokens` używane przez `Level.fit_board_*` (jedna prawda). Istniejące sygnały HUD/`LevelOffers` i asercje testów bez zmian. Test: każdy przycisk ≥ `TOUCH_MIN`, plansza poziomu 60 mieści się między paskami w 720×1280 i 720×1560. Kadry sklepowe 01/02 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
-- [ ] T-231 `review` UI v2: probówki i plansza wg `docs/ui/README.md` → „Plansza i probówki” (zależy od T-228) → PR #218
+- [x] T-231 `done` UI v2: probówki i plansza wg `docs/ui/README.md` → „Plansza i probówki” (zależy od T-228) → PR #218 (zmergowany 2026-10-25)
   KA: `TubeView`: wymiary, obrys, alfy szkła (0,55 / wybrana 0,95), rant, zaokrąglone dno, refleks i podniesienie wybranej dokładnie wg README (×1,846). Układ: ≤ 8 probówek → max 4 w rzędzie; > 8 → skalowanie proporcjonalne, rzędy po max 7. Tło płaskie w kolorze `background` motywu. Test: dla n = 4…14 wszystkie probówki w granicach ekranu i bez nakładania; brak regresji `test_board_view*`/`test_tube_view*`. Kadry 01/02 przegenerowane + zestawienie z makietą. ~250 linii.
   Skill: `godot-dev`
 
-- [ ] T-232 `review` UI v2: Home wg `mockups/04_home.png` (zależy od T-228, T-229) → PR #219
+- [x] T-232 `done` UI v2: Home wg `mockups/04_home.png` (zależy od T-228, T-229) → PR #219 (zmergowany 2026-10-25)
   KA: pill monet + pill serii z rekordem; logo „Vialo” (96 px, 900); miniatura 5 probówek; `ButtonPrimary` „Graj / Poziom N” 140 px; karta Poziomu dnia (ikona kalendarza, badge NOWOŚĆ, nagroda, licznik, `ButtonAccent` „Zagraj”, „ukończone N”); pasek „Do motywu X” (`ACCENT` na `BG_DEEP`); 3 × `ButtonNav` (Motywy, Sklep, Ustawienia) zamiast pełnoszerokich przycisków. Istniejące testy Home zielone (dozwolona zmiana ścieżek węzłów). Kadry 03/04 przegenerowane + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
@@ -87,7 +87,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
   KA: StuckPanel i LevelComplete jako dolne arkusze (`Card`, promień 59 px, margines 22 px), DailyRewardPopup jako karta; `DIM` pod spodem. StuckPanel: wiersze `CardRow` „ikona · tytuł + opis · akcja” (Za darmo `PRIMARY` / Reklama biała / cena `ACCENT`) + Od nowa i Pomiń. LevelComplete: „Świetnie!” nad planszą, badge „Idealnie!”, kwota z monetą (96 px), rozbicie nagrody, pasek do motywu, `ButtonAccent` „Podwój”, `ButtonPrimary` „Dalej”, link „Menu główne”. DailyReward: siatka 4 kolumny, dzień 7 na 2 kolumny, dziś = obrys `ACCENT`, odebrane = ptaszek `PRIMARY` + przygaszona moneta. Wejście overlayu: scale 0,9→1 + fade 0,18 s (wyłączone przy `App.effects_enabled=false`). Testy overlayów zielone. Kadry przegenerowane + zestawienie z makietą. ~290 linii (podzielić, jeśli > 300).
   Skill: `godot-dev`
 
-- [ ] T-234 `todo` UI v2: Themes, Shop, Settings wg `mockups/06_themes.png`, `07_shop.png`, `08_settings.png` (zależy od T-228, T-229)
+- [ ] T-234 `review` UI v2: Themes, Shop, Settings wg `mockups/06_themes.png`, `07_shop.png`, `08_settings.png` (zależy od T-228, T-229) → PR #220
   KA: Themes: siatka 2 × 2 kart z podglądem 4 probówek w palecie motywu, aktywny = obrys `ACCENT` + ptaszek, cena z monetą, pasek „do motywu” pod siatką. Shop: wyróżniona karta pakietu startowego (obrys `ACCENT`, licznik okna oferty), wiersze produktów z ceną z `IapProvider` w `ButtonAccent`, „Przywróć zakupy” jako link na dole. Settings: nagłówki sekcji (`LabelSection`), wiersze z ikoną, przełączniki w kolorze `PRIMARY`. Testy ekranów zielone. Kadr 05 przegenerowany + zestawienie z makietą. ~280 linii.
   Skill: `godot-dev`
 
@@ -205,6 +205,7 @@ Pętla bierze pierwsze `todo` z najwyższej sekcji. Zadania P0 muszą być `done
 - [ ] T-262 `todo` `StuckPanel`: linia „%d ruchów od celu” w grze nigdy się nie pokazuje (panel otwierany tylko bez legalnych ruchów → zawsze „Brak rozwiązania z tego stanu”); widać ją tylko w kadrze `--screenshot` (`main.gd` `stuck_panel`), więc kadr nie odpowiada grze (ryzyko jak T-111) — do decyzji przy UI v2 T-233 (GDD pytanie 27). Skill: godot-dev
 - [ ] T-263 `todo` `tools/test_ui_icons.py`: `Image.getdata()` daje DeprecationWarning w Pillow 14 → `get_flattened_data()` (odkryte w T-229, sesja #23). Skill: asset-gen
 - [ ] T-264 `todo` `Level.fit_board_above_panel` po T-231 centruje planszę w obszarze HUD–panel wygranej zamiast przyklejać ją tuż nad panel (jak przed UI v2); do decyzji przy T-233 (LevelComplete jako dolny arkusz nad planszą — makieta 03). Skill: godot-dev
+- [ ] T-266 `todo` Ikony UI v2 brakujące względem makiet 07/08: restore (strzałka kołowa), dzwonek (notyfikacje), przekreślone `video` (Bez reklam) — dopisać do `UI_V2_ICONS` w `gen_assets.py` + `ICON_NAMES`; Shop: pastylka „PAKIET STARTOWY”, zegar odliczania i miniatura 2 probówek w karcie startowej; Settings: kafelek `CARD_ICON` pod ikoną, separatory i chevrony wierszy (odkryte w T-234, sesja #23; do T-236 odbiór). Skill: asset-gen + godot-dev
 
 ## Pytania do Huberta
 - Refill #17 (T-259, GDD pytanie 26): cel miesiąca Poziomów dnia — sim T-226: cel 20 osiąga 20,6 % graczy grających codziennie, 3,0 % przy 6 dniach z 7, 0,0 % przy 5; przyjęto: wartość z reguły T-259 (największy cel z {10, 12, 15, 20}, który K = 6 osiąga ≥ 50 % i K = 7 ≥ 80 %, d30/d1 ≤ 2,0) trafia do `DEFAULTS` bez czekania (remote config pozwala cofnąć), premia 300 bez zmian; do zmiany (alternatywy: zostawić 20 jako cel „dla najwierniejszych”; cel proporcjonalny w miesiącu instalacji).

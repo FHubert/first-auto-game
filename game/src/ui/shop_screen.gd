@@ -5,9 +5,11 @@ extends Control
 signal back_pressed
 signal purchase_requested(sku: String)
 
-const FONT_SIZE: int = 32
-const MARGIN: int = 48
+const GAP: int = 22
 const UI_THEME: Theme = preload("res://assets/fonts/ui_theme.tres")
+const SKU_ICONS: Dictionary = {
+	"starter_pack": "coin", "remove_ads": "video", "coins_small": "coin", "coins_large": "coin"
+}
 const SKU_ORDER: Array[String] = ["starter_pack", "remove_ads", "coins_small", "coins_large"]
 
 var state: GameState
@@ -99,56 +101,108 @@ func _desc(sku: String) -> String:
 			return tr("shop_desc_coins") % int(GameConfig.get_value("iap_coins_large"))
 
 
-func _label(parent: Control, text: String = "") -> Label:
+func _label(parent: Control, text: String = "", variation: StringName = &"") -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", FONT_SIZE)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.theme_type_variation = variation
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(l)
 	return l
 
 
-func _button(parent: Control, text: String, height: int) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(0, height)
-	b.add_theme_font_size_override("font_size", FONT_SIZE)
-	parent.add_child(b)
-	return b
-
-
 func _build() -> void:
+	theme = UI_THEME
 	backdrop = PanelContainer.new()
 	backdrop.theme = UI_THEME
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = UiTokens.BG
+	backdrop.add_theme_stylebox_override("panel", bg)
 	add_child(backdrop)
 	move_child(backdrop, 0)
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for side: String in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, MARGIN)
+		margin.add_theme_constant_override("margin_" + side, UiTokens.SCREEN_PAD)
 	add_child(margin)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 20)
+	box.add_theme_constant_override("separation", GAP)
 	margin.add_child(box)
-	_label(box, tr("shop_title"))
-	coins_label = _label(box)
-	reason_label = _label(box)
+	var header: Dictionary = ScreenHeader.build(box, tr("shop_title"), true)
+	back_button = header["back"]
+	coins_label = header["coins"]
+	back_button.pressed.connect(func() -> void: back_pressed.emit())
+	reason_label = _label(box, "", &"LabelCaption")
+	reason_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	for sku in SKU_ORDER:
-		var col := VBoxContainer.new()
-		box.add_child(col)
-		_label(col, tr("shop_item_" + sku))
-		var desc := _label(col, _desc(sku))
-		var extra := _label(col)
-		var b := _button(col, "", 90)
-		b.pressed.connect(_on_buy.bind(sku))
-		cards[sku] = {"panel": col, "button": b, "desc": desc, "extra": extra}
-	status_label = _label(box)
-	restore_button = _button(box, tr("btn_restore"), 90)
-	restore_button.pressed.connect(Purchases.restore)
+		_build_card(box, sku)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
-	back_button = _button(box, tr("btn_back"), 100)
-	back_button.pressed.connect(func() -> void: back_pressed.emit())
+	status_label = _label(box, "", &"LabelCaption")
+	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	restore_button = Button.new()
+	restore_button.text = tr("btn_restore")
+	ScreenHeader.plain(restore_button)
+	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		restore_button.add_theme_color_override(c, UiTokens.TEXT_MUTED)
+	restore_button.pressed.connect(Purchases.restore)
+	box.add_child(restore_button)
+
+
+func _build_card(box: Control, sku: String) -> void:
+	var starter: bool = sku == Purchases.SKU_STARTER
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"Card" if starter else &"CardRow"
+	if starter:
+		var sb := UI_THEME.get_stylebox("panel", "Card").duplicate() as StyleBoxFlat
+		sb.set_border_width_all(6)
+		sb.border_color = UiTokens.ACCENT
+		panel.add_theme_stylebox_override("panel", sb)
+	box.add_child(panel)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", GAP)
+	panel.add_child(row)
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var icon_panel := PanelContainer.new()
+	var ib := StyleBoxFlat.new()
+	ib.bg_color = UiTokens.CARD_ICON
+	ib.set_corner_radius_all(UiTokens.CARD_ROW_RADIUS)
+	ib.set_content_margin_all(14)
+	icon_panel.add_theme_stylebox_override("panel", ib)
+	var icon := TextureRect.new()
+	icon.texture = UiTokens.icon(SKU_ICONS[sku])
+	icon.custom_minimum_size = Vector2(48, 48)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_panel.add_child(icon)
+	icon_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var title := _label(col, tr("shop_item_" + sku))
+	title.add_theme_font_size_override("font_size", UiTokens.FONT_BTN)
+	var extra := _label(col, "", &"LabelCaption")
+	extra.add_theme_color_override("font_color", UiTokens.ACCENT)
+	var desc := _label(col, _desc(sku), &"LabelCaption")
+	for l: Label in [title, extra, desc]:
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var b := Button.new()
+	b.theme_type_variation = &"ButtonPrimary" if starter else &"ButtonAccent"
+	b.custom_minimum_size = Vector2(0 if starter else 200, UiTokens.BTN_H)
+	b.pressed.connect(_on_buy.bind(sku))
+	if starter:
+		panel.remove_child(row)
+		var wrap := VBoxContainer.new()
+		wrap.add_theme_constant_override("separation", GAP)
+		panel.add_child(wrap)
+		wrap.add_child(row)
+		wrap.add_child(b)
+	else:
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(b)
+	row.add_child(icon_panel)
+	row.add_child(col)
+	row.move_child(icon_panel, 0)
+	if not starter:
+		row.move_child(b, row.get_child_count() - 1)
+	cards[sku] = {"panel": panel, "button": b, "desc": desc, "extra": extra}
