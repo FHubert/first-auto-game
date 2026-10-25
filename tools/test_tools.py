@@ -149,6 +149,40 @@ class BalanceSimTest(unittest.TestCase):
         self.assertFalse(j["always_active"])
         self.assertEqual({k: j[k] for k in golden}, golden)
 
+    def _yday_json(self, on, *extra, players="400"):
+        with tempfile.TemporaryDirectory() as d:
+            ov = Path(d) / "o.json"
+            ov.write_text('{"sim_yesterday_daily": %d}' % on)
+            return self._sim_json("--overlay", ov, *extra, players=players)
+
+    def test_t226_lever_off_by_default_and_raises_rewarded_per_dau(self):
+        off, on = self._yday_json(0), self._yday_json(1)
+        self.assertEqual(off["rewarded_yesterday_daily_per_dau"], 0)
+        self.assertNotIn("yesterday_daily", off["rewarded_by_placement"])  # bez flagi wyjscie jak przed T-226
+        self.assertGreater(on["rewarded_yesterday_daily_per_dau"], 0)
+        self.assertGreater(on["rewarded_per_dau"], off["rewarded_per_dau"])
+
+    def test_t226_active_pattern_7_has_no_missed_days_so_lever_is_noop(self):
+        a, b = self._yday_json(0, "--active-pattern", "7"), self._yday_json(1, "--active-pattern", "7")
+        for k in ("rewarded_per_dau", "impressions_per_dau", "coins_earned_per_dau", "daily_month_goal_hit_pct",
+                  "daily_month_goal_day_p50", "median_coins_day30", "rewarded_yesterday_daily_per_dau"):
+            self.assertEqual(a[k], b[k], k)
+        self.assertEqual(b["rewarded_yesterday_daily_per_dau"], 0)
+        always = self._yday_json(0, "--always-active")  # --always-active = K 7
+        for k in ("rewarded_per_dau", "impressions_per_dau", "daily_month_goal_hit_pct", "daily_month_goal_day_p50"):
+            self.assertEqual(a[k], always[k], k)
+
+    def test_t226_pattern_4_cannot_hit_month_goal_even_with_lever(self):
+        # UDOKUMENTOWANE "nie": K=4 -> 18 aktywnych dni z 30 + 4 zalegle (po przerwie) = max 22 poziomy, a przy
+        # play_rate 0.6 / take_rate 0.5 cel 20 praktycznie nie pada (0 z 400); dzwignia daje wiecej rewarded, ale nie cel.
+        off, on = self._yday_json(0, "--active-pattern", "4"), self._yday_json(1, "--active-pattern", "4")
+        self.assertEqual((off["daily_month_goal_hit_pct"], on["daily_month_goal_hit_pct"]), (0.0, 0.0))
+        self.assertGreater(on["rewarded_yesterday_daily_per_dau"], 0)
+
+    def test_t226_pattern_6_lever_raises_month_goal_hit(self):
+        off, on = self._yday_json(0, "--active-pattern", "6"), self._yday_json(1, "--active-pattern", "6")
+        self.assertGreater(on["daily_month_goal_hit_pct"], off["daily_month_goal_hit_pct"])
+
     def test_t209_sd_nonnegative_and_ci_contains_mean(self):
         j = self._sim_json()
         ipd = j["impressions_per_player_day"]
