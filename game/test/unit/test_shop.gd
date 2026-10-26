@@ -261,3 +261,11 @@ func test_720x1560_starter_card_not_compact() -> void:
 	var panel := s.cards["starter_pack"]["panel"] as Control
 	# 446 px = wysokosc karty startowej sprzed T-303 (pelny wariant).
 	assert_float(panel.size.y).is_equal(446.0)
+
+
+func test_720x1560_footer_right_under_list_t315() -> void:
+	var s := await _laid_out(Vector2(720, 1560))
+	await get_tree().process_frame
+	var last := s.cards["remove_ads"]["panel"] as Control
+	var gap: float = s.status_label.get_global_rect().position.y - last.get_global_rect().end.y
+	assert_float(gap).is_between(0.0, 16.0)

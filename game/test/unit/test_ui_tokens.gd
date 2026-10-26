@@ -138,6 +138,15 @@ func test_button_pill_flat_in_all_states() -> void:
 	assert_float(p.content_margin_bottom).is_equal(n.content_margin_bottom)
 
 
+func test_button_pill_pressed_darker_t315() -> void:
+	var n: StyleBoxFlat = THEME.get_stylebox("normal", "ButtonPill")
+	var p: StyleBoxFlat = THEME.get_stylebox("pressed", "ButtonPill")
+	assert_float(p.bg_color.get_luminance()).is_less(n.bg_color.get_luminance())
+	assert_float(p.bg_color.a).is_equal(n.bg_color.a)
+	var fg: Color = THEME.get_color("font_pressed_color", "ButtonPill")
+	assert_float(UiTokens.contrast_ratio(fg, p.bg_color)).is_greater_equal(4.5)
+
+
 func test_new_variants_contrast_and_touch_height() -> void:
 	for v in ["ButtonHud", "ButtonPill"]:
 		var n: StyleBoxFlat = THEME.get_stylebox("normal", v)
