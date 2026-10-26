@@ -37,3 +37,21 @@ Werdykt ogólny: **PASS (8/8 PASS; 5 z nich „PASS (drobne)”)**
 
 ## Decyzja
 PASS → kadry sklepowe `fastlane/metadata/android/{en-US,pl-PL,de-DE}/images/phoneScreenshots/*.png` (15 PNG 1080×1920) podmienione w tym PR. Drobne odstępstwa → Inbox T-289…T-294 (BACKLOG.md). Resztki P3: T-266 scalone w T-287 (zamknięte), T-269 i T-281 zostają otwarte w P3.
+
+## Refill #18 (T-299, 2026-10-26)
+Metoda: worktree task/T-299 (zawiera T-300…T-303). Uruchomiono `bash tools/gen_screenshots.sh --store` (exit 0, 15 PNG EN/PL/DE przegenerowane), `make screenshots-smoke` (exit 0, 1280), `bash tools/gen_screenshots.sh --size 720x1560` (exit 0). Obejrzano: store DE 01…05, smoke 1280 (02, 03, 04, 05, 13, 14, 15, 16) oraz 1560 (13_shop_starter) vs makiety `docs/ui/mockups/01…07`. PL/EN store nie oglądane osobno. Odstępstwa „(drobne)” z T-283 zniknęły: okrągłe HUD (T-301), 4. przycisk z monetą + 60 w `01_pour`, ikona undo_clock w „+3 undos”, probówki LevelComplete w pełnych kolorach z odstępem od karty, badge „Neu!” w Home store, ikona video przy „×2”, Shop: zegar/coins_stack/video_off, pigułki Themes bez artefaktu. Brak ucięć tekstu w DE.
+
+Werdykt ogólny: **PASS (7/7 PASS (drobne))**
+
+| Ekran | Makieta | Kadr | Wynik | Odstępstwa |
+|---|---|---|---|---|
+| Level | 01_level | store DE 01_pour; smoke 02_level, 16_stuck_deadlock | PASS (drobne) | Okrągłe przyciski HUD, 4. przycisk z monetą + 60, plansza bez ucięć. (a) W smoke 02_level (Level 1) 4. przycisk to „Ad” z ikoną video — zamierzone (reklama ma pierwszeństwo, T-230). (b) Plansza w smoke (4 probówki) mała, dużo pustego miejsca. (c) 16_stuck_deadlock: ściemnione probówki pod panelem, brak ucięć. |
+| StuckPanel | 02_stuck | smoke 04_stuck_panel | PASS (drobne) | Cztery wiersze, X krążek, ikona undo z zegarem w „+3 undos”, Restart + Skip. Pod panelem nadal `show_sample()` (T-281, otwarte w P3). |
+| LevelComplete | 03_level_complete | store DE 02_relax; smoke 03 | PASS (drobne) | Probówki w pełnych kolorach, wyraźny odstęp od karty także w smoke, brak ucięć w DE. (a) Pill „Perfekt!” bez gwiazdki (makieta ma ★). (b) Smoke ma dodatkową linię „Next level: +1 color”. (c) Rząd 6 pełnych + 2 puste w makiecie vs 6 mieszanych + 2 puste w fixture store (zawartość, nie UI). |
+| Home | 04_home | store DE 03_daily; smoke 05_home | PASS (drobne) | Badge „Neu!” widoczny w store, Spielen/Belohnung/Neu in, bez ucięć w DE. (a) Opis „Dasselbe Level für alle · geschafft 23” w jednej linii (makieta: dwie) — OK. (b) Smoke: Play zablokowany (stan „From level 3”) — poprawne. |
+| DailyRewardPopup | 05_daily_reward | store DE 04_streak; smoke 14_daily_streak3 | PASS (drobne) | Ikona video obok tekstu ×2, X krążek, siatka dni z check-ami i obwódką „dziś”, brak ucięć. (a) Karta niższa niż w makiecie, widoczne tło Home. (b) Aktywny kafel podpisany „Tag 5” zamiast „Dziś” (makieta). |
+| Themes | 06_themes | store DE 05_themes; smoke 15_themes_locked | PASS | Pigułki cen bez artefaktu, aktywny motyw z check-iem i obwódką, karta postępu, brak ucięć. Różnica kolejności motywów (Neon aktywny) wynika ze stanu fixture. |
+| Shop | 07_shop | smoke 13_shop_starter (1280 i 1560) | PASS (drobne) | Ikony zegara, coins_stack i video_off obecne; brak pustego pasa pod listą na 1280. (a) Na 1280 wiersz „No ads” nadal przycięty na dole ScrollContainera (lista przewijana, widoczny scrollbar). (b) Na 1560 ~270 px wolnego miejsca między listą a „Restore purchases” (makieta: link tuż pod listą). |
+
+## Decyzja
+Wszystkie ekrany PASS lub PASS (drobne), brak FAIL → kadry sklepowe `fastlane/metadata/android/{en-US,pl-PL,de-DE}/images/phoneScreenshots/*.png` (15 PNG) podmienione w tym PR. Drobne odstępstwa (Shop 1280 przycięty wiersz „No ads”, Shop 1560 wolny pas, brak ★ w pillu LevelComplete, „Tag 5” zamiast „Dziś”) do Inbox; nie blokują.
