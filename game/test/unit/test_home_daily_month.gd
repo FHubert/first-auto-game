@@ -78,7 +78,7 @@ func test_label_fits_card_in_all_locales() -> void:
 		TranslationServer.set_locale(loc)
 		for count: int in [goal - 1, goal]:
 			var home := _home(_unlock(), count)
-			home.size = HOME_SIZE
+			UiTestFit.fit_root(home, HOME_SIZE)
 			await get_tree().process_frame
 			await get_tree().process_frame
 			assert_float(home.daily_month_label.get_combined_minimum_size().x).is_less_equal(

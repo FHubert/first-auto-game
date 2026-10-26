@@ -14,7 +14,7 @@ ALLOW_TEXT = (
 )
 
 
-def run_main(log_text, allow_text=ALLOW_TEXT, log_exists=True):
+def run_main(log_text, allow_text=ALLOW_TEXT, log_exists=True, warn_allow_text=None):
     """Zwroca (kod, stdout, stderr) dla main() na plikach tymczasowych."""
     with tempfile.TemporaryDirectory() as tmp:
         log = Path(tmp) / "test_output.log"
@@ -22,9 +22,17 @@ def run_main(log_text, allow_text=ALLOW_TEXT, log_exists=True):
         allow.write_text(allow_text, encoding="utf-8")
         if log_exists:
             log.write_text(log_text, encoding="utf-8")
+        argv = [str(log), "--allow", str(allow)]
+        # Bez --allow-warnings test uzywa pliku z repo (domyslny); tu wskazujemy plik tymczasowy.
+        warn_allow = Path(tmp) / "warn_allow.txt"
+        warn_allow.write_text(warn_allow_text or "", encoding="utf-8")
+        argv += ["--allow-warnings", str(warn_allow)]
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            code = log_budget.main([str(log), "--allow", str(allow)])
+            code = log_budget.main(argv)
+        warn_file = log.parent / "log_warnings.txt"
+        warn_text = warn_file.read_text(encoding="utf-8") if warn_file.is_file() else ""
+    run_main.warn_text = warn_text
     return code, out.getvalue(), err.getvalue()
 
 
@@ -71,11 +79,32 @@ class LogBudgetTest(unittest.TestCase):
     def test_only_warnings_exit_zero_and_summary(self):
         code, out, _ = run_main("WARNING: leak 3\nWARNING: leak 5\n")
         self.assertEqual(code, 0)
-        self.assertIn("log budget: 1 WARNING signatures (2 lines) -> ", out)
+        self.assertIn("log budget: 1 WARNING signatures (0 allowed, 2 lines) -> ", out)
+
+    def test_allowed_warning_marked_and_exit_unchanged(self):
+        log = "WARNING: Exponent too high 3\nWARNING: Exponent too high 4\nWARNING: other 1\n"
+        code, out, _ = run_main(log, warn_allow_text="Exponent too high | silnik | test_save_fuzz.gd > x\n")
+        self.assertEqual(code, 0)
+        self.assertIn("(1 allowed, 3 lines)", out)
+        self.assertEqual(
+            run_main.warn_text.splitlines(),
+            ["    2x  [dozwolone] WARNING: Exponent too high N", "    1x  WARNING: other N"],
+        )
+
+    def test_missing_warning_allowlist_is_not_an_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / "test_output.log"
+            log.write_text("WARNING: x 1\n", encoding="utf-8")
+            allow = Path(tmp) / "allow.txt"
+            allow.write_text(ALLOW_TEXT, encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()):
+                code = log_budget.main([str(log), "--allow", str(allow), "--allow-warnings", str(Path(tmp, "none.txt"))])
+        self.assertEqual(code, 0)
 
     def test_repo_allowlist_parses(self):
         allow = log_budget.load_allow(log_budget.DEFAULT_ALLOW)
         self.assertEqual(len(allow), 3)
+        self.assertGreaterEqual(len(log_budget.load_allow(log_budget.DEFAULT_WARN_ALLOW)), 2)
 
 
 if __name__ == "__main__":

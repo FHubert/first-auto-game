@@ -183,7 +183,7 @@ func test_geometry_de_with_starter() -> void:
 	TranslationServer.set_locale("de")
 	for size: Vector2 in [Vector2(720, 1280), Vector2(720, 1560)]:
 		var s := _shop(12)
-		s.size = size
+		UiTestFit.fit_root(s, size)
 		await get_tree().process_frame
 		await get_tree().process_frame
 		assert_bool(s.scroll.get_global_rect().end.y <= size.y).is_true()
@@ -223,7 +223,7 @@ func _collect_icon_paths(n: Node, out: Array[String]) -> void:
 
 func _laid_out(size: Vector2, level: int = 12) -> ShopScreen:
 	var s := _shop(level)
-	s.size = size
+	UiTestFit.fit_root(s, size)
 	await get_tree().process_frame
 	await get_tree().process_frame
 	return s

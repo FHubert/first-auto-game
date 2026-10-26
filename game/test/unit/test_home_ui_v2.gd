@@ -8,7 +8,7 @@ func _home(h: int = 1280) -> Home:
 	home.clock = TestClock.fixed()
 	home.state = GameState.new()
 	var host: Control = auto_free(Control.new())
-	host.size = Vector2(W, h)
+	UiTestFit.fit_root(host, Vector2(W, h))
 	add_child(host)
 	host.add_child(home)
 	return home
@@ -76,7 +76,7 @@ func test_german_texts_not_clipped() -> void:
 
 func test_home_has_fullscreen_backdrop() -> void:
 	var home: Home = _home(1920)
-	home.size = Vector2(1080, 1920)
+	UiTestFit.fit_root(home, Vector2(1080, 1920))
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var bg: ColorRect = home.get_child(0) as ColorRect

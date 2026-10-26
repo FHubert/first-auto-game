@@ -55,7 +55,7 @@ func _start(month_count: int) -> void:
 	_level.state = st
 	_level.clock = TestClock.fixed()
 	_level.autoload_level = false
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	add_child(_level)
 	_level.start_daily(TestClock.FIXED_DAY)
 	var sol: Array = (

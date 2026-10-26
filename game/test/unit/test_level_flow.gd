@@ -254,7 +254,7 @@ func test_hud_ad_button_visible_when_ready() -> void:
 
 func test_win_panel_below_board_aso_win() -> void:
 	_level.state = ScreenshotFixtures.make("aso_win", 20750)
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	_level.load_level(_level.state.level, _level.state.theme_active)
 	ScreenshotFixtures.apply_win(_level)
 	await get_tree().process_frame

@@ -25,7 +25,7 @@ func before_test() -> void:
 	_level.clock = TestClock.fixed()
 	_level.autoload_level = false
 	add_child(_level)
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 
 
 func after_test() -> void:
@@ -157,7 +157,7 @@ func test_bar_geometry_per_level_and_viewport(
 	]
 ) -> void:
 	assert_that(test_parameters).is_not_null()
-	_level.size = view_size
+	UiTestFit.fit_root(_level, view_size)
 	_level.load_level(level_no)
 	for _i in _attempt_from() - 1:
 		_level.restart()

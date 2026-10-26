@@ -17,7 +17,7 @@ func before_test() -> void:
 	_level = LEVEL_SCENE.instantiate()
 	_level.state = GameState.new()
 	_level.clock = TestClock.fixed()
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	add_child(_level)
 
 
@@ -49,7 +49,7 @@ func test_buttons_meet_touch_min() -> void:
 
 
 func _board_fits(h: int) -> void:
-	_level.size = Vector2(720, h)
+	UiTestFit.fit_root(_level, Vector2(720, h))
 	_level.load_level(60)
 	await _frames()
 	var area := Rect2(0, UiTokens.HUD_TOP_H, 720, h - UiTokens.HUD_TOP_H - UiTokens.HUD_BOTTOM_H)
@@ -115,7 +115,7 @@ func test_german_captions_fit_columns() -> void:
 	var level: Level = auto_free(LEVEL_SCENE.instantiate())
 	level.state = GameState.new()
 	level.clock = TestClock.fixed()
-	level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(level, Vector2(720, 1280))
 	add_child(level)
 	await _frames()
 	for b: Button in [level.hud.undo_button, level.hud.restart_button]:
