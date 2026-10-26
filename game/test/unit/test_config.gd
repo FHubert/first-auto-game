@@ -72,3 +72,8 @@ func test_hint_exact_budget_above_solver_budget_rejects_batch() -> void:
 	assert_int(_cfg.get_value("hint_exact_max_states")).is_equal(2000)
 	assert_int(_cfg.get_value("starting_coins")).is_equal(100)
 	assert_int(_cfg.apply_remote({"hint_exact_max_states": 5000})).is_equal(1)
+
+
+func test_remote_extra_tube_cost_zero_is_rejected() -> void:
+	assert_int(_cfg.apply_remote({"extra_tube_cost_coins": 0})).is_equal(0)
+	assert_int(_cfg.get_value("extra_tube_cost_coins")).is_equal(60)

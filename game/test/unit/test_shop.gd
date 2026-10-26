@@ -219,3 +219,45 @@ func _collect_icon_paths(n: Node, out: Array[String]) -> void:
 		out.append((n as TextureRect).texture.resource_path.get_file())
 	for c in n.get_children():
 		_collect_icon_paths(c, out)
+
+
+func _laid_out(size: Vector2, level: int = 12) -> ShopScreen:
+	var s := _shop(level)
+	s.size = size
+	await get_tree().process_frame
+	await get_tree().process_frame
+	return s
+
+
+func _inside(inner: Control, outer: Control) -> bool:
+	var a := inner.get_global_rect()
+	var b := outer.get_global_rect()
+	return a.position.y >= b.position.y - 0.5 and a.end.y <= b.end.y + 0.5
+
+
+func test_720x1280_list_reaches_footer_and_cards_fit() -> void:
+	for lang: String in ["en", "de", "pl"]:
+		TranslationServer.set_locale(lang)
+		var s := await _laid_out(Vector2(720, 1280))
+		assert_bool(s.compact).is_true()
+		var gap: float = (
+			s.status_label.get_global_rect().position.y - s.scroll.get_global_rect().end.y
+		)
+		assert_float(gap).is_between(0.0, 8.0)
+		for sku: String in ["starter_pack", "coins_small", "coins_large"]:
+			assert_bool(_inside(s.cards[sku]["panel"], s.scroll)).is_true()
+		var last := s.cards["remove_ads"]["panel"] as Control
+		s.scroll.ensure_control_visible(last)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		assert_bool(_inside(last, s.scroll)).is_true()
+		s.queue_free()
+	TranslationServer.set_locale("en")
+
+
+func test_720x1560_starter_card_not_compact() -> void:
+	var s := await _laid_out(Vector2(720, 1560))
+	assert_bool(s.compact).is_false()
+	var panel := s.cards["starter_pack"]["panel"] as Control
+	# 446 px = wysokosc karty startowej sprzed T-303 (pelny wariant).
+	assert_float(panel.size.y).is_equal(446.0)

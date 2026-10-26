@@ -83,8 +83,6 @@ btn_skip_ad,Skip (ad),Pomiń (ad),Überspr. (ad)
 shop_title,Shop,Sklep,Shop
 shop_item_remove_ads,No ads,Bez reklam,Keine Werbung
 shop_desc_remove_ads,"No breaks between levels, forever","Bez przerw między poziomami, na zawsze","Keine Pausen zwischen Leveln, für immer"
-shop_item_coins_small,Coin pouch,Sakiewka monet,Münzbeutel
-shop_item_coins_large,Coin chest,Skrzynia monet,Münzkiste
 shop_item_starter_pack,Starter pack,Pakiet startowy,Starterpaket
 shop_offer_left,%s left,Jeszcze %s,Noch %s
 shop_price_unknown,…,…,…
