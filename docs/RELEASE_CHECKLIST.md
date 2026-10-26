@@ -13,6 +13,7 @@ Każdy punkt sprawdzamy przed `git tag`. Niezaznaczony punkt oznacza brak wydani
 - [ ] Adapter SDK (reklamy, IAP, zgoda, powiadomienia, analityka) dopisany do `PAIRS` w `test_provider_contracts.gd` i zielony przed podpięciem w `App`/autoloadzie (Faza 5).
 
 ## Google Play
+- [ ] Play Console → App content → Target audience: zaznaczone wyłącznie 16–17 i 18+ (decyzja Huberta 2026-10-26); „Appeals to children” = nie; listing bez elementów „dziecięcych” (animowane postacie). Polityka prywatności §8 = 16+.
 - [ ] Data Safety zgodne z eventami w `docs/GDD.md` → Analityka oraz z SDK (AdMob, GameAnalytics).
   Tabela odpowiedzi Data Safety (aktualizować przy każdej zmianie listy eventów; całość ZWERYFIKUJ przed wysłaniem formularza):
 

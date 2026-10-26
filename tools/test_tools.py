@@ -759,7 +759,7 @@ class PrivacyDocsTest(unittest.TestCase):
     def test_policies_content_and_link_dates(self):
         for name in ("index.md", "pl.md"):
             text = (self.PRIVACY / name).read_text(encoding="utf-8")
-            for needle in ("__PRIVACY_CONTACT__", "All In IT", "GameAnalytics", "AdMob", "13"):
+            for needle in ("__PRIVACY_CONTACT__", "All In IT", "GameAnalytics", "AdMob", "16"):
                 with self.subTest(file=name, needle=needle):
                     self.assertIn(needle, text)
             for line in text.splitlines():

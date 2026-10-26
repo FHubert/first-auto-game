@@ -1,6 +1,6 @@
 # Privacy Policy — Vialo: Water Sort Puzzle
 
-Last updated: 2026-10-24
+Last updated: 2026-10-26
 
 > DRAFT — pending legal review by the data controller before publication.
 
@@ -43,7 +43,7 @@ Retention depends on the SDK providers' policies. ZWERYFIKUJ. The game stores no
 Under GDPR you may request access, rectification, erasure, restriction, portability, and object to processing. You may lodge a complaint with a supervisory authority (in Poland: the President of the Personal Data Protection Office, UODO). Contact: `__PRIVACY_CONTACT__`.
 
 ## 8. Children
-The app is intended for users aged 13 and over. It is not directed to children and is not part of Designed for Families / Kids programmes.
+The app is intended for users aged 16 and over. It is not directed to children and is not part of Designed for Families / Kids programmes.
 
 ## 9. Changes to this policy
 We will update the date above and, for material changes, inform you in the app or store listing.
