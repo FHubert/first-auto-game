@@ -102,3 +102,17 @@ func test_no_next_theme_keeps_progress_label() -> void:
 	assert_bool(lc.theme_row.visible).is_false()
 	assert_bool(lc.progress_label.visible).is_true()
 	assert_str(lc.progress_label.text).is_equal(tr("lc_new_color"))
+
+
+func test_perfect_badge_has_star_before_text() -> void:
+	var lc := _complete()
+	lc.show_result(15, true, 2, "", {}, {"moves": 19})
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var star := lc.perfect_badge.find_child("StarIcon", true, false) as TextureRect
+	assert_object(star).is_not_null()
+	assert_object(star.texture).is_not_null()
+	assert_bool(star.is_visible_in_tree()).is_true()
+	var sr: Rect2 = star.get_global_rect()
+	assert_float(sr.position.x).is_less(lc.perfect_label.get_global_rect().position.x)
+	assert_bool(lc.perfect_badge.get_global_rect().encloses(sr)).is_true()

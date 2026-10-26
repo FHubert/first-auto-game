@@ -96,3 +96,10 @@ func test_claim_x2_icon_next_to_label() -> void:
 	var mid_hi: float = b.size.x * 0.75
 	assert_float(icon.position.x + icon.size.x * 0.5).is_between(mid_lo, mid_hi)
 	assert_float(text_left + text_w * 0.5).is_between(mid_lo, mid_hi)
+
+
+func test_active_tile_says_today() -> void:
+	var popup := _popup()
+	assert_str(popup._day_labels[2].text).is_equal(tr("daily_today"))
+	assert_str(popup._day_labels[1].text).is_equal(tr("daily_day") % 2)
+	assert_str(popup._day_labels[3].text).is_equal(tr("daily_day") % 4)

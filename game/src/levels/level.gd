@@ -455,7 +455,8 @@ func _on_round_won() -> void:
 ## skaluje probowki (UI v2), wiec zawsze mieszcza sie nad panelem.
 func fit_board_above_panel() -> void:
 	var bottom: float = level_complete.panel_height()
-	board.set_single_row(true)
+	var rows: int = 2 if round.board().tube_count() >= UiTokens.WIN_TWO_ROWS_FROM else 1
+	board.set_single_row(true, rows)
 	board.offset_top = level_complete.header_height() + FIT_GAP_PX
 	board.offset_bottom = -(bottom + FIT_GAP_PANEL_PX)
 

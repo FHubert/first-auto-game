@@ -69,6 +69,10 @@ const GLASS_INNER_ALPHA := 0.08
 const BOARD_MAX_COLS := 4
 const BOARD_MAX_COLS_SCALED := 7
 const BOARD_SCALED_FROM := 9
+## Ekran wygranej: od tej liczby probówek 2 rzędy zamiast 1 (T-316)
+const WIN_TWO_ROWS_FROM := 10
+## Ekran wygranej: odstęp między rzędami probówek (po wygranej nic nie jest podniesione) — T-316
+const WIN_ROW_GAP := 70
 const NAV_RADIUS := 44
 const CARD_RADIUS := 59
 const CARD_ROW_RADIUS := 37
@@ -77,6 +81,7 @@ const TILE_ICON := 44
 const SHADOW_BTN := 11
 const SHADOW_ICON := 9
 const BTN_PAD_H := 44
+const INLINE_ICON_GAP := 14
 const ICON_DIR := "res://assets/sprites/ui/v2/"
 const ICON_NAMES: Array[String] = [
 	"pause",
@@ -109,6 +114,7 @@ const ICON_NAMES: Array[String] = [
 	"coins_stack",
 	"video_off",
 	"undo_clock",
+	"star",
 ]
 
 
@@ -131,3 +137,43 @@ static func icon(name: String) -> Texture2D:
 		push_error("UiTokens.icon: unknown icon '%s'" % name)
 		return null
 	return load(ICON_DIR + name + ".png") as Texture2D
+
+
+## Ikona jako dziecko przycisku tuz obok wysrodkowanego tekstu (Button.icon rysuje przy krawedzi).
+## after = ikona za tekstem; shift_text = margines lewy stylebox'ow +ikona+odstep
+## (grupa ikona+tekst w srodku). Zwraca TextureRect "InlineIcon"; przycisk dostaje meta
+## "place_icon" (Callable) do ponownego ulozenia po zmianie tekstu.
+static func add_inline_icon(
+	b: Button, icon_name: String, color: Color, after: bool = false, shift_text: bool = false
+) -> TextureRect:
+	var tr_icon := TextureRect.new()
+	tr_icon.name = "InlineIcon"
+	tr_icon.texture = icon(icon_name)
+	tr_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr_icon.size = Vector2.ONE * TILE_ICON
+	tr_icon.modulate = color
+	tr_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(tr_icon)
+	var shift: float = TILE_ICON + INLINE_ICON_GAP
+	if shift_text:
+		for state in ["normal", "hover", "pressed", "focus", "disabled"]:
+			var sb := b.get_theme_stylebox(state).duplicate() as StyleBox
+			sb.content_margin_left = maxf(sb.get_margin(SIDE_LEFT), 0.0) + shift
+			b.add_theme_stylebox_override(state, sb)
+	var place := func() -> void:
+		var font: Font = b.get_theme_font("font")
+		var fsize: int = b.get_theme_font_size("font_size")
+		var text_w: float = font.get_string_size(b.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fsize).x
+		var x: float
+		if shift_text:
+			x = (b.size.x + shift) * 0.5 - text_w * 0.5 - INLINE_ICON_GAP - tr_icon.size.x
+		else:
+			var half: float = text_w * 0.5 + INLINE_ICON_GAP
+			x = b.size.x * 0.5 + (half if after else -half - tr_icon.size.x)
+			tr_icon.visible = b.text != ""
+		tr_icon.position = Vector2(x, (b.size.y - tr_icon.size.y) * 0.5)
+	b.resized.connect(place)
+	b.visibility_changed.connect(place)
+	b.set_meta("place_icon", place)
+	return tr_icon
