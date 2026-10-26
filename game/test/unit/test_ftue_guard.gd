@@ -38,6 +38,8 @@ func _configs() -> Dictionary:
 			continue
 		var file: FileAccess = FileAccess.open(dir.path_join(f), FileAccess.READ)
 		assert_object(file).is_not_null()
+		if file == null:
+			continue
 		out[f.get_basename()] = JSON.parse_string(file.get_as_text())
 	return out
 
@@ -49,12 +51,12 @@ func _apply(pkg: Dictionary) -> void:
 
 
 ## Gra greedy poziom `level` z payloadu; zwraca listę naruszeń (pusta = OK).
-func _play(tag: String, level_data: Dictionary, seed: int) -> Array[String]:
+func _play(tag: String, level_data: Dictionary, rng_seed: int) -> Array[String]:
 	var errs: Array[String] = []
 	var rnd := GameRound.new()
 	rnd.start(level_data)
 	var rng := RandomNumberGenerator.new()
-	rng.seed = seed
+	rng.seed = rng_seed
 	var prev: Vector2i = Vector2i(-1, -1)
 	var steps: int = 0
 	while not rnd.is_done() and steps < MAX_PLAY_STEPS:
@@ -75,23 +77,23 @@ func _play(tag: String, level_data: Dictionary, seed: int) -> Array[String]:
 
 
 ## Strażnik: naruszenia dla paczki `pkg` (nazwa `config_name`) i seeda rng, poziomy 1..FTUE_LEVELS.
-func _check(config_name: String, pkg: Dictionary, seed: int) -> Array[String]:
+func _check(config_name: String, pkg: Dictionary, rng_seed: int) -> Array[String]:
 	var errs: Array[String] = []
 	_apply(pkg)
 	var campaign_seed: int = int(GameConfig.get_value("campaign_seed"))
 	for level: int in range(1, FTUE_LEVELS + 1):
 		var data: Dictionary = ContentGenerator.new().generate(campaign_seed, level)
-		var tag: String = "%s level %d seed %d" % [config_name, level, seed]
-		errs.append_array(_play(tag, data, seed))
+		var tag: String = "%s level %d seed %d" % [config_name, level, rng_seed]
+		errs.append_array(_play(tag, data, rng_seed))
 	GameConfig.reset()
 	return errs
 
 
 func test_ftue_levels_winnable_first_attempt() -> void:
 	var configs: Dictionary = _configs()
-	for name: String in configs:
-		for seed: int in SEEDS:
-			var errs: Array[String] = _check(name, configs[name], seed)
+	for config_name: String in configs:
+		for rng_seed: int in SEEDS:
+			var errs: Array[String] = _check(config_name, configs[config_name], rng_seed)
 			assert_array(errs).override_failure_message("\n".join(errs)).is_empty()
 
 
@@ -101,13 +103,13 @@ func test_level_params_identical_to_defaults() -> void:
 	for n: int in range(1, FTUE_LEVELS + 1):
 		base.append(ContentGenerator.new().level_params(n))
 	var configs: Dictionary = _configs()
-	for name: String in configs:
-		if PARAMS_EXCEPTIONS.has(name):
+	for config_name: String in configs:
+		if PARAMS_EXCEPTIONS.has(config_name):
 			continue
-		_apply(configs[name])
+		_apply(configs[config_name])
 		for n: int in range(1, FTUE_LEVELS + 1):
 			var got: Dictionary = ContentGenerator.new().level_params(n)
-			var msg: String = "%s level %d: level_params differ from DEFAULTS" % [name, n]
+			var msg: String = "%s level %d: level_params differ from DEFAULTS" % [config_name, n]
 			assert_dict(got).override_failure_message(msg).is_equal(base[n - 1])
 		GameConfig.reset()
 
@@ -119,3 +121,13 @@ func test_guard_detects_stuck_level() -> void:
 	var errs: Array[String] = _play("broken_pkg level 1 seed 42", data, SEEDS[0])
 	assert_array(errs).has_size(1)
 	assert_str(errs[0]).contains("broken_pkg").contains("level 1").contains("stuck")
+
+
+## Poziom wygrywalny przez greedy, ale z zaniżonym min_moves (payload) -> naruszenie limitu ruchów.
+func test_guard_detects_move_limit() -> void:
+	var data: Dictionary = {
+		"payload": {"tubes": [[0, 1], [1, 0], []], "capacity": 2, "min_moves": 0}
+	}
+	var errs: Array[String] = _play("slow_pkg level 1 seed 42", data, SEEDS[0])
+	assert_array(errs).has_size(1)
+	assert_str(errs[0]).contains("slow_pkg").contains("level 1").contains("moves >")
