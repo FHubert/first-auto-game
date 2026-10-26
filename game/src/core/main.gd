@@ -52,7 +52,7 @@ func _run_screenshot(args: PackedStringArray) -> void:
 	app.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(app)
 	_label.visible = false
-	_show_screenshot_screen(app, action, str(parsed["fixture"]))
+	await _show_screenshot_screen(app, action, str(parsed["fixture"]))
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	var out: String = str(parsed["out"])
@@ -80,6 +80,10 @@ func _show_screenshot_screen(app: App, action: String, fixture: String = "defaul
 			app.show_themes()
 		"shop":
 			app.show_shop()
+			if fixture == "shop_scrolled":  # "Bez reklam" row is below the fold
+				var shop := app.current_screen() as ShopScreen
+				await get_tree().process_frame  # layout first, then scroll
+				shop.scroll.ensure_control_visible(shop.cards[Purchases.SKU_REMOVE_ADS]["panel"])
 		"level_complete":
 			app.show_level()
 			ScreenshotFixtures.apply_win(app.current_screen() as Level)

@@ -14,3 +14,7 @@ res://src/ui/shop_screen.tscn|aso_shop|shop_starter
 res://src/ui/daily_reward_popup.tscn|daily|daily_streak3
 res://src/ui/themes_screen.tscn|aso_themes|themes_locked
 res://src/levels/level.tscn|stuck_deadlock|stuck_deadlock
+res://src/levels/level.tscn|aso_level|aso_level
+res://src/ui/home.tscn|aso_home|aso_home
+res://src/levels/level.tscn|midgame|level_midgame
+res://src/ui/shop_screen.tscn|shop_scrolled|shop_scrolled

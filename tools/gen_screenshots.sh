@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Capture screenshots via main.gd (`--screenshot=<scene> --out=<png> [--lang=xx] [--fixture=<name>]`).
-# Smoke (default): every scene in tools/screens.txt -> export/screenshots_framed/NN_<scene>.png
+# Smoke (default): every scene in tools/screens.txt -> export/screenshots_framed/<WxH>/NN_<name>.png
+#   (parent overridable with SCREENSHOT_OUT; raw captures in export/screenshots_raw/<WxH>/)
 # Store (`--store` or SCREENSHOT_STORE=1): tools/screens_store.txt x {en-US,pl-PL,de-DE}
 #   -> fastlane/metadata/android/<locale>/images/phoneScreenshots/NN_<caption_key>.png (1080x1920)
 #
-# Usage: gen_screenshots.sh [--store] [--size WxH] [--print-config] [--help]
+# Usage: gen_screenshots.sh [--store] [--size WxH] [--print-config] [--dry-run] [--help]
 #   --size WxH      capture resolution (default 1080x1920, env SCREENSHOT_RESOLUTION; the flag wins);
 #                   works with --store in any order, store framing uses the same size
 #   --print-config  print "RESOLUTION=... STORE=..." and exit 0 (no Godot needed)
+#   --dry-run       print the parsed entries (scene|fixture|name) and the output dir, exit 0 (no Godot)
 #
 # Capture needs a real GL context: runs under xvfb-run with --rendering-driver opengl3 (not --headless).
 # Add every new screen to tools/screens.txt (smoke) and, if it is a store shot, tools/screens_store.txt
@@ -19,10 +21,12 @@ GODOT="${GODOT_BIN:-$ROOT/.tools/godot}"
 RESOLUTION="${SCREENSHOT_RESOLUTION:-1080x1920}"
 STORE="${SCREENSHOT_STORE:-0}"
 PRINT_CONFIG=0
+DRY_RUN=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --store) STORE=1 ;;
     --print-config) PRINT_CONFIG=1 ;;
+    --dry-run) DRY_RUN=1 ;;
     --size)
       [ $# -ge 2 ] || { echo "--size needs a WxH value" >&2; exit 2; }
       RESOLUTION="$2"; shift ;;
@@ -41,6 +45,21 @@ if [ "$PRINT_CONFIG" = "1" ]; then
   exit 0
 fi
 LOCALES=(en-US pl-PL de-DE)
+OUT="${SCREENSHOT_OUT:-$ROOT/export/screenshots_framed}/$RESOLUTION"
+RAW="$ROOT/export/screenshots_raw/$RESOLUTION"
+
+if [ "$DRY_RUN" = "1" ]; then
+  list="$ROOT/tools/screens.txt"
+  [ "$STORE" = "1" ] && list="$ROOT/tools/screens_store.txt"
+  echo "RESOLUTION=$RESOLUTION STORE=$STORE"
+  echo "OUT_DIR=$OUT"
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in ''|'#'*) continue ;; esac
+    IFS='|' read -r scene fixture key <<< "$line"
+    echo "ENTRY $scene|${fixture:-default}|${key:-$(basename "${scene%.tscn}")}"
+  done < "$list"
+  exit 0
+fi
 
 [ -x "$GODOT" ] || GODOT="$(command -v godot || true)"
 [ -n "$GODOT" ] || { echo "Godot not found; run 'make setup'" >&2; exit 1; }
@@ -89,7 +108,6 @@ if [ "$STORE" = "1" ]; then
       --lang "$lang" --captions "$ROOT/tools/captions.json" --size "$RESOLUTION"
   done
 else
-  OUT="${SCREENSHOT_OUT:-$ROOT/export/screenshots_framed}"
-  capture "$ROOT/tools/screens.txt" "$ROOT/export/screenshots_raw" "${SCREENSHOT_LANG:-}"
-  python3 "$ROOT/tools/frame_screenshots.py" --in "$ROOT/export/screenshots_raw" --out "$OUT"
+  capture "$ROOT/tools/screens.txt" "$RAW" "${SCREENSHOT_LANG:-}"
+  python3 "$ROOT/tools/frame_screenshots.py" --in "$RAW" --out "$OUT"
 fi

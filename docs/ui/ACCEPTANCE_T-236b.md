@@ -1,7 +1,7 @@
 # Ponowny odbiór UI v2 (T-236b / T-283) — 2026-10-25
 Metoda: worktree gałęzi task/T-283 (zawiera T-272…T-282). Uruchomiono:
 - `bash tools/gen_screenshots.sh --store --size 720x1560` — 15 PNG EN/PL/DE (po 5 na locale: 01_pour, 02_relax, 03_daily, 04_streak, 05_themes) do przeglądu w proporcji makiety.
-- `bash tools/gen_screenshots.sh --size 720x1280` — smoke 15 kadrów EN (`export/screenshots_framed/`), nowe względem T-236: 13_shop_starter, 14_daily_streak3, 15_themes_locked.
+- `bash tools/gen_screenshots.sh --size 720x1280` — smoke 15 kadrów EN (`export/screenshots_framed/720x1280/`), nowe względem T-236: 13_shop_starter, 14_daily_streak3, 15_themes_locked.
 - Na koniec `bash tools/gen_screenshots.sh --store` (1080×1920) — właściwe kadry sklepowe; `make screenshots-smoke` exit 0 (~28 s).
 
 Obejrzano wzrokowo vs makiety `docs/ui/mockups/01…08`: store 1560 DE (01_pour, 02_relax, 03_daily, 04_streak, 05_themes; DE ma najdłuższe napisy — PL/EN store nie oglądane osobno) oraz smoke 1280 EN (02_level, 03_level_complete, 04_stuck_panel, 05_home, 06_settings_screen, 13_shop_starter, 14_daily_streak3, 15_themes_locked). Żaden ekran nie ma szarego tła ani szarych domyślnych kontrolek. Pomiaru pikselowego tekstu < 24 px nie wykonano; najmniejsze napisy to podpisy 24–28 px.
