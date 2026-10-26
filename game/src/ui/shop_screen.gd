@@ -33,6 +33,10 @@ var cards: Dictionary = {}
 var compact: bool = false
 var _theme_label: Label
 var _tubes: StarterTubes
+var _outer: VBoxContainer
+var _box: VBoxContainer
+var _list: VBoxContainer
+var _fit_queued: bool = false
 
 
 func _ready() -> void:
@@ -47,6 +51,7 @@ func _ready() -> void:
 	resized.connect(_apply_compact)
 	refresh()
 	_apply_compact()
+	_queue_fit()
 
 
 func has_card(sku: String) -> bool:
@@ -89,6 +94,39 @@ func refresh() -> void:
 			var price: String = Purchases.price_text(sku)
 			b.text = str(tr("shop_buy_for")) % price if sku == Purchases.SKU_STARTER else price
 			b.disabled = false
+
+
+func _queue_fit() -> void:
+	if not _fit_queued:
+		_fit_queued = true
+		_fit_list.call_deferred()
+
+
+## Gdy cala lista miesci sie na ekranie, stopka (restore) laduje tuz pod nia;
+## gdy nie, lista wypelnia ekran i przewija sie (zachowanie T-303).
+func _fit_list() -> void:
+	_fit_queued = false
+	if _outer == null or _outer.size.y <= 0.0:
+		return
+	var used: float = 0.0
+	var shown: int = 0
+	for c: Node in _box.get_children():
+		var ctrl := c as Control
+		if ctrl == scroll or not ctrl.visible:
+			continue
+		used += ctrl.get_combined_minimum_size().y
+		shown += 1
+	var footer: float = (
+		status_label.get_combined_minimum_size().y + restore_button.get_combined_minimum_size().y
+	)
+	used += float(GAP * shown)
+	var avail: float = _outer.size.y - footer - used
+	var content: float = _list.get_combined_minimum_size().y
+	var fits: bool = content <= avail
+	var flag: int = Control.SIZE_SHRINK_BEGIN if fits else Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size.y = content if fits else 0.0
+	scroll.size_flags_vertical = flag
+	_box.size_flags_vertical = flag
 
 
 func _apply_compact() -> void:
@@ -172,9 +210,12 @@ func _build() -> void:
 	add_child(margin)
 	## Zewnetrzny box bez odstepu: lista przylega do stopki (restore + status).
 	var outer := VBoxContainer.new()
+	_outer = outer
+	outer.resized.connect(_queue_fit)
 	outer.add_theme_constant_override("separation", 0)
 	margin.add_child(outer)
 	var box := VBoxContainer.new()
+	_box = box
 	box.add_theme_constant_override("separation", GAP)
 	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	outer.add_child(box)
@@ -192,6 +233,8 @@ func _build() -> void:
 	list.add_theme_constant_override("separation", GAP)
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(list)
+	_list = list
+	list.minimum_size_changed.connect(_queue_fit)
 	for sku in SKU_ORDER:
 		_build_card(list, sku)
 	status_label = _label(outer, "", &"LabelCaption")
