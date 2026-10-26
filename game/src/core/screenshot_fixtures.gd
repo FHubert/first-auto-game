@@ -111,7 +111,7 @@ static func make(fixture: String, utc_day: int = 0, now_unix: int = 0) -> GameSt
 			state.streak_days = DAILY_STREAK
 			state.last_play_utc_day = maxi(utc_day - 1, 0)
 			state.daily_reward_last_claim_day = maxi(utc_day - 1, 0)
-		"aso_shop":
+		"aso_shop", "shop_scrolled":
 			state.level = maxi(ASO_LEVEL, int(GameConfig.get_value("starter_offer_min_level")))
 			state.levels_completed = state.level - 1
 			state.coins = ASO_COINS
