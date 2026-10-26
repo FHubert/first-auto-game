@@ -57,7 +57,7 @@ func _win() -> void:
 
 
 func test_win_panel_grows_with_long_progress_message() -> void:
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	_level.load_level(1)
 	ScreenshotFixtures.apply_win(_level)
 	_level.level_complete.progress_label.visible = true
@@ -120,7 +120,7 @@ func test_hud_height_matches_bar_height_in_scene() -> void:
 
 
 func _assert_win_single_row(screen: Vector2) -> void:
-	_level.size = screen
+	UiTestFit.fit_root(_level, screen)
 	var tubes: Array = []
 	for i in 8:
 		tubes.append([i % 2, i % 2])
@@ -156,7 +156,7 @@ func test_win_single_row_720x1560() -> void:
 
 
 func test_stuck_board_not_under_panel_720x1280() -> void:
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	_level.load_level(1)
 	_level.stuck_panel.show_for(_level.round, true, _level.offers.ad_offers())
 	_level.stuck_panel.show_sample_rows()
@@ -170,7 +170,7 @@ func test_stuck_board_not_under_panel_720x1280() -> void:
 
 
 func _win_tubes_gap(screen: Vector2, level_no: int) -> Array:
-	_level.size = screen
+	UiTestFit.fit_root(_level, screen)
 	_level.load_level(level_no)
 	ScreenshotFixtures.apply_win(_level)
 	await get_tree().process_frame

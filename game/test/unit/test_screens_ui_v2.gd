@@ -17,7 +17,7 @@ func _make(kind: String, size: Vector2) -> Control:
 			s = load("res://src/ui/settings_screen.tscn").instantiate()
 			(s as SettingsScreen).state = _state()
 	auto_free(s)
-	s.size = size
+	UiTestFit.fit_root(s, size)
 	add_child(s)
 	return s
 
@@ -174,7 +174,7 @@ func _themes(coins: int, locale: String = "en", size: Vector2 = SIZES[0]) -> The
 	var s := ThemesScreen.new()
 	s.state = st
 	auto_free(s)
-	s.size = size
+	UiTestFit.fit_root(s, size)
 	add_child(s)
 	return s
 

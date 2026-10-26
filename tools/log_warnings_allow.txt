@@ -1,0 +1,7 @@
+# T-312: allowlista sygnatur WARNING w logu `make test` (tools/log_budget.py, flaga --allow-warnings).
+# Format: fragment | powod | test   (3 pola rozdzielone " | "; puste linie i # ignorowane)
+# Wpisy to ostrzezenia CELOWO wywolywane przez testy; log_warnings.txt oznacza je `[dozwolone]`.
+# Tylko informacyjnie: brak bramki, exit code log_budget.py nie zalezy od ostrzezen.
+# Fragment jest podciagiem SYGNATURY po normalizacji (ciagi cyfr -> N), wiec uzywaj N zamiast liczb.
+Exponent too high | silnik Godot (core/string/ustring.cpp `built_in_strtod`, https://github.com/godotengine/godot/blob/4.7/core/string/ustring.cpp) ostrzega przy parsowaniu JSON z absurdalnym wykladnikiem float; fuzz celowo podaje uszkodzone zapisy, wiec ostrzezenie jest oczekiwane | test_save_fuzz.gd > test_load_survives_500_mutations (36x), test_save_fuzz.gd > test_app_starts_on_mutated_saves (1x, przez app.gd _ready)
+AdService: unknown interstitial close id | celowy push_warning (ad_service.gd) dla zdublowanego/spoznionego zamkniecia reklamy z nieznanym id (T-258) | test_ad_service_break_ids.gd > test_duplicate_close_has_no_effect, test_late_close_after_watchdog_reported_once; test_ad_sdk_edge_cases.gd > test_3_stale_interstitial_close_after_reset_is_ignored; test_ad_service_loading.gd > test_two_closes_in_same_frame_load_once

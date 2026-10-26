@@ -66,7 +66,7 @@ func _new_level(level_no: int, restarts: int = 0) -> void:
 	_level.clock = TestClock.fixed()
 	_level.autoload_level = false
 	add_child(_level)
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	_level.load_level(level_no)
 	for i in restarts:
 		_level.restart()

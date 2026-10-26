@@ -44,7 +44,7 @@ func _make_level() -> void:
 	_level.clock = TestClock.fixed()
 	_level.autoload_level = false
 	add_child(_level)
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	_level.hint_job.solve_fn = _held_solve
 	_level.load_level(8)
 

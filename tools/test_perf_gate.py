@@ -1,5 +1,7 @@
 """T-260: testy bramki progow wydajnosci (tools/perf_gate.py)."""
+import contextlib
 import copy
+import io
 import json
 import sys
 import tempfile
@@ -46,6 +48,14 @@ class PerfGateTest(unittest.TestCase):
         perf["prefetch"]["2"]["prefetched_us"] = 60000
         self.assertIn("prefetch.2.prefetched_us", perf_gate.violations(perf)[0])
 
+    @staticmethod
+    def _main_quiet(argv):
+        """T-312: wywolaj main() z przechwyceniem stdout/stderr (czysty log make test-tools)."""
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out):
+            code = perf_gate.main(argv)
+        return code, out.getvalue()
+
     def test_main_exit_codes(self):
         with tempfile.TemporaryDirectory() as d:
             ok, bad = Path(d, "ok.json"), Path(d, "bad.json")
@@ -53,9 +63,13 @@ class PerfGateTest(unittest.TestCase):
             worse = copy.deepcopy(sample())
             worse["moves_stuck"]["56+"]["max"] = 501
             bad.write_text(json.dumps(worse))
-            self.assertEqual(perf_gate.main(["--perf", str(ok)]), 0)
-            self.assertEqual(perf_gate.main(["--perf", str(bad)]), 1)
-            self.assertEqual(perf_gate.main(["--perf", str(Path(d, "none.json"))]), 2)
+            self.assertEqual(self._main_quiet(["--perf", str(ok)])[0], 0)
+            code, text = self._main_quiet(["--perf", str(bad)])
+            self.assertEqual(code, 1)
+            self.assertIn("perf gate:", text)
+            code, text = self._main_quiet(["--perf", str(Path(d, "none.json"))])
+            self.assertEqual(code, 2)
+            self.assertIn("none.json", text)
 
     def test_real_perf_json(self):
         if not REAL_PERF.exists():

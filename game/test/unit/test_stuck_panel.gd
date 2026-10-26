@@ -103,7 +103,7 @@ func _assert_tubes_clear_of_panel() -> void:
 
 
 func test_board_fits_above_panel_on_every_stuck() -> void:
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	_level.start_round(DEADLOCK)
 	_level._check_stuck()
 	await get_tree().process_frame
@@ -120,7 +120,7 @@ func test_board_fits_above_panel_on_every_stuck() -> void:
 
 func test_hint_row_closes_panel_and_resets_board() -> void:
 	_level.state.coins = 500
-	_level.size = Vector2(720, 1280)
+	UiTestFit.fit_root(_level, Vector2(720, 1280))
 	_level.start_round(DEADLOCK)
 	_level._check_stuck()
 	_level.stuck_panel.hint_button.visible = true
