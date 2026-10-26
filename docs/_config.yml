@@ -1,0 +1,21 @@
+# GitHub Pages (Settings → Pages → Deploy from a branch → main /docs).
+# Publikujemy WYŁĄCZNIE docs/privacy/ (polityka prywatności, decyzja Huberta 2026-10-26).
+# Każdy nowy plik/katalog w docs/ MUSI trafić do `exclude` — pilnuje tego test w tools/test_tools.py.
+title: Vialo
+theme: jekyll-theme-minimal
+exclude:
+  - ASO.md
+  - AUTOMATION.md
+  - DASHBOARD.md
+  - DECISIONS.md
+  - EXPERIMENTS.md
+  - GDD.md
+  - LICENSES.md
+  - LOG.md
+  - MONETIZATION.md
+  - RELEASE_CHECKLIST.md
+  - RESEARCH.md
+  - SETUP_HUBERT.md
+  - STATUS.md
+  - remote_config
+  - ui

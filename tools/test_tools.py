@@ -728,6 +728,15 @@ class StoreMetadataTest(unittest.TestCase):
 class PrivacyDocsTest(unittest.TestCase):
     PRIVACY = ROOT / "docs" / "privacy"
 
+    def test_pages_publishes_only_privacy(self):
+        """GitHub Pages (main /docs) may publish only docs/privacy/ — everything else is excluded."""
+        config = (ROOT / "docs" / "_config.yml").read_text(encoding="utf-8")
+        excluded = set(re.findall(r"^\s+-\s+(\S+)\s*$", config, flags=re.M))
+        for entry in (ROOT / "docs").iterdir():
+            if entry.name in ("privacy", "_config.yml"):
+                continue
+            self.assertIn(entry.name, excluded, f"docs/{entry.name} would be published on GitHub Pages")
+
     def gdd_events(self):
         import re
 
