@@ -1,6 +1,6 @@
 # Polityka prywatności — Vialo: Water Sort Puzzle
 
-Ostatnia aktualizacja: 2026-10-24 (Last updated: 2026-10-24)
+Ostatnia aktualizacja: 2026-10-26 (Last updated: 2026-10-26)
 
 > DRAFT — pending legal review by the data controller before publication. (Wersja robocza — wymaga przeglądu prawnego przez administratora przed publikacją.)
 
@@ -43,7 +43,7 @@ Zależy od polityk dostawców SDK. ZWERYFIKUJ. Na naszych serwerach gra nie prze
 Na podstawie RODO możesz żądać dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia oraz wnieść sprzeciw. Masz prawo złożyć skargę do organu nadzorczego (w Polsce: Prezes Urzędu Ochrony Danych Osobowych, UODO). Kontakt: `__PRIVACY_CONTACT__`.
 
 ## 8. Dzieci
-Aplikacja jest przeznaczona dla osób od 13. roku życia. Nie jest skierowana do dzieci i nie uczestniczy w programach Designed for Families / Kids.
+Aplikacja jest przeznaczona dla osób od 16. roku życia. Nie jest skierowana do dzieci i nie uczestniczy w programach Designed for Families / Kids.
 
 ## 9. Zmiany polityki
 Zmienimy datę powyżej, a o istotnych zmianach poinformujemy w aplikacji lub opisie sklepowym.
