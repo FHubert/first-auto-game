@@ -29,6 +29,7 @@ const KNOWN_FIXTURES: Array[String] = [
 	"symbols",
 	"symbols_neon",
 	"plateau_assist",
+	"stuck_deadlock",
 ]
 const ACTIONS: Dictionary = {
 	"res://src/core/main.tscn": "home",

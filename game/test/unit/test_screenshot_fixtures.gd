@@ -92,10 +92,7 @@ func test_win_result_matches_economy() -> void:
 
 
 func test_apply_win_shows_real_coins_and_perfect() -> void:
-	var level: Level = load("res://src/levels/level.tscn").instantiate()
-	level.clock = TestClock.fixed()
-	level.state = ScreenshotFixtures.make("aso_win")
-	add_child(level)
+	var level: Level = _new_level("aso_win")
 	ScreenshotFixtures.apply_win(level)
 	var expected: int = Economy.win_reward({"won": true, "perfect": true})
 	var coins_label: Label = level.level_complete.coins_label
@@ -110,3 +107,44 @@ func test_symbols_neon_uses_neon_theme_with_symbols() -> void:
 	assert_str(state.theme_active).is_equal(ScreenshotFixtures.MIDGAME_EXTRA_THEME)
 	assert_array(state.themes_owned).contains([ScreenshotFixtures.MIDGAME_EXTRA_THEME])
 	assert_bool(bool(state.settings[ColorSymbols.SETTING_KEY])).is_true()
+
+
+func test_stuck_deadlock_opens_panel_via_check_stuck_without_hint_row() -> void:
+	var level: Level = _new_level("stuck_deadlock")
+	level.start_round(ScreenshotFixtures.deadlock_level())
+	assert_bool(level.round.is_stuck()).is_true()
+	assert_bool(level.stuck_panel.visible).is_false()
+	level._check_stuck()
+	assert_bool(level.stuck_panel.visible).is_true()
+	assert_str(level.stuck_panel.distance_label.text).is_equal(tr("stuck_no_solution"))
+	assert_bool(level.stuck_panel.hint_button.visible).is_false()
+	level.free()
+
+
+func test_aso_home_shows_daily_new_badge() -> void:
+	var home: Home = auto_free(load("res://src/ui/home.tscn").instantiate())
+	home.state = ScreenshotFixtures.make("aso_home")
+	home.clock = func() -> int: return ScreenshotArgs.SCREENSHOT_NOW_UNIX
+	add_child(home)
+	assert_bool(home.daily_new_badge.visible).is_true()
+
+
+func test_aso_level_hud_extra_tube_in_price_mode() -> void:
+	var prev: AdProvider = Ads.provider
+	var fake := FakeAdProvider.new()
+	Ads.provider = fake
+	ScreenshotFixtures.apply_ads("aso_level")
+	var level: Level = _new_level("aso_level")
+	assert_bool(level.hud.extra_tube_ad_button.visible).is_false()
+	assert_bool(level.hud.extra_tube_cost_label.visible).is_true()
+	assert_str(level.hud.extra_tube_cost_label.text).is_equal(str(Economy.extra_tube_cost()))
+	level.free()
+	Ads.provider = prev
+
+
+func _new_level(fixture: String) -> Level:
+	var level: Level = load("res://src/levels/level.tscn").instantiate()
+	level.clock = TestClock.fixed()
+	level.state = ScreenshotFixtures.make(fixture)
+	add_child(level)
+	return level

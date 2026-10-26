@@ -25,6 +25,22 @@ const SHOP_OFFER_HOURS_LEFT: int = 11
 const DAILY_STREAK: int = 3
 const SECONDS_PER_DAY: int = 86400
 
+## stuck_deadlock: every tube full and mixed, tops all differ -> no legal move, no solution.
+const DEADLOCK_TUBES: Array = [[0, 1, 2, 0], [1, 2, 0, 1], [2, 0, 1, 2]]
+## Fixtures whose capture must not have a ready rewarded ad (HUD shows the coin price).
+const NO_REWARDED_FIXTURES: Array[String] = ["aso_level"]
+
+
+## Level data of the `stuck_deadlock` smoke (same shape as generator output).
+static func deadlock_level() -> Dictionary:
+	return {"payload": {"capacity": 4, "tubes": DEADLOCK_TUBES.duplicate(true), "min_moves": 0}}
+
+
+## Makes the (fake) provider report no ready rewarded ad for fixtures that need price mode.
+static func apply_ads(fixture: String) -> void:
+	if NO_REWARDED_FIXTURES.has(fixture) and Ads.provider is FakeAdProvider:
+		(Ads.provider as FakeAdProvider).always_ready = false
+
 
 ## Pre-win LevelComplete values, derived from Economy (never literals).
 static func win_result() -> Dictionary:
@@ -71,7 +87,7 @@ static func make(fixture: String, utc_day: int = 0, now_unix: int = 0) -> GameSt
 			state.streak_days = MIDGAME_STREAK
 			state.themes_owned = [GameState.DEFAULT_THEME, MIDGAME_EXTRA_THEME]
 			state.daily_reward_last_claim_day = 0
-		"aso_level", "aso_win", "aso_home":
+		"aso_level", "aso_win", "aso_home", "stuck_deadlock":
 			state.level = ASO_LEVEL
 			state.levels_completed = ASO_LEVEL - 1
 			state.coins = ASO_COINS
@@ -80,7 +96,7 @@ static func make(fixture: String, utc_day: int = 0, now_unix: int = 0) -> GameSt
 				state.streak_days = ASO_HOME_STREAK_DAYS
 				state.streak_best = ASO_HOME_STREAK_BEST
 				state.daily_completed_total = ASO_HOME_DAILY_TOTAL
-				state.settings[Home.DAILY_INTRO_SEEN_KEY] = true
+				state.settings[Home.DAILY_INTRO_SEEN_KEY] = false  # badge NOWOŚĆ visible
 		"aso_daily":
 			state.level = ASO_LEVEL
 			state.levels_completed = ASO_LEVEL - 1

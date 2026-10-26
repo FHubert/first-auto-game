@@ -44,6 +44,7 @@ func _run_screenshot(args: PackedStringArray) -> void:
 	var action: String = ScreenshotArgs.action_for(str(parsed["scene"]))
 	if action != "daily_popup":  # popup only on its own shot; keep Home clean otherwise
 		state.daily_reward_last_claim_day = today
+	ScreenshotFixtures.apply_ads(str(parsed["fixture"]))
 	var app := App.new()
 	app.state = state
 	app.effects_enabled = false
@@ -67,6 +68,12 @@ func _show_screenshot_screen(app: App, action: String, fixture: String = "defaul
 			if fixture == "plateau_assist":
 				for _i in ScreenshotFixtures.PLATEAU_RESTARTS:
 					(app.current_screen() as Level).restart()
+			if fixture == "stuck_deadlock":  # real game path: panel opened by _check_stuck
+				var deadlock := app.current_screen() as Level
+				deadlock.start_round(
+					ScreenshotFixtures.deadlock_level(), deadlock.state.theme_active
+				)
+				deadlock._check_stuck()
 		"settings":
 			app.show_settings()
 		"themes":
