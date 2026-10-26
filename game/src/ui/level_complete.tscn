@@ -64,7 +64,12 @@ theme_override_constants/separation = 14
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="PerfectLabel" type="Label" parent="Panel/Box/PerfectBadge"]
+[node name="Row" type="HBoxContainer" parent="Panel/Box/PerfectBadge"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="PerfectLabel" type="Label" parent="Panel/Box/PerfectBadge/Row"]
 layout_mode = 2
 theme_type_variation = &"LabelTitle"
 theme_override_font_sizes/font_size = 30

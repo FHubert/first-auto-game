@@ -196,3 +196,51 @@ func test_win_tubes_pad_from_card_and_not_smaller() -> void:
 func test_win_dim_is_transparent_over_tubes() -> void:
 	var dim: ColorRect = _level.level_complete.get_node("Dim")
 	assert_float(dim.color.a).is_equal(0.0)
+
+
+func _win_rows_info(screen: Vector2, level_no: int) -> Dictionary:
+	UiTestFit.fit_root(_level, screen)
+	_level.load_level(level_no)
+	ScreenshotFixtures.apply_win(_level)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var lc: LevelComplete = _level.level_complete
+	var ys: Dictionary = {}
+	var min_gap: float = INF
+	var clear: bool = true
+	var n: int = _level.round.board().tube_count()
+	for i in n:
+		var r: Rect2 = _level.board.tube_rect(i)
+		ys[snappedf(r.position.y, 0.01)] = true
+		min_gap = minf(min_gap, lc.panel_rect().position.y - r.end.y)
+		clear = clear and not r.intersects(lc.header_rect()) and not r.intersects(lc.panel_rect())
+	return {
+		"n": n,
+		"rows": ys.size(),
+		"w": _level.board.tube_rect(0).size.x,
+		"gap": min_gap,
+		"clear": clear
+	}
+
+
+func test_win_two_rows_level56() -> void:
+	for screen: Vector2 in [Vector2(720, 1280), Vector2(720, 1560)]:
+		var info: Dictionary = await _win_rows_info(screen, 56)
+		print("T-316 level56 %s: tubes=%d width=%.3f" % [screen, info["n"], info["w"]])
+		assert_int(info["n"]).is_greater_equal(UiTokens.WIN_TWO_ROWS_FROM)
+		assert_int(info["rows"]).is_equal(2)
+		assert_float(info["w"]).is_greater_equal(1.5 * BASE_TUBE_W_LV56)
+		assert_float(info["gap"]).is_greater_equal(float(UiTokens.SCREEN_PAD))
+		assert_bool(info["clear"]).is_true()
+
+
+func test_win_one_row_level8() -> void:
+	var info: Dictionary = await _win_rows_info(Vector2(720, 1280), 8)
+	assert_int(info["n"]).is_less(UiTokens.WIN_TWO_ROWS_FROM)
+	assert_int(info["rows"]).is_equal(1)
+
+
+func test_columns_for_win_rows() -> void:
+	assert_int(BoardView.columns_for(14, true, 2)).is_equal(7)
+	assert_int(BoardView.columns_for(11, true, 2)).is_equal(6)
+	assert_int(BoardView.columns_for(14, true)).is_equal(14)
